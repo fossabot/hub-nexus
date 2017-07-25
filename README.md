@@ -1,2 +1,2 @@
 # hub-nexus
-Nexus 2 plugin
+Nexus 2 plugin starting development.
