@@ -2,9 +2,9 @@
   <modelVersion>4.0.0</modelVersion>
   
   <parent>
-  	<groupId>com.blackducksoftware.integration</groupId>
-  	<artifactId>common-maven-parent</artifactId>
-  	<version>4.0.0</version>
+  	<groupId>org.sonatype.nexus.plugins</groupId>
+    <artifactId>nexus-plugins</artifactId>
+    <version>2.14.4-03</version>
   </parent>
   
   <artifactId>hub-nexus</artifactId>
@@ -13,4 +13,85 @@
   <name>Nexus plug-in</name>
   <description>Nexus 2 plug-in</description>
   <url>https://github.com/blackducksoftware/hub-nexus</url>
+  <organization>
+    <name>Black Duck Software, Inc.</name>
+    <url>http://www.blackducksoftware.com/</url>
+  </organization>
+  <licenses>
+    <license>
+      <name>Apache License 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+    </license>
+  </licenses>
+  
+  <developers>
+    <developer>
+      <id>blackduckoss</id>
+      <name>Black Duck OSS</name>
+      <email>bdsoss@blackducksoftware.com</email>
+      <organization>Black Duck Software, Inc.</organization>
+      <organizationUrl>http://www.blackducksoftware.com</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>America/New_York</timezone>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git://github.com/blackducksoftware/hub-nexus.git/</connection>
+    <developerConnection>scm:git:git@github.com:blackducksoftware/hub-nexus.git</developerConnection>
+    <url>https://www.github.com/blackducksoftware/hub-nexus</url>
+  </scm>
+  
+  
+  <dependencies>
+  	<dependency>
+      <groupId>org.sonatype.nexus</groupId>
+      <artifactId>nexus-plugin-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sonatype.nexus</groupId>
+      <artifactId>nexus-plugin-testsupport</artifactId>
+      <scope>test</scope>
+    </dependency>
+    
+  </dependencies>
+  <build>
+    <plugins>
+    		<plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <!-- 2.8.0-01 and later require maven-compiler-plugin 3.1 or higher -->
+        <version>3.1</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-eclipse-compiler</artifactId>
+            <version>2.9.2-01</version>
+          </dependency>
+          <!-- for 2.8.0-01 and later you must have an explicit dependency on groovy-eclipse-batch -->
+          <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-eclipse-batch</artifactId>
+            <version>2.4.3-01</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <compilerId>groovy-eclipse-compiler</compilerId>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.groovy</groupId>
+        <artifactId>groovy-eclipse-compiler</artifactId>
+        <version>2.9.2-01</version>
+        <extensions>true</extensions>
+      </plugin>
+      <plugin>
+        <groupId>org.sonatype.nexus</groupId>
+        <artifactId>nexus-plugin-bundle-maven-plugin</artifactId>
+        <extensions>true</extensions>
+      </plugin>
+    </plugins>
+   </build>
 </project>
