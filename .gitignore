@@ -1,5 +1,8 @@
-target/
 .settings/
-.classpath/
-.project/
-.bin/
+.classpath
+.project
+target/
+bin/
+pom.xml.bak
+.DS_Store
+test.properties
