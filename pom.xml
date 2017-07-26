@@ -56,6 +56,11 @@
       <artifactId>nexus-plugin-testsupport</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.codehaus.groovy</groupId>
+      <artifactId>groovy-all</artifactId>
+      <version>2.4.11</version>
+    </dependency>
     
   </dependencies>
   <build>
