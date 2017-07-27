@@ -7,44 +7,33 @@
     <version>2.14.4-03</version>
   </parent>
   
+  <groupId>com.blackducksoftware.integration</groupId>
   <artifactId>hub-nexus</artifactId>
   <version>0.0.1-SNAPSHOT</version>
+  <packaging>nexus-plugin</packaging>
   
-  <name>Nexus plug-in</name>
-  <description>Nexus 2 plug-in</description>
+  <name>hub-nexus</name>
+  <description>Nexus 2 plug-in to scan repository artifacts</description>
   <url>https://github.com/blackducksoftware/hub-nexus</url>
+  
   <organization>
     <name>Black Duck Software, Inc.</name>
     <url>http://www.blackducksoftware.com/</url>
   </organization>
+  
   <licenses>
     <license>
       <name>Apache License 2.0</name>
       <url>http://www.apache.org/licenses/LICENSE-2.0</url>
     </license>
   </licenses>
-  
-  <developers>
-    <developer>
-      <id>blackduckoss</id>
-      <name>Black Duck OSS</name>
-      <email>bdsoss@blackducksoftware.com</email>
-      <organization>Black Duck Software, Inc.</organization>
-      <organizationUrl>http://www.blackducksoftware.com</organizationUrl>
-      <roles>
-        <role>developer</role>
-      </roles>
-      <timezone>America/New_York</timezone>
-    </developer>
-  </developers>
 
   <scm>
     <connection>scm:git:git://github.com/blackducksoftware/hub-nexus.git/</connection>
     <developerConnection>scm:git:git@github.com:blackducksoftware/hub-nexus.git</developerConnection>
     <url>https://www.github.com/blackducksoftware/hub-nexus</url>
   </scm>
-  
-  
+    
   <dependencies>
   	<dependency>
       <groupId>org.sonatype.nexus</groupId>
@@ -57,18 +46,18 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.groovy</groupId>
-      <artifactId>groovy-all</artifactId>
-      <version>2.4.11</version>
+      <groupId>com.blackducksoftware.integration</groupId>
+      <artifactId>hub-common</artifactId>
+      <version>13.1.2</version>
     </dependency>
-    
   </dependencies>
+  
   <build>
+    <sourceDirectory>src/main/groovy</sourceDirectory>
     <plugins>
-    		<plugin>
+    	  <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <!-- 2.8.0-01 and later require maven-compiler-plugin 3.1 or higher -->
-        <version>3.1</version>
         <dependencies>
           <dependency>
             <groupId>org.codehaus.groovy</groupId>
