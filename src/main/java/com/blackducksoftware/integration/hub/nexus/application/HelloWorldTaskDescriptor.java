@@ -23,12 +23,9 @@
  */
 package com.blackducksoftware.integration.hub.nexus.application;
 
-import java.util.List;
-
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.sonatype.nexus.formfields.FormField;
 import org.sonatype.nexus.tasks.descriptors.AbstractScheduledTaskDescriptor;
 
 @Named(HelloWorldTaskDescriptor.ID)
@@ -45,9 +42,9 @@ public class HelloWorldTaskDescriptor extends AbstractScheduledTaskDescriptor {
     public String getName() {
         return "HELLO WORLD!";
     }
-
-    @Override
-    public List<FormField> formFields() {
-        return null;
-    }
+    //
+    // @Override
+    // public List<FormField> formFields() {
+    // return null;
+    // }
 }
