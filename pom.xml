@@ -33,18 +33,23 @@
     <developerConnection>scm:git:git@github.com:blackducksoftware/hub-nexus.git</developerConnection>
     <url>https://www.github.com/blackducksoftware/hub-nexus</url>
   </scm>
-  
-  <repositories>
-    <repository>
-      <id>rso-public-grid</id>
-      <url>https://repository.sonatype.org/content/groups/sonatype-public-grid/</url>
-    </repository>
-  </repositories>
     
   <dependencies>
   	<dependency>
       <groupId>org.sonatype.nexus</groupId>
       <artifactId>nexus-plugin-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+    	  <groupId>org.sonatype.nexus.plugins</groupId>
+    	  <artifactId>nexus-siesta-plugin</artifactId>
+    	  <type>nexus-plugin</type>
+    	  <scope>provided</scope>
+ 	</dependency>
+ 	<dependency>
+      <groupId>org.sonatype.nexus.plugins</groupId>
+      <artifactId>nexus-ui-extjs3-plugin</artifactId>
+      <type>nexus-plugin</type>
       <scope>provided</scope>
     </dependency>
     <dependency>
