@@ -23,9 +23,15 @@
  */
 package com.blackducksoftware.integration.hub.nexus.application;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.sonatype.nexus.formfields.CheckboxFormField;
+import org.sonatype.nexus.formfields.FormField;
+import org.sonatype.nexus.formfields.TextAreaFormField;
 import org.sonatype.nexus.tasks.descriptors.AbstractScheduledTaskDescriptor;
 
 @Named(HelloWorldTaskDescriptor.ID)
@@ -42,9 +48,14 @@ public class HelloWorldTaskDescriptor extends AbstractScheduledTaskDescriptor {
     public String getName() {
         return "HELLO WORLD!";
     }
-    //
-    // @Override
-    // public List<FormField> formFields() {
-    // return null;
-    // }
+
+    @Override
+    public List<FormField> formFields() {
+        final CheckboxFormField checkbox = new CheckboxFormField("cbId", "Checkbox test", "This field is for testing the check boxes", false);
+        final TextAreaFormField textarea = new TextAreaFormField("taId", "text area test", "This field is for testing the text area", false);
+        final List<FormField> list = new ArrayList<>();
+        list.add(checkbox);
+        list.add(textarea);
+        return list;
+    }
 }
