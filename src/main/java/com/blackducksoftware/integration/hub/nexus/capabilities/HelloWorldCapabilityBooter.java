@@ -21,28 +21,23 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.ui;
+package com.blackducksoftware.integration.hub.nexus.capabilities;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
 import javax.inject.Named;
-import javax.inject.Singleton;
 
-import org.sonatype.nexus.plugin.support.UrlWebResource;
-import org.sonatype.nexus.web.WebResource;
-import org.sonatype.nexus.web.WebResourceBundle;
+import org.eclipse.sisu.EagerSingleton;
+import org.sonatype.nexus.plugins.capabilities.CapabilityRegistry;
+import org.sonatype.nexus.plugins.capabilities.support.CapabilityBooterSupport;
 
-@Named("HelloWorldResourceBundle")
-@Singleton
-public class HelloWorldResourceBundle implements WebResourceBundle {
-    public static final String JS_SCRIPT_PATH = "js/helloworld/helloworld-plugin.js";
+@Named
+@EagerSingleton
+public class HelloWorldCapabilityBooter extends CapabilityBooterSupport {
 
     @Override
-    public List<WebResource> getResources() {
-        final List<WebResource> resources = new ArrayList<>();
-        resources.add(new UrlWebResource(getClass().getResource("/js/helloworld-plugin.js"), "/" + JS_SCRIPT_PATH, "application/x-javascript"));
-        return resources;
+    protected void boot(final CapabilityRegistry registery) throws Exception {
+        this.maybeAddCapability(registery, HelloWorldCapabilityDescriptor.TYPE, true, "Automatically inserted", new HashMap<String, String>());
     }
 
 }

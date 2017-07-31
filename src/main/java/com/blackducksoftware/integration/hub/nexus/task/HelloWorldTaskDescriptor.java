@@ -21,43 +21,41 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.application;
+package com.blackducksoftware.integration.hub.nexus.task;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Singleton;
 
-import org.sonatype.nexus.configuration.application.NexusConfiguration;
-import org.sonatype.nexus.proxy.registry.RepositoryRegistry;
-import org.sonatype.nexus.proxy.repository.Repository;
-import org.sonatype.nexus.scheduling.AbstractNexusRepositoriesTask;
+import org.sonatype.nexus.formfields.CheckboxFormField;
+import org.sonatype.nexus.formfields.FormField;
+import org.sonatype.nexus.formfields.TextAreaFormField;
+import org.sonatype.nexus.tasks.descriptors.AbstractScheduledTaskDescriptor;
 
 @Named(HelloWorldTaskDescriptor.ID)
-public class HelloWorldTask extends AbstractNexusRepositoriesTask<Repository> {
-    NexusConfiguration nexusConfig = null;
+@Singleton
+public class HelloWorldTaskDescriptor extends AbstractScheduledTaskDescriptor {
+    public static final String ID = "NexusHelloWorld";
 
-    @Inject
-    public HelloWorldTask(final NexusConfiguration nexusConfiguration) {
-        nexusConfig = nexusConfiguration;
+    @Override
+    public String getId() {
+        return ID;
     }
 
     @Override
-    protected Repository doRun() throws Exception {
-        final RepositoryRegistry repos = this.getRepositoryRegistry();
-        final List<Repository> listOfRepos = repos.getRepositories();
-
-        return listOfRepos.get(0);
+    public String getName() {
+        return "HELLO WORLD!";
     }
 
     @Override
-    protected String getAction() {
-        return "TEST";
+    public List<FormField> formFields() {
+        final CheckboxFormField checkbox = new CheckboxFormField("cbId", "Checkbox test", "This field is for testing the check boxes", false);
+        final TextAreaFormField textarea = new TextAreaFormField("taId", "text area test", "This field is for testing the text area", false);
+        final List<FormField> list = new ArrayList<>();
+        list.add(checkbox);
+        list.add(textarea);
+        return list;
     }
-
-    @Override
-    protected String getMessage() {
-        return "Test for Nexus plugin";
-    }
-
 }

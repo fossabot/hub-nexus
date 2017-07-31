@@ -23,26 +23,14 @@
  */
 package com.blackducksoftware.integration.hub.nexus.ui;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.google.inject.AbstractModule;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
-
-import org.sonatype.nexus.plugin.support.UrlWebResource;
-import org.sonatype.nexus.web.WebResource;
-import org.sonatype.nexus.web.WebResourceBundle;
-
-@Named("HelloWorldResourceBundle")
-@Singleton
-public class HelloWorldResourceBundle implements WebResourceBundle {
-    public static final String JS_SCRIPT_PATH = "js/helloworld/helloworld-plugin.js";
+public class HelloWorldModule extends AbstractModule {
 
     @Override
-    public List<WebResource> getResources() {
-        final List<WebResource> resources = new ArrayList<>();
-        resources.add(new UrlWebResource(getClass().getResource("/js/helloworld-plugin.js"), "/" + JS_SCRIPT_PATH, "application/x-javascript"));
-        return resources;
+    protected void configure() {
+        // TODO Auto-generated method stub
+
     }
 
 }
