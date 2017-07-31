@@ -21,34 +21,29 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.application;
+package com.blackducksoftware.integration.hub.nexus.ui;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Singleton;
 
-import org.eclipse.sisu.EagerSingleton;
-import org.sonatype.nexus.plugin.PluginIdentity;
+import org.sonatype.nexus.plugins.ui.contribution.UiContributionBuilder;
+import org.sonatype.nexus.plugins.ui.contribution.UiContributorSupport;
+
+import com.blackducksoftware.integration.hub.nexus.application.HelloWorld;
 
 @Named
-@EagerSingleton
-public class HelloWorld extends PluginIdentity {
-
-    public static final String ID_PREFIX = "helloworld";
-
-    public static final String GROUP_ID = "com.blackducksoftware.integrations";
-
-    public static final String ARTIFACT_ID = "blackducksoftware-" + ID_PREFIX + "-plugin";
-
-    public static final String REST_PREFIX = "/" + ID_PREFIX;
-
-    public static final String PERMISSION_PREFIX_LOGGERS = "blackducksoftware:logconfig:";
-
-    public static final String PERMISSION_PREFIX_LOG = "blackducksoftware:logs:";
+@Singleton
+public class HelloWorldUI extends UiContributorSupport {
 
     @Inject
-    public HelloWorld() throws Exception {
-        super(GROUP_ID, ARTIFACT_ID);
-        this.log.info("HelloWorld, ctor");
+    public HelloWorldUI(final HelloWorld owner) {
+        super(owner);
+    }
+
+    @Override
+    protected void customize(final UiContributionBuilder builder) {
+        builder.withDependency(HelloWorldResourceBundle.JS_SCRIPT_PATH);
     }
 
 }

@@ -21,34 +21,30 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.application;
+package com.blackducksoftware.integration.hub.nexus.ui;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import java.io.IOException;
 
-import org.eclipse.sisu.EagerSingleton;
-import org.sonatype.nexus.plugin.PluginIdentity;
+import org.sonatype.configuration.ConfigurationException;
+import org.sonatype.nexus.configuration.CoreConfiguration;
+import org.sonatype.nexus.templates.AbstractConfigurableTemplate;
+import org.sonatype.nexus.templates.TemplateProvider;
 
-@Named
-@EagerSingleton
-public class HelloWorld extends PluginIdentity {
+public class HelloWorldTemplate extends AbstractConfigurableTemplate {
 
-    public static final String ID_PREFIX = "helloworld";
+    public HelloWorldTemplate(final TemplateProvider provider, final String id, final String description) {
+        super(provider, id, description);
+    }
 
-    public static final String GROUP_ID = "com.blackducksoftware.integrations";
+    @Override
+    public Object create() throws ConfigurationException, IOException {
+        return null;
+    }
 
-    public static final String ARTIFACT_ID = "blackducksoftware-" + ID_PREFIX + "-plugin";
-
-    public static final String REST_PREFIX = "/" + ID_PREFIX;
-
-    public static final String PERMISSION_PREFIX_LOGGERS = "blackducksoftware:logconfig:";
-
-    public static final String PERMISSION_PREFIX_LOG = "blackducksoftware:logs:";
-
-    @Inject
-    public HelloWorld() throws Exception {
-        super(GROUP_ID, ARTIFACT_ID);
-        this.log.info("HelloWorld, ctor");
+    @Override
+    protected CoreConfiguration initCoreConfiguration() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

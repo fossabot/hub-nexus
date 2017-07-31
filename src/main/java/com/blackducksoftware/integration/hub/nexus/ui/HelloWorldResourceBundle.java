@@ -21,34 +21,28 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.application;
+package com.blackducksoftware.integration.hub.nexus.ui;
 
-import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.inject.Named;
+import javax.inject.Singleton;
 
-import org.eclipse.sisu.EagerSingleton;
-import org.sonatype.nexus.plugin.PluginIdentity;
+import org.sonatype.nexus.plugin.support.UrlWebResource;
+import org.sonatype.nexus.web.WebResource;
+import org.sonatype.nexus.web.WebResourceBundle;
 
-@Named
-@EagerSingleton
-public class HelloWorld extends PluginIdentity {
+@Named("HelloWorldResourceBundle")
+@Singleton
+public class HelloWorldResourceBundle implements WebResourceBundle {
+    public static final String JS_SCRIPT_PATH = "js/helloworld-plugin.js";
 
-    public static final String ID_PREFIX = "helloworld";
-
-    public static final String GROUP_ID = "com.blackducksoftware.integrations";
-
-    public static final String ARTIFACT_ID = "blackducksoftware-" + ID_PREFIX + "-plugin";
-
-    public static final String REST_PREFIX = "/" + ID_PREFIX;
-
-    public static final String PERMISSION_PREFIX_LOGGERS = "blackducksoftware:logconfig:";
-
-    public static final String PERMISSION_PREFIX_LOG = "blackducksoftware:logs:";
-
-    @Inject
-    public HelloWorld() throws Exception {
-        super(GROUP_ID, ARTIFACT_ID);
-        this.log.info("HelloWorld, ctor");
+    @Override
+    public List<WebResource> getResources() {
+        final List<WebResource> resources = new ArrayList<>();
+        resources.add(new UrlWebResource(getClass().getResource("/" + JS_SCRIPT_PATH), "/" + JS_SCRIPT_PATH, "application/x-javascript"));
+        return resources;
     }
 
 }
