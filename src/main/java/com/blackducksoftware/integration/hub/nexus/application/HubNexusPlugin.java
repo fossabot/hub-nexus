@@ -31,7 +31,7 @@ import org.sonatype.nexus.plugin.PluginIdentity;
 
 @Named
 @EagerSingleton
-public class HelloWorld extends PluginIdentity {
+public class HubNexusPlugin extends PluginIdentity {
 
     public static final String ID_PREFIX = "helloworld";
 
@@ -46,7 +46,7 @@ public class HelloWorld extends PluginIdentity {
     public static final String PERMISSION_PREFIX_LOG = "blackducksoftware:logs:";
 
     @Inject
-    public HelloWorld() throws Exception {
+    public HubNexusPlugin() throws Exception {
         super(GROUP_ID, ARTIFACT_ID);
         this.log.info("HelloWorld, ctor");
     }

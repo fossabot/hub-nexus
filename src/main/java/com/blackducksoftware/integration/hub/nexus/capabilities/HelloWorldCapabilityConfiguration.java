@@ -23,6 +23,39 @@
  */
 package com.blackducksoftware.integration.hub.nexus.capabilities;
 
-public class HelloWorldCapabilityConfiguration {
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.sonatype.nexus.capability.support.CapabilityConfigurationSupport;
+
+import com.google.common.collect.Maps;
+
+public class HelloWorldCapabilityConfiguration extends CapabilityConfigurationSupport {
+    private static final Logger log = LoggerFactory.getLogger(HelloWorldCapabilityConfiguration.class);
+
+    private final String checkbox;
+
+    private final String textarea;
+
+    public HelloWorldCapabilityConfiguration(final Map<String, String> properties) {
+        checkNotNull(properties);
+        log.info("HW cap Cnofig");
+        checkbox = properties.get("cbId");
+        textarea = properties.get("taId");
+    }
+
+    public Map<String, String> asMap() {
+        final Map<String, String> props = Maps.newHashMap();
+        props.put("cbId", checkbox);
+        props.put("taId", textarea);
+        return props;
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "saasdasdasdasd";
+    }
 }

@@ -28,19 +28,39 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonatype.nexus.capability.support.CapabilitySupport;
+import org.sonatype.nexus.plugins.capabilities.Condition;
 
 @Named(HelloWorldCapabilityDescriptor.TYPE_ID)
 public class HelloWorldCapability extends CapabilitySupport<HelloWorldCapabilityConfiguration> {
+    private static final Logger log = LoggerFactory.getLogger(HelloWorldCapability.class);
 
     @Inject
     public HelloWorldCapability() {
-
+        log.info("capability ctor");
     }
 
     @Override
     protected HelloWorldCapabilityConfiguration createConfig(final Map<String, String> config) throws Exception {
-        return new HelloWorldCapabilityConfiguration();
+        log.info("create config");
+        return new HelloWorldCapabilityConfiguration(config);
     }
 
+    @Override
+    protected void onActivate(final HelloWorldCapabilityConfiguration config) throws Exception {
+        log.info("OnActivate");
+    }
+
+    @Override
+    protected void onPassivate(final HelloWorldCapabilityConfiguration config) throws Exception {
+        log.info("OnPassivate");
+    }
+
+    @Override
+    public Condition activationCondition() {
+        log.info("capability activation condition");
+        return conditions().capabilities().passivateCapabilityDuringUpdate();
+    }
 }

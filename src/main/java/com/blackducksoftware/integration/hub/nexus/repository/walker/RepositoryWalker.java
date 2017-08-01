@@ -39,7 +39,9 @@ import com.blackducksoftware.integration.hub.service.HubServicesFactory;
 public class RepositoryWalker extends AbstractWalkerProcessor {
 
     private final HubServerConfig hubServerConfig;
+
     private final HubServicesFactory hubServicesFactory;
+
     private final Logger logger = Loggers.getLogger(getClass());
 
     private final String fileMatcherString = "*.war,*.zip,*.tar.gz,*.hpi";
@@ -62,7 +64,9 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
             final String[] patternArray = StringUtils.split(fileMatcherString, ",");
             for (final String wildCardPattern : patternArray) {
                 if (FilenameUtils.wildcardMatch(item.getPath(), wildCardPattern)) {
-                    final ArtifactScanner scanner = new ArtifactScanner(hubServerConfig, hubServicesFactory, context.getRepository(), context.getResourceStoreRequest(), item);
+                    logger.info("Path of " + item.getName() + ": " + item.getPath());
+                    final ArtifactScanner scanner = new ArtifactScanner(hubServerConfig, hubServicesFactory, context.getRepository(),
+                            context.getResourceStoreRequest(), item);
                     scanner.scan();
                     break;
                 }

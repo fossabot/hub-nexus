@@ -23,43 +23,87 @@
  */
 package com.blackducksoftware.integration.hub.nexus.capabilities;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonatype.nexus.capability.support.CapabilityDescriptorSupport;
-import org.sonatype.nexus.formfields.CheckboxFormField;
 import org.sonatype.nexus.formfields.FormField;
-import org.sonatype.nexus.formfields.TextAreaFormField;
+import org.sonatype.nexus.formfields.StringTextFormField;
 import org.sonatype.nexus.plugins.capabilities.CapabilityType;
+import org.sonatype.nexus.plugins.capabilities.Tag;
+import org.sonatype.nexus.plugins.capabilities.Taggable;
+import org.sonatype.nexus.plugins.capabilities.Validator;
+import org.sonatype.sisu.goodies.i18n.I18N;
+import org.sonatype.sisu.goodies.i18n.MessageBundle;
 
-@Singleton
+import com.google.common.collect.Lists;
+
 @Named(HelloWorldCapabilityDescriptor.TYPE_ID)
-public class HelloWorldCapabilityDescriptor extends CapabilityDescriptorSupport {
-    public static final String TYPE_ID = "hello-world";
+@Singleton
+public class HelloWorldCapabilityDescriptor extends CapabilityDescriptorSupport implements Taggable {
+    private static final Logger log = LoggerFactory.getLogger(HelloWorldCapabilityDescriptor.class);
+
+    public static final String TYPE_ID = "hwt";
 
     public static final CapabilityType TYPE = CapabilityType.capabilityType(TYPE_ID);
 
+    private static interface Messages extends MessageBundle {
+        @DefaultMessage("Hello world capability")
+        String name();
+    }
+
+    private static final Messages messages = I18N.create(Messages.class);
+
+    private final List<FormField> formFields;
+
+    public HelloWorldCapabilityDescriptor() {
+        log.info("HW Cap Desc");
+        formFields = Lists.<FormField> newArrayList(
+                new StringTextFormField(
+                        "tttt",
+                        "label",
+                        "help",
+                        FormField.MANDATORY));
+    }
+
     @Override
     public List<FormField> formFields() {
-        final CheckboxFormField checkbox = new CheckboxFormField("cbId", "Checkbox test", "This field is for testing the check boxes", false);
-        final TextAreaFormField textarea = new TextAreaFormField("taId", "text area test", "This field is for testing the text area", false);
-        final List<FormField> list = new ArrayList<>();
-        list.add(checkbox);
-        list.add(textarea);
-        return list;
+        // final CheckboxFormField checkbox = new CheckboxFormField("cbId", "Checkbox test", "This field is for testing
+        // the check boxes", false);
+        // final TextAreaFormField textarea = new TextAreaFormField("taId", "text area test", "This field is for testing
+        // the text area", false);
+        // final List<FormField> list = new ArrayList<>();
+        // list.add(checkbox);
+        // list.add(textarea);
+        // return list;
+        return formFields;
     }
 
     @Override
     public String name() {
-        return "Hello world descriptor";
+        // return messages.name();
+        return "Paulo";
     }
 
     @Override
     public CapabilityType type() {
         return TYPE;
+    }
+
+    @Override
+    public Validator validator() {
+        // Allow only one capability of this type
+        return validators().capability().uniquePer(HelloWorldCapabilityDescriptor.TYPE);
+    }
+
+    @Override
+    public Set<Tag> getTags() {
+        return Tag.tags(Tag.categoryTag("hwhwhwhwhw"));
     }
 
 }
