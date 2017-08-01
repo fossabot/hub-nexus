@@ -48,7 +48,7 @@ public class HubNexusPlugin extends PluginIdentity {
     @Inject
     public HubNexusPlugin() throws Exception {
         super(GROUP_ID, ARTIFACT_ID);
-        this.log.info("HelloWorld, ctor");
+        this.log.info("Hub nexus plugin started");
     }
 
 }

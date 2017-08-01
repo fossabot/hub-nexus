@@ -1,25 +1,25 @@
 /*
  * hub-nexus
  *
- * Copyright (C) 2017 Black Duck Software, Inc.
- * http://www.blackducksoftware.com/
+ * 	Copyright (C) 2017 Black Duck Software, Inc.
+ * 	http://www.blackducksoftware.com/
  *
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements. See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership. The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at
+ * 	Licensed to the Apache Software Foundation (ASF) under one
+ * 	or more contributor license agreements. See the NOTICE file
+ * 	distributed with this work for additional information
+ * 	regarding copyright ownership. The ASF licenses this file
+ * 	to you under the Apache License, Version 2.0 (the
+ * 	"License"); you may not use this file except in compliance
+ * 	with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * 	http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * 	Unless required by applicable law or agreed to in writing,
+ * 	software distributed under the License is distributed on an
+ * 	"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * 	KIND, either express or implied. See the License for the
+ * 	specific language governing permissions and limitations
+ * 	under the License.
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
@@ -49,27 +49,16 @@ import com.blackducksoftware.integration.log.Slf4jIntLogger;
 
 @Named(ScanTaskDescriptor.ID)
 public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
-
     private static final String ALL_REPO_ID = "all_repo";
-
     private final ApplicationConfiguration appConfiguration;
-
     private final Walker walker;
-
-    private final String HUB_URL = "";
-
+    private String HUB_URL = "";
     private final int HUB_TIMEOUT = 120;
-
-    private final String HUB_USERNAME = "";
-
-    private final String HUB_PASSWORD = "";
-
+    private String HUB_USERNAME = "";
+    private String HUB_PASSWORD = "";
     private final String HUB_PROXY_HOST = "";
-
     private final int HUB_PROXY_PORT = 0;
-
     private final String HUB_PROXY_USERNAME = "";
-
     private final String HUB_PROXY_PASSWORD = "";
 
     @Inject
@@ -105,6 +94,10 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
                 repositoryList.add(getRepositoryRegistry().getRepository(repositoryFieldId));
             }
         }
+        HUB_URL = getParameter(ScanTaskDescriptor.HUB_URL);
+        HUB_USERNAME = getParameter(ScanTaskDescriptor.HUB_USERNAME);
+        HUB_PASSWORD = getParameter(ScanTaskDescriptor.HUB_PASSWORD);
+
         final HubServerConfig hubServerConfig = createHubServerConfig();
         final CredentialsRestConnection credentialsRestConnection = hubServerConfig.createCredentialsRestConnection(new Slf4jIntLogger(logger));
         final HubServicesFactory hubServicesFactory = new HubServicesFactory(credentialsRestConnection);
@@ -139,8 +132,7 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
         return hubServerConfigBuilder.build();
     }
 
-    private WalkerContext createRepositoryWalker(final HubServerConfig hubServerConfig, final HubServicesFactory hubServicesFactory,
-            final Repository repository) {
+    private WalkerContext createRepositoryWalker(final HubServerConfig hubServerConfig, final HubServicesFactory hubServicesFactory, final Repository repository) {
         final ResourceStoreRequest request = new ResourceStoreRequest(getResourceStorePath(), true, false);
         if (StringUtils.isBlank(request.getRequestPath())) {
             request.setRequestPath(RepositoryItemUid.PATH_ROOT);

@@ -30,6 +30,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.sonatype.nexus.formfields.FormField;
+import org.sonatype.nexus.formfields.PasswordFormField;
 import org.sonatype.nexus.formfields.RepoOrGroupComboFormField;
 import org.sonatype.nexus.formfields.StringTextFormField;
 import org.sonatype.nexus.tasks.descriptors.AbstractScheduledTaskDescriptor;
@@ -38,15 +39,11 @@ import org.sonatype.nexus.tasks.descriptors.AbstractScheduledTaskDescriptor;
 @Singleton
 public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
     public static final String ID = "Hub Repository Scan";
-
     public static final String REPOSITORY_FIELD_ID = "repositoryId";
-
     public static final String REPOSITORY_PATH_FIELD_ID = "repositoryPath";
-
-    private final RepoOrGroupComboFormField repoField = new RepoOrGroupComboFormField(REPOSITORY_FIELD_ID, RepoOrGroupComboFormField.DEFAULT_LABEL, "Type in the repository in which to run the task.", FormField.MANDATORY);
-
-    private final StringTextFormField resourceStorePathField = new StringTextFormField(REPOSITORY_PATH_FIELD_ID, "Repository path", "Enter a repository path to run the task in recursively (ie. \"/\" for root or \"/org/apache\").",
-            FormField.OPTIONAL);
+    public static final String HUB_PASSWORD = "hubPassword";
+    public static final String HUB_USERNAME = "hubUsername";
+    public static final String HUB_URL = "hubUrl";
 
     @Override
     public String getId() {
@@ -62,8 +59,18 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
     public List<FormField> formFields() {
         final List<FormField> fields = new ArrayList<>();
 
+        final RepoOrGroupComboFormField repoField = new RepoOrGroupComboFormField(REPOSITORY_FIELD_ID, RepoOrGroupComboFormField.DEFAULT_LABEL, "Type in the repository in which to run the task.", FormField.MANDATORY);
+        final StringTextFormField resourceStorePathField = new StringTextFormField(REPOSITORY_PATH_FIELD_ID, "Repository path", "Enter a repository path to run the task in recursively (ie. \"/\" for root or \"/org/apache\").",
+                FormField.OPTIONAL);
+        final StringTextFormField hubUrlField = new StringTextFormField(HUB_URL, "Hub URL", "URL to your Blackduck hub", FormField.MANDATORY);
+        final StringTextFormField usernameField = new StringTextFormField(HUB_USERNAME, "Hub username", "Username for your Blackduck hub account to properly connect", FormField.MANDATORY);
+        final PasswordFormField passwordField = new PasswordFormField(HUB_PASSWORD, "Hub password", "Password for your Blackduck hub account to properly connect", FormField.MANDATORY);
+
         fields.add(repoField);
         fields.add(resourceStorePathField);
+        fields.add(hubUrlField);
+        fields.add(usernameField);
+        fields.add(passwordField);
 
         return fields;
     }
