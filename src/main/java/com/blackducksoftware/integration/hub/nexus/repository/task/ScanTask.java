@@ -52,14 +52,6 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
     private static final String ALL_REPO_ID = "all_repo";
     private final ApplicationConfiguration appConfiguration;
     private final Walker walker;
-    private String HUB_URL = "";
-    private final int HUB_TIMEOUT = 120;
-    private String HUB_USERNAME = "";
-    private String HUB_PASSWORD = "";
-    private final String HUB_PROXY_HOST = "";
-    private final int HUB_PROXY_PORT = 0;
-    private final String HUB_PROXY_USERNAME = "";
-    private final String HUB_PROXY_PASSWORD = "";
 
     @Inject
     public ScanTask(final ApplicationConfiguration appConfiguration, final Walker walker) {
@@ -69,21 +61,17 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
 
     @Override
     protected String getRepositoryFieldId() {
-        return ScanTaskDescriptor.REPOSITORY_FIELD_ID;
+        return TaskField.REPOSITORY_FIELD_ID.getParameterKey();
     }
 
     @Override
     protected String getRepositoryPathFieldId() {
-        return ScanTaskDescriptor.REPOSITORY_PATH_FIELD_ID;
+        return TaskField.REPOSITORY_PATH_FIELD_ID.getParameterKey();
     }
 
     @Override
     protected Object doRun() throws Exception {
-        getLogger().info("Running Scan repository task");
-        final String repositoryFieldId = getParameter(ScanTaskDescriptor.REPOSITORY_FIELD_ID);
-        final String pathList = getParameter(ScanTaskDescriptor.REPOSITORY_PATH_FIELD_ID);
-        getLogger().info(String.format("Repository ID %s", repositoryFieldId));
-        getLogger().info(String.format("Repository Path Field ID %s", pathList));
+        final String repositoryFieldId = getParameter(TaskField.REPOSITORY_FIELD_ID.getParameterKey());
         List<Repository> repositoryList = new Vector<>();
         final List<WalkerContext> contextList = new ArrayList<>();
 
@@ -94,9 +82,6 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
                 repositoryList.add(getRepositoryRegistry().getRepository(repositoryFieldId));
             }
         }
-        HUB_URL = getParameter(ScanTaskDescriptor.HUB_URL);
-        HUB_USERNAME = getParameter(ScanTaskDescriptor.HUB_USERNAME);
-        HUB_PASSWORD = getParameter(ScanTaskDescriptor.HUB_PASSWORD);
 
         final HubServerConfig hubServerConfig = createHubServerConfig();
         final CredentialsRestConnection credentialsRestConnection = hubServerConfig.createCredentialsRestConnection(new Slf4jIntLogger(logger));
@@ -110,7 +95,7 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
 
     @Override
     protected String getAction() {
-        return "HUB_SCAN";
+        return "BLACKDUCK_HUB_SCAN";
     }
 
     @Override
@@ -119,15 +104,25 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
     }
 
     private HubServerConfig createHubServerConfig() {
+
+        final String hubUrl = getParameter(TaskField.HUB_URL.getParameterKey());
+        final String hubUsername = getParameter(TaskField.HUB_USERNAME.getParameterKey());
+        final String hubPassword = getParameter(TaskField.HUB_PASSWORD.getParameterKey());
+        final String hubTimeout = getParameter(TaskField.HUB_TIMEOUT.getParameterKey());
+        final String proxyHost = getParameter(TaskField.HUB_PROXY_HOST.getParameterKey());
+        final String proxyPort = getParameter(TaskField.HUB_PROXY_PORT.getParameterKey());
+        final String proxyUsername = getParameter(TaskField.HUB_PROXY_USERNAME.getParameterKey());
+        final String proxyPassword = getParameter(TaskField.HUB_PROXY_PASSWORD.getParameterKey());
+
         final HubServerConfigBuilder hubServerConfigBuilder = new HubServerConfigBuilder();
-        hubServerConfigBuilder.setHubUrl(HUB_URL);
-        hubServerConfigBuilder.setUsername(HUB_USERNAME);
-        hubServerConfigBuilder.setPassword(HUB_PASSWORD);
-        hubServerConfigBuilder.setTimeout(HUB_TIMEOUT);
-        hubServerConfigBuilder.setProxyHost(HUB_PROXY_HOST);
-        hubServerConfigBuilder.setProxyPort(HUB_PROXY_PORT);
-        hubServerConfigBuilder.setProxyUsername(HUB_PROXY_USERNAME);
-        hubServerConfigBuilder.setProxyPassword(HUB_PROXY_PASSWORD);
+        hubServerConfigBuilder.setHubUrl(hubUrl);
+        hubServerConfigBuilder.setUsername(hubUsername);
+        hubServerConfigBuilder.setPassword(hubPassword);
+        hubServerConfigBuilder.setTimeout(hubTimeout);
+        hubServerConfigBuilder.setProxyHost(proxyHost);
+        hubServerConfigBuilder.setProxyPort(proxyPort);
+        hubServerConfigBuilder.setProxyUsername(proxyUsername);
+        hubServerConfigBuilder.setProxyPassword(proxyPassword);
 
         return hubServerConfigBuilder.build();
     }
@@ -139,10 +134,10 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
         }
 
         request.setRequestLocalOnly(true);
-
+        final String fileMatchPatterns = getParameter(TaskField.FILE_PATTERNS.getParameterKey());
         final WalkerContext context = new DefaultWalkerContext(repository, request);
         getLogger().info(String.format("Creating walker for repository %s", repository.getName()));
-        context.getProcessors().add(new RepositoryWalker(hubServerConfig, hubServicesFactory));
+        context.getProcessors().add(new RepositoryWalker(hubServerConfig, hubServicesFactory, fileMatchPatterns));
         return context;
     }
 

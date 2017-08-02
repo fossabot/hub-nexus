@@ -29,6 +29,7 @@ import java.util.List;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.sonatype.nexus.formfields.CheckboxFormField;
 import org.sonatype.nexus.formfields.FormField;
 import org.sonatype.nexus.formfields.PasswordFormField;
 import org.sonatype.nexus.formfields.RepoOrGroupComboFormField;
@@ -38,12 +39,8 @@ import org.sonatype.nexus.tasks.descriptors.AbstractScheduledTaskDescriptor;
 @Named(ScanTaskDescriptor.ID)
 @Singleton
 public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
+    private static final String DEFAULT_FILE_PATTERNS = "*.war,*.zip,*.tar.gz,*.hpi";
     public static final String ID = "Hub Repository Scan";
-    public static final String REPOSITORY_FIELD_ID = "repositoryId";
-    public static final String REPOSITORY_PATH_FIELD_ID = "repositoryPath";
-    public static final String HUB_PASSWORD = "hubPassword";
-    public static final String HUB_USERNAME = "hubUsername";
-    public static final String HUB_URL = "hubUrl";
 
     @Override
     public String getId() {
@@ -59,18 +56,36 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
     public List<FormField> formFields() {
         final List<FormField> fields = new ArrayList<>();
 
-        final RepoOrGroupComboFormField repoField = new RepoOrGroupComboFormField(REPOSITORY_FIELD_ID, RepoOrGroupComboFormField.DEFAULT_LABEL, "Type in the repository in which to run the task.", FormField.MANDATORY);
-        final StringTextFormField resourceStorePathField = new StringTextFormField(REPOSITORY_PATH_FIELD_ID, "Repository path", "Enter a repository path to run the task in recursively (ie. \"/\" for root or \"/org/apache\").",
-                FormField.OPTIONAL);
-        final StringTextFormField hubUrlField = new StringTextFormField(HUB_URL, "Hub URL", "URL to your Blackduck hub", FormField.MANDATORY);
-        final StringTextFormField usernameField = new StringTextFormField(HUB_USERNAME, "Hub username", "Username for your Blackduck hub account to properly connect", FormField.MANDATORY);
-        final PasswordFormField passwordField = new PasswordFormField(HUB_PASSWORD, "Hub password", "Password for your Blackduck hub account to properly connect", FormField.MANDATORY);
+        final RepoOrGroupComboFormField repoField = new RepoOrGroupComboFormField(TaskField.REPOSITORY_FIELD_ID.getParameterKey(), RepoOrGroupComboFormField.DEFAULT_LABEL, "Type in the repository in which to run the task.",
+                FormField.MANDATORY);
+        final StringTextFormField resourceStorePathField = new StringTextFormField(TaskField.REPOSITORY_PATH_FIELD_ID.getParameterKey(), "Repository path",
+                "Enter a repository path to run the task in recursively (ie. \"/\" for root or \"/org/apache\").", FormField.OPTIONAL);
+        final StringTextFormField hubUrlField = new StringTextFormField(TaskField.HUB_URL.getParameterKey(), "Hub URL", "URL to your Blackduck hub", FormField.MANDATORY);
+        final StringTextFormField usernameField = new StringTextFormField(TaskField.HUB_USERNAME.getParameterKey(), "Hub username", "Username for your Blackduck hub account to properly connect", FormField.MANDATORY);
+        final PasswordFormField passwordField = new PasswordFormField(TaskField.HUB_PASSWORD.getParameterKey(), "Hub password", "Password for your Blackduck hub account to properly connect", FormField.MANDATORY);
+        final StringTextFormField timeoutField = new StringTextFormField(TaskField.HUB_TIMEOUT.getParameterKey(), "Timeout", "The timeout in seconds for a request to the Blackduck Hub server", FormField.OPTIONAL);
+        final CheckboxFormField autoImportCert = new CheckboxFormField(TaskField.HUB_AUTO_IMPORT_CERT.getParameterKey(), "Auto Import Certs", "Auto-import Hub server certificate into keystore", FormField.OPTIONAL);
+
+        final StringTextFormField proxyHostField = new StringTextFormField(TaskField.HUB_PROXY_HOST.getParameterKey(), "Proxy Host", "The hostname of the proxy to communicate with the Blackduck Hub", FormField.OPTIONAL);
+        final StringTextFormField proxyPortField = new StringTextFormField(TaskField.HUB_PROXY_PORT.getParameterKey(), "Proxy Port", "Port to communicate with the proxy", FormField.OPTIONAL);
+        final StringTextFormField proxyUsernameField = new StringTextFormField(TaskField.HUB_PROXY_USERNAME.getParameterKey(), "Proxy username", "Username for your authenticated proxy", FormField.OPTIONAL);
+        final PasswordFormField proxyPasswordField = new PasswordFormField(TaskField.HUB_PROXY_PASSWORD.getParameterKey(), "Proxy password", "Password for your authenticated proxy", FormField.OPTIONAL);
+
+        final StringTextFormField filePatternField = new StringTextFormField(TaskField.FILE_PATTERNS.getParameterKey(), "File Pattern Matches", "The file pattern match wildcard to filter the artifacts scanned.", FormField.MANDATORY)
+                .withInitialValue(DEFAULT_FILE_PATTERNS);
 
         fields.add(repoField);
         fields.add(resourceStorePathField);
         fields.add(hubUrlField);
         fields.add(usernameField);
         fields.add(passwordField);
+        fields.add(timeoutField);
+        fields.add(autoImportCert);
+        fields.add(proxyHostField);
+        fields.add(proxyPortField);
+        fields.add(proxyUsernameField);
+        fields.add(proxyPasswordField);
+        fields.add(filePatternField);
 
         return fields;
     }

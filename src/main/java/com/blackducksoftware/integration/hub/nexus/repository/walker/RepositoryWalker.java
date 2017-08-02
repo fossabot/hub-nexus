@@ -44,11 +44,12 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
 
     private final Logger logger = Loggers.getLogger(getClass());
 
-    private final String fileMatcherString = "*.war,*.zip,*.tar.gz,*.hpi";
+    private final String fileMatchPatterns;
 
-    public RepositoryWalker(final HubServerConfig hubServerConfig, final HubServicesFactory hubServicesFactory) {
+    public RepositoryWalker(final HubServerConfig hubServerConfig, final HubServicesFactory hubServicesFactory, final String fileMatchPatterns) {
         this.hubServerConfig = hubServerConfig;
         this.hubServicesFactory = hubServicesFactory;
+        this.fileMatchPatterns = fileMatchPatterns;
     }
 
     @Override
@@ -61,12 +62,11 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
             if (item.getRepositoryItemUid().getBooleanAttributeValue(IsHiddenAttribute.class)) {
                 return;
             }
-            final String[] patternArray = StringUtils.split(fileMatcherString, ",");
+            final String[] patternArray = StringUtils.split(fileMatchPatterns, ",");
             for (final String wildCardPattern : patternArray) {
                 if (FilenameUtils.wildcardMatch(item.getPath(), wildCardPattern)) {
                     logger.info("Path of " + item.getName() + ": " + item.getPath());
-                    final ArtifactScanner scanner = new ArtifactScanner(hubServerConfig, hubServicesFactory, context.getRepository(),
-                            context.getResourceStoreRequest(), item);
+                    final ArtifactScanner scanner = new ArtifactScanner(hubServerConfig, hubServicesFactory, context.getRepository(), context.getResourceStoreRequest(), item);
                     scanner.scan();
                     break;
                 }
