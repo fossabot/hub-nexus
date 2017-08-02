@@ -37,8 +37,6 @@ import com.blackducksoftware.integration.hub.builder.HubScanConfigBuilder;
 import com.blackducksoftware.integration.hub.dataservice.cli.CLIDataService;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
-import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
-import com.blackducksoftware.integration.hub.phonehome.IntegrationInfo;
 import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder;
 import com.blackducksoftware.integration.hub.scan.HubScanConfig;
 import com.blackducksoftware.integration.hub.service.HubServicesFactory;
@@ -72,7 +70,8 @@ public class ArtifactScanner {
             logger.info(String.format("Scan Path %s", scanConfig.getScanTargetPaths()));
             final CLIDataService cliDataService = createCLIDataService(hubServicesFactory);
             final ProjectRequest projectRequest = createProjectRequest();
-            final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, projectRequest, true, IntegrationInfo.DO_NOT_PHONE_HOME);
+            // TODO: Fix file paths. do not perform the scan the file paths do not exist causes scan to run in the hub for a long time.
+            // final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, projectRequest, true, IntegrationInfo.DO_NOT_PHONE_HOME);
         } catch (final Exception ex) {
             logger.error("Error occurred during scan", ex);
         }
