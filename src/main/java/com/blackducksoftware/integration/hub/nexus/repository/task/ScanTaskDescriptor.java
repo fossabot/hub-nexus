@@ -40,6 +40,7 @@ import org.sonatype.nexus.tasks.descriptors.AbstractScheduledTaskDescriptor;
 @Singleton
 public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
     private static final String DEFAULT_FILE_PATTERNS = "*.war,*.zip,*.tar.gz,*.hpi";
+    private static final String DEFAULT_HUB_TIMEOUT = "300";
     public static final String ID = "Hub Repository Scan";
 
     @Override
@@ -63,7 +64,8 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
         final StringTextFormField hubUrlField = new StringTextFormField(TaskField.HUB_URL.getParameterKey(), "Hub URL", "URL to your Blackduck hub", FormField.MANDATORY);
         final StringTextFormField usernameField = new StringTextFormField(TaskField.HUB_USERNAME.getParameterKey(), "Hub username", "Username for your Blackduck hub account to properly connect", FormField.MANDATORY);
         final PasswordFormField passwordField = new PasswordFormField(TaskField.HUB_PASSWORD.getParameterKey(), "Hub password", "Password for your Blackduck hub account to properly connect", FormField.MANDATORY);
-        final StringTextFormField timeoutField = new StringTextFormField(TaskField.HUB_TIMEOUT.getParameterKey(), "Timeout", "The timeout in seconds for a request to the Blackduck Hub server", FormField.OPTIONAL);
+        final StringTextFormField timeoutField = new StringTextFormField(TaskField.HUB_TIMEOUT.getParameterKey(), "Timeout", "The timeout in seconds for a request to the Blackduck Hub server", FormField.OPTIONAL)
+                .withInitialValue(DEFAULT_HUB_TIMEOUT);
         final CheckboxFormField autoImportCert = new CheckboxFormField(TaskField.HUB_AUTO_IMPORT_CERT.getParameterKey(), "Auto Import Certs", "Auto-import Hub server certificate into keystore", FormField.OPTIONAL);
 
         final StringTextFormField proxyHostField = new StringTextFormField(TaskField.HUB_PROXY_HOST.getParameterKey(), "Proxy Host", "The hostname of the proxy to communicate with the Blackduck Hub", FormField.OPTIONAL);

@@ -26,6 +26,7 @@ package com.blackducksoftware.integration.hub.nexus.repository.walker;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.StorageItem;
@@ -40,6 +41,8 @@ import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
 import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder;
 import com.blackducksoftware.integration.hub.scan.HubScanConfig;
 import com.blackducksoftware.integration.hub.service.HubServicesFactory;
+import com.blackducksoftware.integration.hub.util.ProjectNameVersionGuess;
+import com.blackducksoftware.integration.hub.util.ProjectNameVersionGuesser;
 import com.blackducksoftware.integration.log.IntLogger;
 import com.blackducksoftware.integration.log.Slf4jIntLogger;
 
@@ -79,12 +82,34 @@ public class ArtifactScanner {
 
     private ProjectRequest createProjectRequest() {
         final ProjectRequestBuilder builder = new ProjectRequestBuilder();
-        builder.setProjectName(item.getName());
-        builder.setVersionName("1.0.0");
+        final ProjectNameVersionGuess nameVersionGuess = generateProjectNameVersion(item);
+        logger.info("Project name guess: " + nameVersionGuess.getProjectName());
+        logger.info("Project version guess: " + nameVersionGuess.getVersionName());
+        builder.setProjectName(nameVersionGuess.getProjectName());
+        builder.setVersionName(nameVersionGuess.getVersionName());
         builder.setProjectLevelAdjustments(true);
         builder.setPhase("Development");
         builder.setDistribution("External");
         return builder.build();
+    }
+
+    private ProjectNameVersionGuess generateProjectNameVersion(final StorageItem item) {
+        final String path = item.getParentPath();
+
+        final ProjectNameVersionGuesser nameVersionGuesser = new ProjectNameVersionGuesser();
+        final ProjectNameVersionGuess nameVersionGuess = nameVersionGuesser.guessNameAndVersion(FilenameUtils.removeExtension(item.getName()));
+        String name = nameVersionGuess.getProjectName();
+        String version = nameVersionGuess.getVersionName();
+
+        logger.info("Name version path: " + path);
+        final String[] pathSections = path.split("/");
+        if (pathSections.length > 1) {
+            version = pathSections[pathSections.length - 1];
+            name = pathSections[pathSections.length - 2];
+        }
+
+        final ProjectNameVersionGuess nameVersion = new ProjectNameVersionGuess(name, version);
+        return nameVersion;
     }
 
     private HubScanConfig createScanConfig() throws IOException {
