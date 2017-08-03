@@ -21,33 +21,6 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.ui;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-
-import org.slf4j.Logger;
-import org.sonatype.nexus.plugins.ui.contribution.UiContributorSupport;
-import org.sonatype.sisu.goodies.common.Loggers;
-
-import com.blackducksoftware.integration.hub.nexus.application.HubNexusPlugin;
-
-@Named
-@Singleton
-public class HubPluginUI extends UiContributorSupport {
-    final Logger logger = Loggers.getLogger(HubPluginUI.class);
-
-    @Inject
-    public HubPluginUI(final HubNexusPlugin owner) {
-        super(owner);
-        logger.info("UI being created");
-    }
-
-    // @Override
-    // protected void customize(final UiContributionBuilder builder) {
-    // logger.info("Adding resource path");
-    // builder.withDependency(HubPluginWebResourceBundle.HUB_TAB_RESOURCE_PATH);
-    // }
-
-}
+/*global Ext, Sonatype, Nexus*/
+define('hub-plugin-boot', [
+]);

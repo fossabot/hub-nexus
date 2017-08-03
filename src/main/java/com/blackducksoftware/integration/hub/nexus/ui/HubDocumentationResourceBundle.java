@@ -23,27 +23,21 @@
  */
 package com.blackducksoftware.integration.hub.nexus.ui;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
-import org.slf4j.Logger;
-import org.sonatype.nexus.plugin.support.UrlWebResource;
-import org.sonatype.nexus.web.WebResource;
-import org.sonatype.nexus.web.WebResourceBundle;
-import org.sonatype.sisu.goodies.common.Loggers;
+import org.sonatype.nexus.plugin.support.DocumentationBundleSupport;
 
-//@Named("HubPluginWebResourceBundle")
-//@Singleton
-public class HubPluginWebResourceBundle implements WebResourceBundle {
-    final Logger logger = Loggers.getLogger(HubPluginWebResourceBundle.class);
-    public static final String HUB_TAB_RESOURCE_PATH = "js/hub-tab.js";
+import com.blackducksoftware.integration.hub.nexus.application.HubNexusPlugin;
 
-    @Override
-    public List<WebResource> getResources() {
-        logger.info("Getting resource bundle");
-        final List<WebResource> resources = new ArrayList<>();
-        resources.add(new UrlWebResource(getClass().getResource("/js/hub-tab.js"), "/" + HUB_TAB_RESOURCE_PATH, "text/javascript"));
-        return resources;
+@Named
+@Singleton
+public class HubDocumentationResourceBundle extends DocumentationBundleSupport {
+
+    @Inject
+    protected HubDocumentationResourceBundle(final HubNexusPlugin plugin) {
+        super(plugin);
     }
 
 }

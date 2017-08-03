@@ -33,11 +33,11 @@ import org.sonatype.nexus.plugin.PluginIdentity;
 @EagerSingleton
 public class HubNexusPlugin extends PluginIdentity {
 
-    public static final String ID_PREFIX = "helloworld";
+    public static final String ID_PREFIX = "hub-nexus";
 
     public static final String GROUP_ID = "com.blackducksoftware.integrations";
 
-    public static final String ARTIFACT_ID = "blackducksoftware-" + ID_PREFIX + "-plugin";
+    public static final String ARTIFACT_ID = ID_PREFIX;
 
     public static final String REST_PREFIX = "/" + ID_PREFIX;
 
