@@ -62,6 +62,19 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
             if (item.getRepositoryItemUid().getBooleanAttributeValue(IsHiddenAttribute.class)) {
                 return;
             }
+
+            long lastScanned = Long.MAX_VALUE;
+            final String scannedAtt = item.getRepositoryItemAttributes().get("lastScanned");
+            if (scannedAtt != null && !scannedAtt.isEmpty()) {
+                lastScanned = Long.parseLong(item.getRepositoryItemAttributes().get("lastScanned"));
+            }
+            logger.info("lastScanned: " + lastScanned);
+            final long lastModified = item.getRepositoryItemAttributes().getModified();
+            logger.info("lastModified: " + lastModified);
+            if (lastScanned < lastModified) {
+                logger.info("Already scanned");
+                return;
+            }
             final String[] patternArray = StringUtils.split(fileMatchPatterns, ",");
             for (final String wildCardPattern : patternArray) {
                 if (FilenameUtils.wildcardMatch(item.getPath(), wildCardPattern)) {

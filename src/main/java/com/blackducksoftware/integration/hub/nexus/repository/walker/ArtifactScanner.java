@@ -29,6 +29,7 @@ import java.io.IOException;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
+import org.sonatype.nexus.proxy.attributes.Attributes;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
@@ -75,6 +76,9 @@ public class ArtifactScanner {
             final ProjectRequest projectRequest = createProjectRequest();
             // TODO: Fix file paths. do not perform the scan the file paths do not exist causes scan to run in the hub for a long time.
             // final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, projectRequest, true, IntegrationInfo.DO_NOT_PHONE_HOME);
+            final Attributes itemAtt = item.getRepositoryItemAttributes();
+            itemAtt.put("lastScanned", String.valueOf(System.currentTimeMillis()));
+            logger.info("Last scanned: " + itemAtt.get("lastScanned"));
         } catch (final Exception ex) {
             logger.error("Error occurred during scan", ex);
         }
