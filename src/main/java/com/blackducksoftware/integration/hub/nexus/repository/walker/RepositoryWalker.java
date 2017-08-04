@@ -26,6 +26,7 @@ package com.blackducksoftware.integration.hub.nexus.repository.walker;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
+import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.item.StorageCollectionItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.item.uid.IsHiddenAttribute;
@@ -37,19 +38,17 @@ import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.service.HubServicesFactory;
 
 public class RepositoryWalker extends AbstractWalkerProcessor {
-
     private final HubServerConfig hubServerConfig;
-
     private final HubServicesFactory hubServicesFactory;
-
     private final Logger logger = Loggers.getLogger(getClass());
-
     private final String fileMatchPatterns;
+    private final DefaultAttributesHandler attributesHandler;
 
-    public RepositoryWalker(final HubServerConfig hubServerConfig, final HubServicesFactory hubServicesFactory, final String fileMatchPatterns) {
+    public RepositoryWalker(final HubServerConfig hubServerConfig, final HubServicesFactory hubServicesFactory, final String fileMatchPatterns, final DefaultAttributesHandler attributesHandler) {
         this.hubServerConfig = hubServerConfig;
         this.hubServicesFactory = hubServicesFactory;
         this.fileMatchPatterns = fileMatchPatterns;
+        this.attributesHandler = attributesHandler;
     }
 
     @Override
@@ -58,28 +57,23 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
             if (item instanceof StorageCollectionItem) {
                 return; // directory found
             }
-
             if (item.getRepositoryItemUid().getBooleanAttributeValue(IsHiddenAttribute.class)) {
-                return;
-            }
-
-            long lastScanned = Long.MAX_VALUE;
-            final String scannedAtt = item.getRepositoryItemAttributes().get("lastScanned");
-            if (scannedAtt != null && !scannedAtt.isEmpty()) {
-                lastScanned = Long.parseLong(item.getRepositoryItemAttributes().get("lastScanned"));
-            }
-            logger.info("lastScanned: " + lastScanned);
-            final long lastModified = item.getRepositoryItemAttributes().getModified();
-            logger.info("lastModified: " + lastModified);
-            if (lastScanned < lastModified) {
-                logger.info("Already scanned");
                 return;
             }
             final String[] patternArray = StringUtils.split(fileMatchPatterns, ",");
             for (final String wildCardPattern : patternArray) {
                 if (FilenameUtils.wildcardMatch(item.getPath(), wildCardPattern)) {
-                    logger.info("Path of " + item.getName() + ": " + item.getPath());
-                    final ArtifactScanner scanner = new ArtifactScanner(hubServerConfig, hubServicesFactory, context.getRepository(), context.getResourceStoreRequest(), item);
+                    long lastScanned = 0;
+                    final String scannedAtt = item.getRepositoryItemAttributes().get("lastScanned");
+                    if (scannedAtt != null && !scannedAtt.isEmpty()) {
+                        lastScanned = Long.parseLong(item.getRepositoryItemAttributes().get("lastScanned"));
+                    }
+                    final long lastModified = item.getRepositoryItemAttributes().getModified();
+                    if (lastScanned > lastModified) {
+                        logger.info("Already scanned");
+                        return;
+                    }
+                    final ArtifactScanner scanner = new ArtifactScanner(hubServerConfig, hubServicesFactory, context.getRepository(), context.getResourceStoreRequest(), item, attributesHandler);
                     scanner.scan();
                     break;
                 }

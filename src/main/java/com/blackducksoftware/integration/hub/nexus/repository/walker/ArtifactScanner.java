@@ -30,6 +30,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.attributes.Attributes;
+import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
@@ -58,13 +59,16 @@ public class ArtifactScanner {
     private final StorageItem item;
     private final Repository repository;
     private final ResourceStoreRequest request;
+    private final DefaultAttributesHandler attributesHandler;
 
-    public ArtifactScanner(final HubServerConfig hubServerConfig, final HubServicesFactory hubServicesFactory, final Repository repository, final ResourceStoreRequest request, final StorageItem item) {
+    public ArtifactScanner(final HubServerConfig hubServerConfig, final HubServicesFactory hubServicesFactory, final Repository repository, final ResourceStoreRequest request, final StorageItem item,
+            final DefaultAttributesHandler attributesHandler) {
         this.hubServerConfig = hubServerConfig;
         this.hubServicesFactory = hubServicesFactory;
         this.repository = repository;
         this.item = item;
         this.request = request;
+        this.attributesHandler = attributesHandler;
     }
 
     public void scan() {
@@ -77,8 +81,10 @@ public class ArtifactScanner {
             // TODO: Fix file paths. do not perform the scan the file paths do not exist causes scan to run in the hub for a long time.
             // final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, projectRequest, true, IntegrationInfo.DO_NOT_PHONE_HOME);
             final Attributes itemAtt = item.getRepositoryItemAttributes();
+
             itemAtt.put("lastScanned", String.valueOf(System.currentTimeMillis()));
-            logger.info("Last scanned: " + itemAtt.get("lastScanned"));
+            attributesHandler.storeAttributes(item);
+
         } catch (final Exception ex) {
             logger.error("Error occurred during scan", ex);
         }
@@ -87,8 +93,6 @@ public class ArtifactScanner {
     private ProjectRequest createProjectRequest() {
         final ProjectRequestBuilder builder = new ProjectRequestBuilder();
         final ProjectNameVersionGuess nameVersionGuess = generateProjectNameVersion(item);
-        logger.info("Project name guess: " + nameVersionGuess.getProjectName());
-        logger.info("Project version guess: " + nameVersionGuess.getVersionName());
         builder.setProjectName(nameVersionGuess.getProjectName());
         builder.setVersionName(nameVersionGuess.getVersionName());
         builder.setProjectLevelAdjustments(true);
@@ -105,7 +109,6 @@ public class ArtifactScanner {
         String name = nameVersionGuess.getProjectName();
         String version = nameVersionGuess.getVersionName();
 
-        logger.info("Name version path: " + path);
         final String[] pathSections = path.split("/");
         if (pathSections.length > 1) {
             version = pathSections[pathSections.length - 1];

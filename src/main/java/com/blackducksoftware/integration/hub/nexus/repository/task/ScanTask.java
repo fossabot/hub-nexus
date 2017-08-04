@@ -33,6 +33,7 @@ import javax.inject.Named;
 import org.apache.commons.lang3.StringUtils;
 import org.sonatype.nexus.configuration.application.ApplicationConfiguration;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
+import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.walker.DefaultWalkerContext;
@@ -52,11 +53,13 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
     private static final String ALL_REPO_ID = "all_repo";
     private final ApplicationConfiguration appConfiguration;
     private final Walker walker;
+    private final DefaultAttributesHandler attributesHandler;
 
     @Inject
-    public ScanTask(final ApplicationConfiguration appConfiguration, final Walker walker) {
+    public ScanTask(final ApplicationConfiguration appConfiguration, final Walker walker, final DefaultAttributesHandler attributesHandler) {
         this.appConfiguration = appConfiguration;
         this.walker = walker;
+        this.attributesHandler = attributesHandler;
     }
 
     @Override
@@ -137,7 +140,7 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
         final String fileMatchPatterns = getParameter(TaskField.FILE_PATTERNS.getParameterKey());
         final WalkerContext context = new DefaultWalkerContext(repository, request);
         getLogger().info(String.format("Creating walker for repository %s", repository.getName()));
-        context.getProcessors().add(new RepositoryWalker(hubServerConfig, hubServicesFactory, fileMatchPatterns));
+        context.getProcessors().add(new RepositoryWalker(hubServerConfig, hubServicesFactory, fileMatchPatterns, attributesHandler));
         return context;
     }
 
