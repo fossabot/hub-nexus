@@ -45,9 +45,6 @@ import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.nexus.repository.walker.RepositoryWalker;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
-import com.blackducksoftware.integration.hub.rest.CredentialsRestConnection;
-import com.blackducksoftware.integration.hub.service.HubServicesFactory;
-import com.blackducksoftware.integration.log.Slf4jIntLogger;
 
 @Named(ScanTaskDescriptor.ID)
 public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
@@ -88,10 +85,8 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
         }
 
         final HubServerConfig hubServerConfig = createHubServerConfig();
-        final CredentialsRestConnection credentialsRestConnection = hubServerConfig.createCredentialsRestConnection(new Slf4jIntLogger(logger));
-        final HubServicesFactory hubServicesFactory = new HubServicesFactory(credentialsRestConnection);
         for (final Repository repository : repositoryList) {
-            contextList.add(createRepositoryWalker(hubServerConfig, hubServicesFactory, repository));
+            contextList.add(createRepositoryWalker(hubServerConfig, repository));
         }
         walkRepositories(contextList);
         return null;
@@ -131,7 +126,7 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
         return hubServerConfigBuilder.build();
     }
 
-    private WalkerContext createRepositoryWalker(final HubServerConfig hubServerConfig, final HubServicesFactory hubServicesFactory, final Repository repository) {
+    private WalkerContext createRepositoryWalker(final HubServerConfig hubServerConfig, final Repository repository) {
         final ResourceStoreRequest request = new ResourceStoreRequest(getResourceStorePath(), true, false);
         if (StringUtils.isBlank(request.getRequestPath())) {
             request.setRequestPath(RepositoryItemUid.PATH_ROOT);
@@ -141,7 +136,7 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
         final String fileMatchPatterns = getParameter(TaskField.FILE_PATTERNS.getParameterKey());
         final WalkerContext context = new DefaultWalkerContext(repository, request);
         getLogger().info(String.format("Creating walker for repository %s", repository.getName()));
-        context.getProcessors().add(new RepositoryWalker(hubServerConfig, hubServicesFactory, fileMatchPatterns, new ItemAttributesHelper(attributesHandler)));
+        context.getProcessors().add(new RepositoryWalker(hubServerConfig, fileMatchPatterns, new ItemAttributesHelper(attributesHandler)));
         return context;
     }
 

@@ -23,21 +23,60 @@
  */
 package com.blackducksoftware.integration.hub.nexus.scan;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import org.slf4j.Logger;
+import org.sonatype.sisu.goodies.common.Loggers;
+
+import com.blackducksoftware.integration.exception.IntegrationException;
+import com.blackducksoftware.integration.hub.api.codelocation.CodeLocationRequestService;
+import com.blackducksoftware.integration.hub.api.item.MetaService;
+import com.blackducksoftware.integration.hub.api.scan.ScanSummaryRequestService;
 import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDataService;
 import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDescription;
+import com.blackducksoftware.integration.hub.dataservice.scan.ScanStatusDataService;
+import com.blackducksoftware.integration.hub.model.view.CodeLocationView;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
+import com.blackducksoftware.integration.hub.model.view.ScanSummaryView;
+import com.blackducksoftware.integration.hub.model.view.VersionBomPolicyStatusView;
 
+@Named
+@Singleton
 public class PolicyCheck {
-    private final PolicyStatusDataService policyStatusDataSerivce;
-    private final ProjectVersionView projectVersionView;
+    private final Logger logger = Loggers.getLogger(PolicyCheck.class);
 
-    public PolicyCheck(final PolicyStatusDataService policyStatusDataService, final ProjectVersionView projectVersionView) {
-        this.policyStatusDataSerivce = policyStatusDataService;
-        this.projectVersionView = projectVersionView;
+    private void waitForPolicyCheck(final CodeLocationRequestService codeLocationRequestService, final MetaService metaService, final ScanSummaryRequestService scanSummaryRequestService, final ScanStatusDataService scanStatusDataService,
+            final ProjectVersionView version) {
+        try {
+            final List<CodeLocationView> allCodeLocations = codeLocationRequestService.getAllCodeLocationsForProjectVersion(version);
+            logger.info("Checking policy of + " + allCodeLocations.size() + " code location's");
+            final List<ScanSummaryView> scanSummaryViews = new ArrayList<>();
+            for (final CodeLocationView codeLocationView : allCodeLocations) {
+                final String scansLink = metaService.getFirstLinkSafely(codeLocationView, MetaService.SCANS_LINK);
+                final List<ScanSummaryView> codeLocationScanSummaryViews = scanSummaryRequestService.getAllScanSummaryItems(scansLink);
+                scanSummaryViews.addAll(codeLocationScanSummaryViews);
+            }
+            logger.info("Checking scan policy");
+            scanStatusDataService.assertScansFinished(scanSummaryViews);
+            logger.info("Policy check completed");
+        } catch (final IntegrationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public PolicyStatusDescription checkPolicyStatus() {
-
-        return null;
+    public PolicyStatusDescription checkPolicyStatus(final CodeLocationRequestService codeLocationRequestService, final MetaService metaService, final ScanSummaryRequestService scanSummaryRequestService,
+            final ScanStatusDataService scanStatusDataService, final ProjectVersionView version, final PolicyStatusDataService policyStatusDataService) {
+        try {
+            waitForPolicyCheck(codeLocationRequestService, metaService, scanSummaryRequestService, scanStatusDataService, version);
+            final VersionBomPolicyStatusView versionBomPolicyStatusView = policyStatusDataService.getPolicyStatusForVersion(version);
+            final PolicyStatusDescription policyStatusDescription = new PolicyStatusDescription(versionBomPolicyStatusView);
+            return policyStatusDescription;
+        } catch (final IntegrationException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

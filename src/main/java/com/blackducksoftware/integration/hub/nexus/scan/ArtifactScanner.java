@@ -42,6 +42,7 @@ import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.phonehome.IntegrationInfo;
 import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder;
+import com.blackducksoftware.integration.hub.rest.CredentialsRestConnection;
 import com.blackducksoftware.integration.hub.scan.HubScanConfig;
 import com.blackducksoftware.integration.hub.service.HubServicesFactory;
 import com.blackducksoftware.integration.hub.util.ProjectNameVersionGuess;
@@ -49,13 +50,11 @@ import com.blackducksoftware.integration.log.IntLogger;
 import com.blackducksoftware.integration.log.Slf4jIntLogger;
 
 public class ArtifactScanner {
-
     final Logger logger = Loggers.getLogger(ArtifactScanner.class);
     final int HUB_SCAN_MEMORY = 4096;
     final boolean HUB_SCAN_DRY_RUN = false;
 
     private final HubServerConfig hubServerConfig;
-    private final HubServicesFactory hubServicesFactory;
     private final StorageItem item;
     private final Repository repository;
     private final ResourceStoreRequest request;
@@ -63,10 +62,8 @@ public class ArtifactScanner {
 
     private final IntLogger intLogger = new Slf4jIntLogger(logger);
 
-    public ArtifactScanner(final HubServerConfig hubServerConfig, final HubServicesFactory hubServicesFactory, final Repository repository, final ResourceStoreRequest request, final StorageItem item,
-            final ItemAttributesHelper attributesHelper) {
+    public ArtifactScanner(final HubServerConfig hubServerConfig, final Repository repository, final ResourceStoreRequest request, final StorageItem item, final ItemAttributesHelper attributesHelper) {
         this.hubServerConfig = hubServerConfig;
-        this.hubServicesFactory = hubServicesFactory;
         this.repository = repository;
         this.item = item;
         this.request = request;
@@ -78,12 +75,15 @@ public class ArtifactScanner {
             logger.info("Beginning scan of artifact");
             final HubScanConfig scanConfig = createScanConfig();
             logger.info(String.format("Scan Path %s", scanConfig.getScanTargetPaths()));
+            final CredentialsRestConnection credentialsRestConnection = hubServerConfig.createCredentialsRestConnection(new Slf4jIntLogger(logger));
+            final HubServicesFactory hubServicesFactory = new HubServicesFactory(credentialsRestConnection);
             final CLIDataService cliDataService = createCLIDataService(hubServicesFactory);
             final ProjectRequest projectRequest = createProjectRequest();
             // TODO: Fix file paths. do not perform the scan the file paths do not exist causes scan to run in the hub for a long time.
             final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, projectRequest, true, IntegrationInfo.DO_NOT_PHONE_HOME);
-            final PolicyCheck policyCheck = new PolicyCheck(hubServicesFactory.createPolicyStatusDataService(intLogger), projectVersionView);
-            final PolicyStatusDescription policyCheckResults = policyCheck.checkPolicyStatus();
+            final PolicyCheck policyCheck = new PolicyCheck();
+            final PolicyStatusDescription policyCheckResults = policyCheck.checkPolicyStatus(hubServicesFactory.createCodeLocationRequestService(intLogger), hubServicesFactory.createMetaService(intLogger),
+                    hubServicesFactory.createScanSummaryRequestService(), hubServicesFactory.createScanStatusDataService(intLogger, 5000), projectVersionView, hubServicesFactory.createPolicyStatusDataService(intLogger));
             attributesHelper.setAttributePolicyResult(item, policyCheckResults.getPolicyStatusMessage());
             attributesHelper.setAttributeLastScanned(item, System.currentTimeMillis());
         } catch (final Exception ex) {

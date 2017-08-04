@@ -36,18 +36,15 @@ import org.sonatype.sisu.goodies.common.Loggers;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.nexus.scan.ArtifactScanner;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
-import com.blackducksoftware.integration.hub.service.HubServicesFactory;
 
 public class RepositoryWalker extends AbstractWalkerProcessor {
     private final HubServerConfig hubServerConfig;
-    private final HubServicesFactory hubServicesFactory;
     private final Logger logger = Loggers.getLogger(getClass());
     private final String fileMatchPatterns;
     private final ItemAttributesHelper attributesHelper;
 
-    public RepositoryWalker(final HubServerConfig hubServerConfig, final HubServicesFactory hubServicesFactory, final String fileMatchPatterns, final ItemAttributesHelper attributesHelper) {
+    public RepositoryWalker(final HubServerConfig hubServerConfig, final String fileMatchPatterns, final ItemAttributesHelper attributesHelper) {
         this.hubServerConfig = hubServerConfig;
-        this.hubServicesFactory = hubServicesFactory;
         this.fileMatchPatterns = fileMatchPatterns;
         this.attributesHelper = attributesHelper;
     }
@@ -70,7 +67,7 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
                         logger.info("Already scanned");
                         return;
                     }
-                    final ArtifactScanner scanner = new ArtifactScanner(hubServerConfig, hubServicesFactory, context.getRepository(), context.getResourceStoreRequest(), item, attributesHelper);
+                    final ArtifactScanner scanner = new ArtifactScanner(hubServerConfig, context.getRepository(), context.getResourceStoreRequest(), item, attributesHelper);
                     scanner.scan();
                     break;
                 }
