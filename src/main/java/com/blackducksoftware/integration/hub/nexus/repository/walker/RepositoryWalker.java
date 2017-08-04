@@ -26,7 +26,6 @@ package com.blackducksoftware.integration.hub.nexus.repository.walker;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.item.StorageCollectionItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.item.uid.IsHiddenAttribute;
@@ -35,6 +34,8 @@ import org.sonatype.nexus.proxy.walker.WalkerContext;
 import org.sonatype.sisu.goodies.common.Loggers;
 
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
+import com.blackducksoftware.integration.hub.nexus.scan.ArtifactScanner;
+import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.service.HubServicesFactory;
 
 public class RepositoryWalker extends AbstractWalkerProcessor {
@@ -42,13 +43,13 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
     private final HubServicesFactory hubServicesFactory;
     private final Logger logger = Loggers.getLogger(getClass());
     private final String fileMatchPatterns;
-    private final DefaultAttributesHandler attributesHandler;
+    private final ItemAttributesHelper attributesHelper;
 
-    public RepositoryWalker(final HubServerConfig hubServerConfig, final HubServicesFactory hubServicesFactory, final String fileMatchPatterns, final DefaultAttributesHandler attributesHandler) {
+    public RepositoryWalker(final HubServerConfig hubServerConfig, final HubServicesFactory hubServicesFactory, final String fileMatchPatterns, final ItemAttributesHelper attributesHelper) {
         this.hubServerConfig = hubServerConfig;
         this.hubServicesFactory = hubServicesFactory;
         this.fileMatchPatterns = fileMatchPatterns;
-        this.attributesHandler = attributesHandler;
+        this.attributesHelper = attributesHelper;
     }
 
     @Override
@@ -63,17 +64,13 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
             final String[] patternArray = StringUtils.split(fileMatchPatterns, ",");
             for (final String wildCardPattern : patternArray) {
                 if (FilenameUtils.wildcardMatch(item.getPath(), wildCardPattern)) {
-                    long lastScanned = 0;
-                    final String scannedAtt = item.getRepositoryItemAttributes().get("lastScanned");
-                    if (scannedAtt != null && !scannedAtt.isEmpty()) {
-                        lastScanned = Long.parseLong(item.getRepositoryItemAttributes().get("lastScanned"));
-                    }
+                    final long lastScanned = attributesHelper.getAttributeLastScanned(item);
                     final long lastModified = item.getRepositoryItemAttributes().getModified();
                     if (lastScanned > lastModified) {
                         logger.info("Already scanned");
                         return;
                     }
-                    final ArtifactScanner scanner = new ArtifactScanner(hubServerConfig, hubServicesFactory, context.getRepository(), context.getResourceStoreRequest(), item, attributesHandler);
+                    final ArtifactScanner scanner = new ArtifactScanner(hubServerConfig, hubServicesFactory, context.getRepository(), context.getResourceStoreRequest(), item, attributesHelper);
                     scanner.scan();
                     break;
                 }

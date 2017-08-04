@@ -21,33 +21,23 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.application;
+package com.blackducksoftware.integration.hub.nexus.scan;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDataService;
+import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDescription;
+import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 
-import org.eclipse.sisu.EagerSingleton;
-import org.sonatype.nexus.plugin.PluginIdentity;
+public class PolicyCheck {
+    private final PolicyStatusDataService policyStatusDataSerivce;
+    private final ProjectVersionView projectVersionView;
 
-@Named
-@EagerSingleton
-public class HubNexusPlugin extends PluginIdentity {
-
-    public static final String ID_PREFIX = "hub-nexus";
-
-    public static final String GROUP_ID = "com.blackducksoftware.integrations";
-
-    public static final String ARTIFACT_ID = ID_PREFIX;
-
-    public static final String REST_PREFIX = "/" + ID_PREFIX;
-
-    public static final String PERMISSION_PREFIX_LOGGERS = "blackducksoftware:logconfig:";
-
-    public static final String PERMISSION_PREFIX_LOG = "blackducksoftware:logs:";
-
-    @Inject
-    public HubNexusPlugin() throws Exception {
-        super(GROUP_ID, ARTIFACT_ID);
+    public PolicyCheck(final PolicyStatusDataService policyStatusDataService, final ProjectVersionView projectVersionView) {
+        this.policyStatusDataSerivce = policyStatusDataService;
+        this.projectVersionView = projectVersionView;
     }
 
+    public PolicyStatusDescription checkPolicyStatus() {
+
+        return null;
+    }
 }

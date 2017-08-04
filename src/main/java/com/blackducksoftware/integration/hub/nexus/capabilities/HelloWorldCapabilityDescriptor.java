@@ -41,6 +41,7 @@ import org.sonatype.nexus.plugins.capabilities.Validator;
 import org.sonatype.sisu.goodies.i18n.I18N;
 import org.sonatype.sisu.goodies.i18n.MessageBundle;
 
+import com.blackducksoftware.integration.hub.nexus.application.HubNexusPlugin;
 import com.google.common.collect.Lists;
 
 @Named(HelloWorldCapabilityDescriptor.TYPE_ID)
@@ -48,7 +49,7 @@ import com.google.common.collect.Lists;
 public class HelloWorldCapabilityDescriptor extends CapabilityDescriptorSupport implements Taggable {
     private static final Logger log = LoggerFactory.getLogger(HelloWorldCapabilityDescriptor.class);
 
-    public static final String TYPE_ID = "hwt";
+    public static final String TYPE_ID = HubNexusPlugin.ARTIFACT_ID;
 
     public static final CapabilityType TYPE = CapabilityType.capabilityType(TYPE_ID);
 
@@ -63,12 +64,7 @@ public class HelloWorldCapabilityDescriptor extends CapabilityDescriptorSupport 
 
     public HelloWorldCapabilityDescriptor() {
         log.info("HW Cap Desc");
-        formFields = Lists.<FormField> newArrayList(
-                new StringTextFormField(
-                        "tttt",
-                        "label",
-                        "help",
-                        FormField.MANDATORY));
+        formFields = Lists.<FormField> newArrayList(new StringTextFormField("tttt", "label", "help", FormField.MANDATORY));
     }
 
     @Override

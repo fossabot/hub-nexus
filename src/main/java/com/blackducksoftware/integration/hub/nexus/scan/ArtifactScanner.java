@@ -21,16 +21,13 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.repository.walker;
+package com.blackducksoftware.integration.hub.nexus.scan;
 
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
-import org.sonatype.nexus.proxy.attributes.Attributes;
-import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
@@ -38,13 +35,16 @@ import org.sonatype.sisu.goodies.common.Loggers;
 
 import com.blackducksoftware.integration.hub.builder.HubScanConfigBuilder;
 import com.blackducksoftware.integration.hub.dataservice.cli.CLIDataService;
+import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDescription;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
+import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
+import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
+import com.blackducksoftware.integration.hub.phonehome.IntegrationInfo;
 import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder;
 import com.blackducksoftware.integration.hub.scan.HubScanConfig;
 import com.blackducksoftware.integration.hub.service.HubServicesFactory;
 import com.blackducksoftware.integration.hub.util.ProjectNameVersionGuess;
-import com.blackducksoftware.integration.hub.util.ProjectNameVersionGuesser;
 import com.blackducksoftware.integration.log.IntLogger;
 import com.blackducksoftware.integration.log.Slf4jIntLogger;
 
@@ -59,16 +59,18 @@ public class ArtifactScanner {
     private final StorageItem item;
     private final Repository repository;
     private final ResourceStoreRequest request;
-    private final DefaultAttributesHandler attributesHandler;
+    private final ItemAttributesHelper attributesHelper;
+
+    private final IntLogger intLogger = new Slf4jIntLogger(logger);
 
     public ArtifactScanner(final HubServerConfig hubServerConfig, final HubServicesFactory hubServicesFactory, final Repository repository, final ResourceStoreRequest request, final StorageItem item,
-            final DefaultAttributesHandler attributesHandler) {
+            final ItemAttributesHelper attributesHelper) {
         this.hubServerConfig = hubServerConfig;
         this.hubServicesFactory = hubServicesFactory;
         this.repository = repository;
         this.item = item;
         this.request = request;
-        this.attributesHandler = attributesHandler;
+        this.attributesHelper = attributesHelper;
     }
 
     public void scan() {
@@ -79,12 +81,11 @@ public class ArtifactScanner {
             final CLIDataService cliDataService = createCLIDataService(hubServicesFactory);
             final ProjectRequest projectRequest = createProjectRequest();
             // TODO: Fix file paths. do not perform the scan the file paths do not exist causes scan to run in the hub for a long time.
-            // final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, projectRequest, true, IntegrationInfo.DO_NOT_PHONE_HOME);
-            final Attributes itemAtt = item.getRepositoryItemAttributes();
-
-            itemAtt.put("lastScanned", String.valueOf(System.currentTimeMillis()));
-            attributesHandler.storeAttributes(item);
-
+            final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, projectRequest, true, IntegrationInfo.DO_NOT_PHONE_HOME);
+            final PolicyCheck policyCheck = new PolicyCheck(hubServicesFactory.createPolicyStatusDataService(intLogger), projectVersionView);
+            final PolicyStatusDescription policyCheckResults = policyCheck.checkPolicyStatus();
+            attributesHelper.setAttributePolicyResult(item, policyCheckResults.getPolicyStatusMessage());
+            attributesHelper.setAttributeLastScanned(item, System.currentTimeMillis());
         } catch (final Exception ex) {
             logger.error("Error occurred during scan", ex);
         }
@@ -103,18 +104,13 @@ public class ArtifactScanner {
 
     private ProjectNameVersionGuess generateProjectNameVersion(final StorageItem item) {
         final String path = item.getParentPath();
-
-        final ProjectNameVersionGuesser nameVersionGuesser = new ProjectNameVersionGuesser();
-        final ProjectNameVersionGuess nameVersionGuess = nameVersionGuesser.guessNameAndVersion(FilenameUtils.removeExtension(item.getName()));
-        String name = nameVersionGuess.getProjectName();
-        String version = nameVersionGuess.getVersionName();
-
+        String name = item.getName();
+        String version = "0.0.0";
         final String[] pathSections = path.split("/");
         if (pathSections.length > 1) {
             version = pathSections[pathSections.length - 1];
             name = pathSections[pathSections.length - 2];
         }
-
         final ProjectNameVersionGuess nameVersion = new ProjectNameVersionGuess(name, version);
         return nameVersion;
     }
@@ -139,7 +135,6 @@ public class ArtifactScanner {
     }
 
     private CLIDataService createCLIDataService(final HubServicesFactory hubServicesFactory) {
-        final IntLogger intLogger = new Slf4jIntLogger(logger);
         final CLIDataService cliDataService = hubServicesFactory.createCLIDataService(intLogger);
         return cliDataService;
     }
