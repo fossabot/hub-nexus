@@ -32,14 +32,17 @@ import org.sonatype.sisu.goodies.common.Loggers;
 import com.blackducksoftware.integration.exception.EncryptionException;
 import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.api.item.MetaService;
+import com.blackducksoftware.integration.hub.api.project.ProjectRequestService;
 import com.blackducksoftware.integration.hub.dataservice.cli.CLIDataService;
 import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDescription;
 import com.blackducksoftware.integration.hub.dataservice.report.RiskReportDataService;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.model.view.CodeLocationView;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
+import com.blackducksoftware.integration.hub.model.view.ProjectView;
 import com.blackducksoftware.integration.hub.model.view.ScanSummaryView;
 import com.blackducksoftware.integration.hub.model.view.VersionBomPolicyStatusView;
+import com.blackducksoftware.integration.hub.report.api.ReportData;
 import com.blackducksoftware.integration.hub.rest.CredentialsRestConnection;
 import com.blackducksoftware.integration.hub.service.HubServicesFactory;
 import com.blackducksoftware.integration.log.IntLogger;
@@ -89,9 +92,10 @@ public class HubServiceHelper {
         }
     }
 
-    public RiskReportDataService retrieveRiskReport(final long timeout) {
+    public ReportData retrieveRiskReport(final long timeout, final ProjectVersionView version, final ProjectView project) {
         try {
-            return hubServicesFactory.createRiskReportDataService(intLogger, timeout);
+            final RiskReportDataService riskReport = hubServicesFactory.createRiskReportDataService(intLogger, timeout);
+            return riskReport.getRiskReportData(project, version);
         } catch (final IntegrationException e) {
             throw new RuntimeException(e);
         }
@@ -99,5 +103,15 @@ public class HubServiceHelper {
 
     public CLIDataService createCLIDataService() {
         return hubServicesFactory.createCLIDataService(intLogger);
+    }
+
+    public ProjectView getProjectView(final String projectName) {
+        final ProjectRequestService requestService = hubServicesFactory.createProjectRequestService(intLogger);
+        try {
+            return requestService.getProjectByName(projectName);
+        } catch (final IntegrationException e) {
+            // TODO Auto-generated catch block
+            throw new RuntimeException(e);
+        }
     }
 }
