@@ -37,6 +37,7 @@ import org.sonatype.nexus.proxy.item.StorageItem;
 public class ItemAttributesHelper {
     public static final String LAST_SCANNED = "lastScanned";
     public static final String POLICY_CHECK_RESULT = "policyResult";
+    public static final String RISK_REPORT_URL = "riskReportUrl";
 
     private final DefaultAttributesHandler attributesHandler;
 
@@ -83,6 +84,14 @@ public class ItemAttributesHelper {
 
     public void setAttributePolicyResult(final StorageItem item, final String newResult) {
         addAttribute(POLICY_CHECK_RESULT, newResult, item);
+    }
+
+    public String getAttributeRiskReportUrl(final StorageItem item) {
+        return getString(item, RISK_REPORT_URL, "");
+    }
+
+    public void setAttributeRiskReportUrl(final StorageItem item, final String url) {
+        addAttribute(RISK_REPORT_URL, url, item);
     }
 
 }

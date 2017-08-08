@@ -81,13 +81,18 @@ public class ArtifactScanner {
             final ProjectRequest projectRequest = createProjectRequest();
             // TODO: Fix file paths. do not perform the scan the file paths do not exist causes scan to run in the hub for a long time.
             final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, projectRequest, true, IntegrationInfo.DO_NOT_PHONE_HOME);
-            final ProjectView projectView = hubServiceHelper.getProjectView(projectRequest.getName());
-            hubServiceHelper.waitForHubResponse(projectVersionView, 5000);
-            final PolicyStatusDescription policyCheckResults = hubServiceHelper.checkPolicyStatus(projectVersionView);
-            final ReportData riskReport = hubServiceHelper.retrieveRiskReport(5000, projectVersionView, projectView);
-            logger.info("Find risk report info at: " + riskReport.getProjectURL());
-            attributesHelper.setAttributePolicyResult(item, policyCheckResults.getPolicyStatusMessage());
             attributesHelper.setAttributeLastScanned(item, System.currentTimeMillis());
+            logger.info("Checking scan results...");
+            final ProjectView projectView = hubServiceHelper.getProjectView(projectRequest.getName());
+            hubServiceHelper.waitForHubResponse(projectVersionView, 60000);
+            final PolicyStatusDescription policyCheckResults = hubServiceHelper.checkPolicyStatus(projectVersionView);
+            final ReportData riskReport = hubServiceHelper.retrieveRiskReport(60000, projectVersionView, projectView);
+            if (policyCheckResults != null) {
+                attributesHelper.setAttributePolicyResult(item, policyCheckResults.getPolicyStatusMessage());
+            }
+            if (riskReport != null) {
+                attributesHelper.setAttributeRiskReportUrl(item, riskReport.getProjectURL());
+            }
         } catch (final Exception ex) {
             logger.error("Error occurred during scan", ex);
         }

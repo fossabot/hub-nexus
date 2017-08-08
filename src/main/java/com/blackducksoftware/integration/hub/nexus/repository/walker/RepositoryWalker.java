@@ -62,9 +62,11 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
             for (final String wildCardPattern : patternArray) {
                 if (FilenameUtils.wildcardMatch(item.getPath(), wildCardPattern)) {
                     final long lastScanned = attributesHelper.getAttributeLastScanned(item);
+                    logger.debug("Last scanned " + lastScanned + " ms ago");
                     final long lastModified = item.getRepositoryItemAttributes().getModified();
+                    logger.debug("Last modified " + lastModified + " ms ago");
                     if (lastScanned > lastModified) {
-                        logger.info("Already scanned");
+                        logger.info(item.getName() + " already scanned");
                         return;
                     }
                     final ArtifactScanner scanner = new ArtifactScanner(hubServerConfig, context.getRepository(), context.getResourceStoreRequest(), item, attributesHelper);

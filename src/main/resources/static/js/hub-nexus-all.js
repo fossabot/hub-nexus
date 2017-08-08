@@ -42,23 +42,23 @@ Sonatype.repoServer.HubTab = function(config) {
 		        	html:'<img src="static/bd_logo.png" align= "right" />'
 		        }, {
 		        	xtype : 'displayfield',
-		        	fieldLabel : 'Test',
-		        	name : 'approvalStatus',
+		        	fieldLabel : 'Risk report URL',
+		        	name : 'riskReportUrl',
 		        	anchor : Sonatype.view.FIELD_OFFSET_WITH_SCROLL,
 		        	allowBlank : true,
 		        	readOnly : true    	     
 
 		        }, {
 		        	xtype : 'displayfield',
-		        	fieldLabel : 'Test 2',
-		        	name : 'compName',
+		        	fieldLabel : 'Policy check status',
+		        	name : 'policyCheckStatus',
 		        	anchor : Sonatype.view.FIELD_OFFSET_WITH_SCROLL,
 		        	allowBlank : true,
 		        	readOnly : true
 		        }, {
 		        	xtype : 'displayfield',
-		        	fieldLabel : 'Test 3',
-		        	name : 'externalId',
+		        	fieldLabel : 'Last scanned',
+		        	name : 'lastScanned',
 		        	anchor : Sonatype.view.FIELD_OFFSET_WITH_SCROLL,
 		        	allowBlank : true,
 		        	readOnly : true
@@ -71,18 +71,33 @@ Ext.extend( Sonatype.repoServer.HubTab, Ext.Panel, {
 	showArtifact : function(data, artifactContainer) {
 		noData(this);
 		showBasicMetaData(this);
+		this.data = data;
+		if (data) {
+			Ext.Ajax.request({
+				url : this.data.resourceURI,
+				callback : function(options, isSuccess, response) {
+					if (isSuccess) {
+						var infoResp = Ext.decode(response.responseText);
+
+						this.find('name', 'lastScanned')[0].setRawValue(infoResp.data.lastScanned);
+						this.find('name', 'riskReportUrl')[0].setRawValue(infoResp.data.riskReportUrl);
+						this.find('name', 'policyCheckStatus')[0].setRawValue(infoResp.data.policyCheckStatus);
+					}
+				}
+			})
+		}
 	}
 });
 
 function noData(hubTab){
-	hubTab.find('name', 'externalId')[0].setRawValue(null);
+	hubTab.find('name', 'lastScanned')[0].setRawValue(null);
 	hubTab.find('name', 'compName')[0].setRawValue(null);
 	hubTab.find('name', 'approvalStatus')[0].setRawValue(null);
 }
 
 function showBasicMetaData(hubTab){
 	hubTab.find('name', 'compName')[0].show();
-	hubTab.find('name', 'externalId')[0].show();
+	hubTab.find('name', 'lastScanned')[0].show();
 	hubTab.find('name', 'approvalStatus')[0].setRawValue(null);
 }
 

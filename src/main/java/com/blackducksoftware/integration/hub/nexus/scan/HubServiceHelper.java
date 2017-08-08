@@ -65,6 +65,7 @@ public class HubServiceHelper {
     }
 
     public void waitForHubResponse(final ProjectVersionView version, final long timeout) {
+        logger.info("Waiting for hub response");
         try {
             final List<CodeLocationView> allCodeLocations = hubServicesFactory.createCodeLocationRequestService(intLogger).getAllCodeLocationsForProjectVersion(version);
             logger.info("Checking policy of + " + allCodeLocations.size() + " code location's");
@@ -83,6 +84,7 @@ public class HubServiceHelper {
     }
 
     public PolicyStatusDescription checkPolicyStatus(final ProjectVersionView version) {
+        logger.info("Checking policy status");
         try {
             final VersionBomPolicyStatusView versionBomPolicyStatusView = hubServicesFactory.createPolicyStatusDataService(intLogger).getPolicyStatusForVersion(version);
             final PolicyStatusDescription policyStatusDescription = new PolicyStatusDescription(versionBomPolicyStatusView);
@@ -93,6 +95,7 @@ public class HubServiceHelper {
     }
 
     public ReportData retrieveRiskReport(final long timeout, final ProjectVersionView version, final ProjectView project) {
+        logger.info("Generating risk report");
         try {
             final RiskReportDataService riskReport = hubServicesFactory.createRiskReportDataService(intLogger, timeout);
             return riskReport.getRiskReportData(project, version);
@@ -110,7 +113,6 @@ public class HubServiceHelper {
         try {
             return requestService.getProjectByName(projectName);
         } catch (final IntegrationException e) {
-            // TODO Auto-generated catch block
             throw new RuntimeException(e);
         }
     }
