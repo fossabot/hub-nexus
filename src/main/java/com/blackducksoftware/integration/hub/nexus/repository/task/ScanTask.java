@@ -112,6 +112,7 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
         final String proxyPort = getParameter(TaskField.HUB_PROXY_PORT.getParameterKey());
         final String proxyUsername = getParameter(TaskField.HUB_PROXY_USERNAME.getParameterKey());
         final String proxyPassword = getParameter(TaskField.HUB_PROXY_PASSWORD.getParameterKey());
+        final String autoImport = getParameter(TaskField.HUB_AUTO_IMPORT_CERT.getParameterKey());
 
         final HubServerConfigBuilder hubServerConfigBuilder = new HubServerConfigBuilder();
         hubServerConfigBuilder.setHubUrl(hubUrl);
@@ -122,6 +123,7 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
         hubServerConfigBuilder.setProxyPort(proxyPort);
         hubServerConfigBuilder.setProxyUsername(proxyUsername);
         hubServerConfigBuilder.setProxyPassword(proxyPassword);
+        hubServerConfigBuilder.setAutoImportHttpsCertificates(Boolean.parseBoolean(autoImport));
 
         return hubServerConfigBuilder.build();
     }
