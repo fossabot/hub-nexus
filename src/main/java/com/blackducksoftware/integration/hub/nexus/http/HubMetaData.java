@@ -23,12 +23,21 @@
  */
 package com.blackducksoftware.integration.hub.nexus.http;
 
+import org.slf4j.Logger;
+import org.sonatype.sisu.goodies.common.Loggers;
+
 import com.google.common.base.Objects;
 
 public class HubMetaData {
+    final Logger logger = Loggers.getLogger(HubMetaData.class);
+
     private String riskReportUrl;
     private String policyCheckResult;
     private String lastScanned;
+
+    public HubMetaData() {
+        logger.info("HubMetaData");
+    }
 
     public String getRiskReportUrl() {
         return riskReportUrl;

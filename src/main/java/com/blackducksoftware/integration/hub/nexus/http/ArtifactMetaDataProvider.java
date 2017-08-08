@@ -31,12 +31,14 @@ import javax.inject.Singleton;
 
 import org.codehaus.plexus.component.annotations.Component;
 import org.restlet.data.Request;
+import org.slf4j.Logger;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.rest.AbstractArtifactViewProvider;
 import org.sonatype.nexus.rest.ArtifactViewProvider;
+import org.sonatype.sisu.goodies.common.Loggers;
 
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
@@ -44,15 +46,23 @@ import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 @Singleton
 @Component(role = ArtifactViewProvider.class, hint = "blackduck")
 public class ArtifactMetaDataProvider extends AbstractArtifactViewProvider {
+    final Logger logger = Loggers.getLogger(ArtifactMetaDataProvider.class);
+
     private final DefaultAttributesHandler attributesHandler;
 
     @Inject
     public ArtifactMetaDataProvider(final DefaultAttributesHandler attributesHandler) {
         this.attributesHandler = attributesHandler;
+
+        logger.info("Data provider");
     }
 
     @Override
-    protected Object retrieveView(final ResourceStoreRequest resourceStoreRequest, final RepositoryItemUid repositoryItemUid, final StorageItem storageItem, final Request request) throws IOException {
+    protected Object retrieveView(final ResourceStoreRequest resourceStoreRequest, final RepositoryItemUid repositoryItemUid, final StorageItem item, final Request request) throws IOException {
+        return generateMetaData(item);
+    }
+
+    private Object generateMetaData(final StorageItem storageItem) {
         final MetaDataResponse metaDataResponse = new MetaDataResponse();
         final HubMetaData hubMetaData = new HubMetaData();
 
@@ -61,6 +71,10 @@ public class ArtifactMetaDataProvider extends AbstractArtifactViewProvider {
         hubMetaData.setLastScanned(String.valueOf(attHelper.getAttributeLastScanned(storageItem)));
         hubMetaData.setRiskReportUrl(attHelper.getAttributeRiskReportUrl(storageItem));
         hubMetaData.setPolicyCheckResult(attHelper.getAttributePolicyResult(storageItem));
+
+        logger.info("Last scanned: " + hubMetaData.getLastScanned());
+        logger.info("Risk report URL: " + hubMetaData.getRiskReportUrl());
+        logger.info("Policy check: " + hubMetaData.getPolicyCheckResult());
 
         metaDataResponse.setData(hubMetaData);
         return metaDataResponse;

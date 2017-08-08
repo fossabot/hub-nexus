@@ -27,12 +27,21 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.slf4j.Logger;
+import org.sonatype.sisu.goodies.common.Loggers;
+
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 @XStreamAlias(value = "bdMeta")
 @XmlRootElement(name = "bdMeta")
 public class MetaDataResponse {
+    final Logger logger = Loggers.getLogger(MetaDataResponse.class);
+
     private HubMetaData data;
+
+    public MetaDataResponse() {
+        logger.info("MetaDataResponse");
+    }
 
     @XmlElementWrapper(name = "data")
     @XmlElement(name = "hubMeta")
