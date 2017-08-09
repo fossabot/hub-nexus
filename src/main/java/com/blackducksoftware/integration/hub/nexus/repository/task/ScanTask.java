@@ -23,6 +23,7 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -30,6 +31,7 @@ import java.util.Vector;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.sonatype.nexus.configuration.application.ApplicationConfiguration;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
@@ -52,12 +54,14 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
     private final ApplicationConfiguration appConfiguration;
     private final Walker walker;
     private final DefaultAttributesHandler attributesHandler;
+    private final File blackDuckDirectory;
 
     @Inject
     public ScanTask(final ApplicationConfiguration appConfiguration, final Walker walker, final DefaultAttributesHandler attributesHandler) {
         this.appConfiguration = appConfiguration;
         this.walker = walker;
         this.attributesHandler = attributesHandler;
+        blackDuckDirectory = new File("/sonatype-work/blackduck");
     }
 
     @Override
@@ -72,23 +76,32 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
 
     @Override
     protected Object doRun() throws Exception {
-        final String repositoryFieldId = getParameter(TaskField.REPOSITORY_FIELD_ID.getParameterKey());
-        List<Repository> repositoryList = new Vector<>();
-        final List<WalkerContext> contextList = new ArrayList<>();
-
-        if (StringUtils.isNotBlank(repositoryFieldId)) {
-            if (repositoryFieldId.equals(ALL_REPO_ID)) {
-                repositoryList = getRepositoryRegistry().getRepositories();
-            } else {
-                repositoryList.add(getRepositoryRegistry().getRepository(repositoryFieldId));
+        try {
+            if (!blackDuckDirectory.exists()) {
+                blackDuckDirectory.mkdirs();
             }
-        }
+            final String repositoryFieldId = getParameter(TaskField.REPOSITORY_FIELD_ID.getParameterKey());
+            List<Repository> repositoryList = new Vector<>();
+            final List<WalkerContext> contextList = new ArrayList<>();
 
-        final HubServerConfig hubServerConfig = createHubServerConfig();
-        for (final Repository repository : repositoryList) {
-            contextList.add(createRepositoryWalker(hubServerConfig, repository));
+            if (StringUtils.isNotBlank(repositoryFieldId)) {
+                if (repositoryFieldId.equals(ALL_REPO_ID)) {
+                    repositoryList = getRepositoryRegistry().getRepositories();
+                } else {
+                    repositoryList.add(getRepositoryRegistry().getRepository(repositoryFieldId));
+                }
+            }
+
+            final HubServerConfig hubServerConfig = createHubServerConfig();
+            for (final Repository repository : repositoryList) {
+                contextList.add(createRepositoryWalker(hubServerConfig, repository));
+            }
+            walkRepositories(contextList);
+        } catch (final Exception ex) {
+            logger.error("Error occurred during task execution {}", ex);
+        } finally {
+            FileUtils.deleteDirectory(blackDuckDirectory);
         }
-        walkRepositories(contextList);
         return null;
     }
 
@@ -138,7 +151,7 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
         final String fileMatchPatterns = getParameter(TaskField.FILE_PATTERNS.getParameterKey());
         final WalkerContext context = new DefaultWalkerContext(repository, request);
         getLogger().info(String.format("Creating walker for repository %s", repository.getName()));
-        context.getProcessors().add(new RepositoryWalker(hubServerConfig, fileMatchPatterns, new ItemAttributesHelper(attributesHandler)));
+        context.getProcessors().add(new RepositoryWalker(hubServerConfig, fileMatchPatterns, new ItemAttributesHelper(attributesHandler), blackDuckDirectory));
         return context;
     }
 

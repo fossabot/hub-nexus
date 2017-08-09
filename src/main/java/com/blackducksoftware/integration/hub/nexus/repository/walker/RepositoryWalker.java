@@ -23,6 +23,8 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.walker;
 
+import java.io.File;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -42,11 +44,13 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
     private final Logger logger = Loggers.getLogger(getClass());
     private final String fileMatchPatterns;
     private final ItemAttributesHelper attributesHelper;
+    private final File blackDuckDirectory;
 
-    public RepositoryWalker(final HubServerConfig hubServerConfig, final String fileMatchPatterns, final ItemAttributesHelper attributesHelper) {
+    public RepositoryWalker(final HubServerConfig hubServerConfig, final String fileMatchPatterns, final ItemAttributesHelper attributesHelper, final File blackDuckDirectory) {
         this.hubServerConfig = hubServerConfig;
         this.fileMatchPatterns = fileMatchPatterns;
         this.attributesHelper = attributesHelper;
+        this.blackDuckDirectory = blackDuckDirectory;
     }
 
     @Override
@@ -69,7 +73,7 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
                         logger.info(item.getName() + " already scanned");
                         return;
                     }
-                    final ArtifactScanner scanner = new ArtifactScanner(hubServerConfig, context.getRepository(), context.getResourceStoreRequest(), item, attributesHelper);
+                    final ArtifactScanner scanner = new ArtifactScanner(hubServerConfig, context.getRepository(), context.getResourceStoreRequest(), item, attributesHelper, blackDuckDirectory);
                     scanner.scan();
                     break;
                 }

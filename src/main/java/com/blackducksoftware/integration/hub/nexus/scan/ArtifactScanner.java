@@ -60,15 +60,17 @@ public class ArtifactScanner {
     private final ResourceStoreRequest request;
     private final ItemAttributesHelper attributesHelper;
     private final HubServiceHelper hubServiceHelper;
+    private final File blackDuckDirectory;
 
     private final IntLogger intLogger = new Slf4jIntLogger(logger);
 
-    public ArtifactScanner(final HubServerConfig hubServerConfig, final Repository repository, final ResourceStoreRequest request, final StorageItem item, final ItemAttributesHelper attributesHelper) {
+    public ArtifactScanner(final HubServerConfig hubServerConfig, final Repository repository, final ResourceStoreRequest request, final StorageItem item, final ItemAttributesHelper attributesHelper, final File blackDuckDirectory) {
         this.hubServerConfig = hubServerConfig;
         this.repository = repository;
         this.item = item;
         this.request = request;
         this.attributesHelper = attributesHelper;
+        this.blackDuckDirectory = blackDuckDirectory;
         hubServiceHelper = new HubServiceHelper(hubServerConfig);
     }
 
@@ -94,7 +96,8 @@ public class ArtifactScanner {
                 attributesHelper.setAttributeRiskReportUrl(item, riskReport.getProjectURL());
             }
         } catch (final Exception ex) {
-            logger.error("Error occurred during scan", ex);
+            logger.error("Error occurred during scan task", ex);
+            // TODO: clean up any attributes associated with the scan
         }
     }
 
@@ -126,11 +129,9 @@ public class ArtifactScanner {
         final HubScanConfigBuilder hubScanConfigBuilder = new HubScanConfigBuilder();
         hubScanConfigBuilder.setScanMemory(HUB_SCAN_MEMORY);
         hubScanConfigBuilder.setDryRun(HUB_SCAN_DRY_RUN);
-        final File blackduckDir = new File("/sonatype-work/blackduck");
-        blackduckDir.mkdirs();
-        final File toolsDir = new File(blackduckDir, "tools");
-        hubScanConfigBuilder.setToolsDir(toolsDir);
-        hubScanConfigBuilder.setWorkingDirectory(blackduckDir);
+        final File cliInstallDirectory = new File(blackDuckDirectory, "tools");
+        hubScanConfigBuilder.setToolsDir(cliInstallDirectory);
+        hubScanConfigBuilder.setWorkingDirectory(this.blackDuckDirectory);
         hubScanConfigBuilder.disableScanTargetPathExistenceCheck();
 
         final DefaultFSLocalRepositoryStorage storage = (DefaultFSLocalRepositoryStorage) repository.getLocalStorage();
