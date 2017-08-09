@@ -37,7 +37,20 @@
     <dependency>
       <groupId>com.blackducksoftware.integration</groupId>
       <artifactId>hub-common</artifactId>
-      <version>13.1.2</version>
+      <version>13.2.2</version>
+      <exclusions>
+        <!-- Commons logging is a transitive dependency from a dependency in hub-common-reporting
+           Logging is done in Nexus with slf4j
+       -->
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.sonatype.nexus.plugins</groupId>
+      <artifactId>nexus-restlet1x-plugin</artifactId>
     </dependency>
     <dependency>
       <groupId>org.sonatype.nexus</groupId>
@@ -60,10 +73,6 @@
       <groupId>org.sonatype.nexus.plugins</groupId>
       <artifactId>nexus-capabilities-plugin</artifactId>
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.sonatype.nexus.plugins</groupId>
-      <artifactId>nexus-restlet1x-plugin</artifactId>
     </dependency>
     <dependency>
       <groupId>org.sonatype.nexus</groupId>
