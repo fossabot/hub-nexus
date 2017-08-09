@@ -24,13 +24,17 @@
 package com.blackducksoftware.integration.hub.nexus.util;
 
 import java.io.IOException;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.slf4j.Logger;
+import org.sonatype.nexus.proxy.attributes.Attributes;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.item.StorageItem;
+import org.sonatype.sisu.goodies.common.Loggers;
 
 @Named
 @Singleton
@@ -41,13 +45,19 @@ public class ItemAttributesHelper {
 
     private final DefaultAttributesHandler attributesHandler;
 
+    final Logger logger = Loggers.getLogger(ItemAttributesHelper.class);
+
     @Inject
     public ItemAttributesHelper(final DefaultAttributesHandler attributesHandler) {
         this.attributesHandler = attributesHandler;
     }
 
+    private String keyName(final String key) {
+        return "blackduck-".concat(key);
+    }
+
     private void addAttribute(final String key, final String value, final StorageItem item) {
-        item.getRepositoryItemAttributes().put(key, value);
+        item.getRepositoryItemAttributes().put(keyName(key), value);
         try {
             attributesHandler.storeAttributes(item);
         } catch (final IOException e) {
@@ -56,17 +66,35 @@ public class ItemAttributesHelper {
     }
 
     private long getLong(final StorageItem item, final String key, final long defaultValue) {
-        if (item.getRepositoryItemAttributes().containsKey(key)) {
-            return Long.parseLong(item.getRepositoryItemAttributes().get(key));
+        if (item.getRepositoryItemAttributes().containsKey(keyName(key))) {
+            return Long.parseLong(item.getRepositoryItemAttributes().get(keyName(key)));
         }
         return defaultValue;
     }
 
     private String getString(final StorageItem item, final String key, final String defaultValue) {
-        if (item.getRepositoryItemAttributes().containsKey(key)) {
-            return item.getRepositoryItemAttributes().get(key);
+        if (item.getRepositoryItemAttributes().containsKey(keyName(key))) {
+            return item.getRepositoryItemAttributes().get(keyName(key));
         }
         return defaultValue;
+    }
+
+    public void clearAttributes(final StorageItem item) {
+        final Attributes attList = item.getRepositoryItemAttributes();
+        final Set<String> keys = attList.asMap().keySet();
+
+        for (final String key : keys) {
+            if (key.startsWith("blackduck-")) {
+                logger.debug("Removing key " + key);
+                attList.remove(key);
+            }
+        }
+
+        try {
+            attributesHandler.storeAttributes(item);
+        } catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public long getAttributeLastScanned(final StorageItem item) {

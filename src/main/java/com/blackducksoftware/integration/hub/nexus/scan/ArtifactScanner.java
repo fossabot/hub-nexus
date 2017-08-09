@@ -97,7 +97,7 @@ public class ArtifactScanner {
             }
         } catch (final Exception ex) {
             logger.error("Error occurred during scan task", ex);
-            // TODO: clean up any attributes associated with the scan
+            attributesHelper.clearAttributes(item);
         }
     }
 
