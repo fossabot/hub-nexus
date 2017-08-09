@@ -62,6 +62,12 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
             if (item.getRepositoryItemUid().getBooleanAttributeValue(IsHiddenAttribute.class)) {
                 return;
             }
+
+            if (StringUtils.isNotBlank(item.getRemoteUrl())) {
+                logger.info("Item came from a proxied repository skipping: {}", item);
+                return;
+            }
+
             final String[] patternArray = StringUtils.split(fileMatchPatterns, ",");
             for (final String wildCardPattern : patternArray) {
                 if (FilenameUtils.wildcardMatch(item.getPath(), wildCardPattern)) {
