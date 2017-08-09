@@ -77,7 +77,7 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
     protected Object doRun() throws Exception {
         File blackDuckDirectory = null;
         try {
-            blackDuckDirectory = new File(TaskField.WORKING_DIRECTORY.getParameterKey());
+            blackDuckDirectory = new File(getParameter(TaskField.WORKING_DIRECTORY.getParameterKey()), "blackduck");
             if (!blackDuckDirectory.exists()) {
                 blackDuckDirectory.mkdirs();
             }
