@@ -29,6 +29,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.plexus.component.annotations.Component;
 import org.restlet.data.Request;
 import org.slf4j.Logger;
@@ -67,16 +68,20 @@ public class ArtifactMetaDataProvider extends AbstractArtifactViewProvider {
         final HubMetaData hubMetaData = new HubMetaData();
 
         final ItemAttributesHelper attHelper = new ItemAttributesHelper(attributesHandler);
-
-        hubMetaData.setLastScanned(String.valueOf(attHelper.getAttributeLastScanned(storageItem)));
-        hubMetaData.setRiskReportUrl(attHelper.getAttributeRiskReportUrl(storageItem));
-        hubMetaData.setPolicyCheckResult(attHelper.getAttributePolicyResult(storageItem));
+        if (attHelper.getAttributeLastScanned(storageItem) > 0) {
+            hubMetaData.setLastScanned(String.valueOf(attHelper.getAttributeLastScanned(storageItem)));
+            hubMetaData.setRiskReportUrl(attHelper.getAttributeRiskReportUrl(storageItem));
+            hubMetaData.setPolicyCheckResult(attHelper.getAttributePolicyResult(storageItem));
+        }
 
         logger.info("Last scanned: " + hubMetaData.getLastScanned());
         logger.info("Risk report URL: " + hubMetaData.getRiskReportUrl());
         logger.info("Policy check: " + hubMetaData.getPolicyCheckResult());
 
-        metaDataResponse.setData(hubMetaData);
+        if (StringUtils.isNotBlank(hubMetaData.getLastScanned())) {
+            metaDataResponse.setData(hubMetaData);
+        }
+
         return metaDataResponse;
     }
 

@@ -82,7 +82,6 @@ public class ArtifactScanner {
             final CLIDataService cliDataService = hubServiceHelper.createCLIDataService();
             final ProjectRequest projectRequest = createProjectRequest();
             // TODO: Fix file paths. do not perform the scan the file paths do not exist causes scan to run in the hub for a long time.
-
             final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, projectRequest, true, IntegrationInfo.DO_NOT_PHONE_HOME);
             attributesHelper.setAttributeLastScanned(item, System.currentTimeMillis());
             logger.info("Checking scan results...");
@@ -98,9 +97,7 @@ public class ArtifactScanner {
             }
         } catch (final Exception ex) {
             logger.error("Error occurred during scan task", ex);
-            attributesHelper.setAttributeLastScanned(item, -1);
-            attributesHelper.setAttributePolicyResult(item, null);
-            attributesHelper.setAttributeRiskReportUrl(item, null);
+            attributesHelper.clearAttributes(item);
         }
     }
 
