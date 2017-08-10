@@ -74,9 +74,6 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
             final String[] patternArray = StringUtils.split(fileMatchPatterns, ",");
             for (final String wildCardPattern : patternArray) {
                 if (FilenameUtils.wildcardMatch(item.getPath(), wildCardPattern)) {
-                    logger.debug("Repository id: {}", context.getRepository().getId());
-                    logger.debug("Item repository id: {}", item.getRepositoryId());
-                    logger.debug("Item repository UID: {}", item.getRepositoryItemUid());
                     logger.debug("Evaluating item: {}", item);
                     final long lastScanned = attributesHelper.getAttributeLastScanned(item);
                     logger.debug("Last scanned " + lastScanned + " ms ago");
@@ -86,7 +83,7 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
                         logger.info(item.getName() + " already scanned");
                         return;
                     }
-                    final ArtifactScanner scanner = new ArtifactScanner(hubServerConfig, context.getRepository(), context.getResourceStoreRequest(), item, attributesHelper, blackDuckDirectory, taskParameters);
+                    final ArtifactScanner scanner = new ArtifactScanner(hubServerConfig, item.getRepositoryItemUid().getRepository(), context.getResourceStoreRequest(), item, attributesHelper, blackDuckDirectory, taskParameters);
                     scanner.scan();
                     break;
                 }
