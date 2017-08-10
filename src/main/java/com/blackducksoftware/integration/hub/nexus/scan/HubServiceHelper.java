@@ -36,6 +36,7 @@ import com.blackducksoftware.integration.hub.api.project.ProjectRequestService;
 import com.blackducksoftware.integration.hub.dataservice.cli.CLIDataService;
 import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDescription;
 import com.blackducksoftware.integration.hub.dataservice.report.RiskReportDataService;
+import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.model.view.CodeLocationView;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
@@ -94,15 +95,23 @@ public class HubServiceHelper {
         }
     }
 
-    // TODO Project request probably has project URL, Find and alternative using MetaService
+    public String retrieveReportUrl(final ProjectVersionView project) {
+        try {
+            return hubServicesFactory.createMetaService(intLogger).getHref(project);
+        } catch (final HubIntegrationException e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
     public ReportData retrieveRiskReport(final long timeout, final ProjectVersionView version, final ProjectView project) {
         logger.info("Generating risk report");
         try {
             final RiskReportDataService riskReport = hubServicesFactory.createRiskReportDataService(intLogger, timeout);
             return riskReport.getRiskReportData(project, version);
         } catch (final IntegrationException e) {
-            // TODO remove this
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            return null;
         }
     }
 
