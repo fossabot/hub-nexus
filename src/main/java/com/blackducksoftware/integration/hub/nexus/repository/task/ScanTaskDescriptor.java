@@ -76,17 +76,15 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
         final StringTextFormField proxyPortField = new StringTextFormField(TaskField.HUB_PROXY_PORT.getParameterKey(), "Proxy Port", "Port to communicate with the proxy", FormField.OPTIONAL);
         final StringTextFormField proxyUsernameField = new StringTextFormField(TaskField.HUB_PROXY_USERNAME.getParameterKey(), "Proxy Username", "Username for your authenticated proxy", FormField.OPTIONAL);
         final PasswordFormField proxyPasswordField = new PasswordFormField(TaskField.HUB_PROXY_PASSWORD.getParameterKey(), "Proxy Password", "Password for your authenticated proxy", FormField.OPTIONAL);
-
         final StringTextFormField distributionFormField = new StringTextFormField(TaskField.DISTRIBUTION.getParameterKey(), "Distribution", "The default distribution setting applied to the project verion if the project version is created",
                 FormField.OPTIONAL).withInitialValue(ProjectVersionDistributionEnum.EXTERNAL.name());
-
         final StringTextFormField phaseFormField = new StringTextFormField(TaskField.PHASE.getParameterKey(), "Phase ", "The default phase setting applied to the project verion if the project version is created", FormField.OPTIONAL)
                 .withInitialValue(ProjectVersionPhaseEnum.DEVELOPMENT.name());
-
         final StringTextFormField filePatternField = new StringTextFormField(TaskField.FILE_PATTERNS.getParameterKey(), "File Pattern Matches", "The file pattern match wildcard to filter the artifacts scanned.", FormField.MANDATORY)
                 .withInitialValue(DEFAULT_FILE_PATTERNS);
         final StringTextFormField workingDirectoryField = new StringTextFormField(TaskField.WORKING_DIRECTORY.getParameterKey(), "Working Directory",
                 "The parent directory where the blackduck directory will be creating to contain temporary data for the scans", FormField.MANDATORY).withInitialValue(DEFAULT_WORKING_DIRECTORY);
+        final StringTextFormField scanMemoryField = new StringTextFormField(TaskField.HUB_SCAN_MEMORY.getParameterKey(), "Scan Memory", "The amount of memory to use with the Hub Scan CLI", FormField.OPTIONAL).withInitialValue("4096");
 
         fields.add(repoField);
         fields.add(resourceStorePathField);
@@ -101,6 +99,7 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
         fields.add(proxyPasswordField);
         fields.add(distributionFormField);
         fields.add(phaseFormField);
+        fields.add(scanMemoryField);
         fields.add(filePatternField);
         fields.add(workingDirectoryField);
 

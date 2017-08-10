@@ -21,26 +21,36 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.application;
+package com.blackducksoftware.integration.hub.nexus.scan;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+public class NameVersionNode {
+    private String name;
+    private String version;
 
-import org.eclipse.sisu.EagerSingleton;
-import org.sonatype.nexus.plugin.PluginIdentity;
+    public NameVersionNode() {
 
-@Named
-@EagerSingleton
-public class HubNexusPlugin extends PluginIdentity {
-    public static final String ID_PREFIX = "hub-nexus";
-    public static final String GROUP_ID = "com.blackducksoftware.integrations";
-    public static final String ARTIFACT_ID = ID_PREFIX;
-    public static final String REST_PREFIX = "/" + ID_PREFIX;
-    public static final String PERMISSION_PREFIX_LOGGERS = "blackducksoftware:logconfig:";
-    public static final String PERMISSION_PREFIX_LOG = "blackducksoftware:logs:";
-
-    @Inject
-    public HubNexusPlugin() throws Exception {
-        super(GROUP_ID, ARTIFACT_ID);
     }
+
+    public NameVersionNode(final String name, final String version) {
+        super();
+        this.name = name;
+        this.version = version;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(final String name) {
+        this.name = name;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(final String version) {
+        this.version = version;
+    }
+
 }

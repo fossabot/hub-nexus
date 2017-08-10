@@ -43,6 +43,8 @@ public class ItemAttributesHelper {
     public static final String POLICY_CHECK_RESULT = "policyResult";
     public static final String RISK_REPORT_URL = "riskReportUrl";
 
+    public static final String BLACKDUCK = "blackducksoftware-";
+
     private final DefaultAttributesHandler attributesHandler;
 
     final Logger logger = Loggers.getLogger(ItemAttributesHelper.class);
@@ -53,7 +55,7 @@ public class ItemAttributesHelper {
     }
 
     private String keyName(final String key) {
-        return "blackduck-".concat(key);
+        return BLACKDUCK.concat(key);
     }
 
     private void addAttribute(final String key, final String value, final StorageItem item) {
@@ -84,7 +86,7 @@ public class ItemAttributesHelper {
         final Set<String> keys = attList.asMap().keySet();
 
         for (final String key : keys) {
-            if (key.startsWith("blackduck-")) {
+            if (key.startsWith(BLACKDUCK)) {
                 logger.debug("Removing key " + key);
                 attList.remove(key);
             }
