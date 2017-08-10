@@ -25,8 +25,8 @@ package com.blackducksoftware.integration.hub.nexus.repository.task;
 
 public enum TaskField {
 
-    REPOSITORY_FIELD_ID("repositoryId"),
-    REPOSITORY_PATH_FIELD_ID("repositoryPath"),
+    DISTRIBUTION("blackduck.hub.project.version.distribution"),
+    FILE_PATTERNS("file.pattern.match.wildcards"),
     HUB_URL("blackduck.hub.url"),
     HUB_TIMEOUT("blackduck.hub.timeout"),
     HUB_USERNAME("blackduck.hub.username"),
@@ -36,7 +36,9 @@ public enum TaskField {
     HUB_PROXY_USERNAME("blackduck.hub.proxy.username"),
     HUB_PROXY_PASSWORD("blackduck.hub.proxy.password"),
     HUB_AUTO_IMPORT_CERT("blackduck.hub.auto.import.cert"),
-    FILE_PATTERNS("file.pattern.match.wildcards"),
+    PHASE("blackduck.hub.project.version.phase"),
+    REPOSITORY_FIELD_ID("repositoryId"),
+    REPOSITORY_PATH_FIELD_ID("repositoryPath"),
     WORKING_DIRECTORY("blackduck.working.directory");
 
     private String parameterKey;

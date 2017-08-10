@@ -25,6 +25,7 @@ package com.blackducksoftware.integration.hub.nexus.scan;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
@@ -40,14 +41,13 @@ import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.model.view.ProjectView;
+import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.phonehome.IntegrationInfo;
 import com.blackducksoftware.integration.hub.report.api.ReportData;
 import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder;
 import com.blackducksoftware.integration.hub.scan.HubScanConfig;
 import com.blackducksoftware.integration.hub.util.ProjectNameVersionGuess;
-import com.blackducksoftware.integration.log.IntLogger;
-import com.blackducksoftware.integration.log.Slf4jIntLogger;
 
 public class ArtifactScanner {
     final Logger logger = Loggers.getLogger(ArtifactScanner.class);
@@ -61,16 +61,17 @@ public class ArtifactScanner {
     private final ItemAttributesHelper attributesHelper;
     private final HubServiceHelper hubServiceHelper;
     private final File blackDuckDirectory;
+    private final Map<String, String> taskParameters;
 
-    private final IntLogger intLogger = new Slf4jIntLogger(logger);
-
-    public ArtifactScanner(final HubServerConfig hubServerConfig, final Repository repository, final ResourceStoreRequest request, final StorageItem item, final ItemAttributesHelper attributesHelper, final File blackDuckDirectory) {
+    public ArtifactScanner(final HubServerConfig hubServerConfig, final Repository repository, final ResourceStoreRequest request, final StorageItem item, final ItemAttributesHelper attributesHelper, final File blackDuckDirectory,
+            final Map<String, String> taskParameters) {
         this.hubServerConfig = hubServerConfig;
         this.repository = repository;
         this.item = item;
         this.request = request;
         this.attributesHelper = attributesHelper;
         this.blackDuckDirectory = blackDuckDirectory;
+        this.taskParameters = taskParameters;
         hubServiceHelper = new HubServiceHelper(hubServerConfig);
     }
 
@@ -80,8 +81,9 @@ public class ArtifactScanner {
             final HubScanConfig scanConfig = createScanConfig();
             logger.info("Scan Path {}", scanConfig.getScanTargetPaths());
             final CLIDataService cliDataService = hubServiceHelper.createCLIDataService();
-            final ProjectRequest projectRequest = createProjectRequest();
-            // TODO: Fix file paths. do not perform the scan the file paths do not exist causes scan to run in the hub for a long time.
+            final String distribution = taskParameters.get(TaskField.DISTRIBUTION.getParameterKey());
+            final String phase = taskParameters.get(TaskField.PHASE.getParameterKey());
+            final ProjectRequest projectRequest = createProjectRequest(distribution, phase);
             final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, projectRequest, true, IntegrationInfo.DO_NOT_PHONE_HOME);
             attributesHelper.setAttributeLastScanned(item, System.currentTimeMillis());
             logger.info("Checking scan results...");
@@ -101,14 +103,14 @@ public class ArtifactScanner {
         }
     }
 
-    private ProjectRequest createProjectRequest() {
+    private ProjectRequest createProjectRequest(final String distribution, final String phase) {
         final ProjectRequestBuilder builder = new ProjectRequestBuilder();
         final ProjectNameVersionGuess nameVersionGuess = generateProjectNameVersion(item);
         builder.setProjectName(nameVersionGuess.getProjectName());
         builder.setVersionName(nameVersionGuess.getVersionName());
         builder.setProjectLevelAdjustments(true);
-        builder.setPhase("Development");
-        builder.setDistribution("External");
+        builder.setPhase(phase);
+        builder.setDistribution(distribution);
         return builder.build();
     }
 

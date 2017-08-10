@@ -36,6 +36,9 @@ import org.sonatype.nexus.formfields.RepoOrGroupComboFormField;
 import org.sonatype.nexus.formfields.StringTextFormField;
 import org.sonatype.nexus.tasks.descriptors.AbstractScheduledTaskDescriptor;
 
+import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionDistributionEnum;
+import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionPhaseEnum;
+
 @Named(ScanTaskDescriptor.ID)
 @Singleton
 public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
@@ -51,7 +54,7 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
 
     @Override
     public String getName() {
-        return "Hub Repository Scan";
+        return ID;
     }
 
     @Override
@@ -74,6 +77,12 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
         final StringTextFormField proxyUsernameField = new StringTextFormField(TaskField.HUB_PROXY_USERNAME.getParameterKey(), "Proxy Username", "Username for your authenticated proxy", FormField.OPTIONAL);
         final PasswordFormField proxyPasswordField = new PasswordFormField(TaskField.HUB_PROXY_PASSWORD.getParameterKey(), "Proxy Password", "Password for your authenticated proxy", FormField.OPTIONAL);
 
+        final StringTextFormField distributionFormField = new StringTextFormField(TaskField.DISTRIBUTION.getParameterKey(), "Distribution", "The default distribution setting applied to the project verion if the project version is created",
+                FormField.OPTIONAL).withInitialValue(ProjectVersionDistributionEnum.EXTERNAL.name());
+
+        final StringTextFormField phaseFormField = new StringTextFormField(TaskField.PHASE.getParameterKey(), "Phase ", "The default phase setting applied to the project verion if the project version is created", FormField.OPTIONAL)
+                .withInitialValue(ProjectVersionPhaseEnum.DEVELOPMENT.name());
+
         final StringTextFormField filePatternField = new StringTextFormField(TaskField.FILE_PATTERNS.getParameterKey(), "File Pattern Matches", "The file pattern match wildcard to filter the artifacts scanned.", FormField.MANDATORY)
                 .withInitialValue(DEFAULT_FILE_PATTERNS);
         final StringTextFormField workingDirectoryField = new StringTextFormField(TaskField.WORKING_DIRECTORY.getParameterKey(), "Working Directory",
@@ -90,6 +99,8 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
         fields.add(proxyPortField);
         fields.add(proxyUsernameField);
         fields.add(proxyPasswordField);
+        fields.add(distributionFormField);
+        fields.add(phaseFormField);
         fields.add(filePatternField);
         fields.add(workingDirectoryField);
 
