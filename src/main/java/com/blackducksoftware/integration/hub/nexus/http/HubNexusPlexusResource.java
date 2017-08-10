@@ -44,7 +44,7 @@ public class HubNexusPlexusResource extends AbstractNexusPlexusResource {
 
     @Override
     public Object getPayloadInstance() {
-        return null;
+        return new HubMetaData();
     }
 
     @Override

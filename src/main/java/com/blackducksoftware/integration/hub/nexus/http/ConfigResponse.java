@@ -21,31 +21,34 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.application;
+package com.blackducksoftware.integration.hub.nexus.http;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
 
-import org.eclipse.sisu.EagerSingleton;
-import org.jetbrains.annotations.NonNls;
-import org.sonatype.nexus.plugin.PluginIdentity;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 
-@Named
-@EagerSingleton
-public class HubNexusPlugin extends PluginIdentity {
+@XStreamAlias(value = "bdConfig")
+@XmlRootElement(name = "bdConfig")
+public class ConfigResponse {
 
-    @NonNls
-    public static final String ID_PREFIX = "hub-nexus";
+    private HubMetaData data;
 
-    @NonNls
-    public static final String GROUP_ID = "com.blackducksoftware.integrations";
+    /**
+     * @return the connectionInfo
+     */
+    @XmlElementWrapper(name = "data")
+    @XmlElement(name = "ccConfig")
+    public HubMetaData getData() {
+        return data;
+    }
 
-    @NonNls
-    // public static final String ARTIFACT_ID = "blackduck-" + ID_PREFIX + "-plugin";
-    public static final String ARTIFACT_ID = ID_PREFIX;
-
-    @Inject
-    public HubNexusPlugin() throws Exception {
-        super(GROUP_ID, ARTIFACT_ID);
+    /**
+     * @param connectionInfo
+     *            the connectionInfo to set
+     */
+    public void setData(final HubMetaData connectionInfo) {
+        data = connectionInfo;
     }
 }

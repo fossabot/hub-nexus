@@ -29,6 +29,10 @@ Sonatype.repoServer.HubTab = function(config) {
 
 	this.sp = Sonatype.lib.Permissions;
 
+	this.servicePath = {
+		connectionInfo: Sonatype.config.servicePath + '/blackduck',
+	};
+
 	Sonatype.repoServer.HubTab.superclass.constructor.call( this, {
 		title : 'Hub',
 		autoScroll : true,
