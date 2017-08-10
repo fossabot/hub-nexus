@@ -34,7 +34,7 @@ import org.sonatype.sisu.goodies.common.Loggers;
 
 import com.google.common.base.Objects;
 
-@XmlType(name = "bdMeta")
+@XmlType(name = "blackduck-info")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class HubMetaData implements Serializable {
     final Logger logger = Loggers.getLogger(HubMetaData.class);

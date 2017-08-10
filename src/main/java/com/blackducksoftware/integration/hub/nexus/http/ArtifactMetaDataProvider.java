@@ -25,7 +25,6 @@ package com.blackducksoftware.integration.hub.nexus.http;
 
 import java.io.IOException;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -33,43 +32,49 @@ import org.apache.commons.lang3.StringUtils;
 import org.restlet.data.Request;
 import org.slf4j.Logger;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
-import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.rest.AbstractArtifactViewProvider;
 import org.sonatype.sisu.goodies.common.Loggers;
-
-import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
 @Named("blackduck")
 @Singleton
 public class ArtifactMetaDataProvider extends AbstractArtifactViewProvider {
     final Logger logger = Loggers.getLogger(ArtifactMetaDataProvider.class);
 
-    private final DefaultAttributesHandler attributesHandler;
-
-    @Inject
-    public ArtifactMetaDataProvider(final DefaultAttributesHandler attributesHandler) {
-        this.attributesHandler = attributesHandler;
-
-        logger.info("Data provider");
-    }
+    // private final DefaultAttributesHandler attributesHandler;
+    //
+    // @Inject
+    // public ArtifactMetaDataProvider(final DefaultAttributesHandler attributesHandler) {
+    // this.attributesHandler = attributesHandler;
+    //
+    // logger.info("Data provider");
+    // }
 
     @Override
     protected Object retrieveView(final ResourceStoreRequest resourceStoreRequest, final RepositoryItemUid repositoryItemUid, final StorageItem item, final Request request) throws IOException {
         return generateMetaData(item);
     }
 
+    // @Override
+    // public Object retrieveView(final ResourceStore store, final ResourceStoreRequest request, final StorageItem item, final Request req) {
+    // return generateMetaData(item);
+    // }
+
     private Object generateMetaData(final StorageItem storageItem) {
         final MetaDataResponse metaDataResponse = new MetaDataResponse();
         final HubMetaData hubMetaData = new HubMetaData();
 
-        final ItemAttributesHelper attHelper = new ItemAttributesHelper(attributesHandler);
-        if (attHelper.getAttributeLastScanned(storageItem) > 0) {
-            hubMetaData.setLastScanned(String.valueOf(attHelper.getAttributeLastScanned(storageItem)));
-            hubMetaData.setRiskReportUrl(attHelper.getAttributeRiskReportUrl(storageItem));
-            hubMetaData.setPolicyCheckResult(attHelper.getAttributePolicyResult(storageItem));
-        }
+        // final ItemAttributesHelper attHelper = new ItemAttributesHelper(attributesHandler);
+        // if (attHelper.getAttributeLastScanned(storageItem) > 0) {
+        // hubMetaData.setLastScanned(String.valueOf(attHelper.getAttributeLastScanned(storageItem)));
+        // hubMetaData.setRiskReportUrl(attHelper.getAttributeRiskReportUrl(storageItem));
+        // hubMetaData.setPolicyCheckResult(attHelper.getAttributePolicyResult(storageItem));
+        // }
+
+        hubMetaData.setLastScanned("Test");
+        hubMetaData.setPolicyCheckResult("Policy result");
+        hubMetaData.setRiskReportUrl("Google");
 
         logger.info("Last scanned: " + hubMetaData.getLastScanned());
         logger.info("Risk report URL: " + hubMetaData.getRiskReportUrl());

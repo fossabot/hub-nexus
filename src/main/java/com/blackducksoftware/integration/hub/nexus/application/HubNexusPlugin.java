@@ -27,17 +27,21 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.eclipse.sisu.EagerSingleton;
+import org.jetbrains.annotations.NonNls;
 import org.sonatype.nexus.plugin.PluginIdentity;
 
 @Named
 @EagerSingleton
 public class HubNexusPlugin extends PluginIdentity {
+
+    @NonNls
     public static final String ID_PREFIX = "hub-nexus";
+
+    @NonNls
     public static final String GROUP_ID = "com.blackducksoftware.integrations";
-    public static final String ARTIFACT_ID = ID_PREFIX;
-    public static final String REST_PREFIX = "/" + ID_PREFIX;
-    public static final String PERMISSION_PREFIX_LOGGERS = "blackducksoftware:logconfig:";
-    public static final String PERMISSION_PREFIX_LOG = "blackducksoftware:logs:";
+
+    @NonNls
+    public static final String ARTIFACT_ID = "blackduck-" + ID_PREFIX + "-plugin";
 
     @Inject
     public HubNexusPlugin() throws Exception {

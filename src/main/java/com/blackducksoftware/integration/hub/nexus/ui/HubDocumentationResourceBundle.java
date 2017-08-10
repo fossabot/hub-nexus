@@ -23,21 +23,13 @@
  */
 package com.blackducksoftware.integration.hub.nexus.ui;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-
-import org.sonatype.nexus.plugins.ui.contribution.UiContributorSupport;
+import org.sonatype.nexus.plugin.support.DocumentationBundleSupport;
 
 import com.blackducksoftware.integration.hub.nexus.application.HubNexusPlugin;
 
-@Named
-@Singleton
-public class HubPluginUI extends UiContributorSupport {
+public class HubDocumentationResourceBundle extends DocumentationBundleSupport {
 
-    @Inject
-    public HubPluginUI(final HubNexusPlugin owner) {
-        super(owner);
+    protected HubDocumentationResourceBundle(final HubNexusPlugin plugin) {
+        super(plugin);
     }
-
 }
