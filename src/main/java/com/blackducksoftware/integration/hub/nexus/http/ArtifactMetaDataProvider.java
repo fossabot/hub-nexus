@@ -29,7 +29,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.codehaus.plexus.component.annotations.Component;
 import org.restlet.data.Request;
 import org.slf4j.Logger;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
@@ -37,14 +36,12 @@ import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.rest.AbstractArtifactViewProvider;
-import org.sonatype.nexus.rest.ArtifactViewProvider;
 import org.sonatype.sisu.goodies.common.Loggers;
 
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
-@Named
+@Named("blackduck")
 @Singleton
-@Component(role = ArtifactViewProvider.class, hint = "blackduck")
 public class ArtifactMetaDataProvider extends AbstractArtifactViewProvider {
     final Logger logger = Loggers.getLogger(ArtifactMetaDataProvider.class);
 

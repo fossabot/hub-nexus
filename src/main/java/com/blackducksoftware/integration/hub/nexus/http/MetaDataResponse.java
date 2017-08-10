@@ -23,6 +23,10 @@
  */
 package com.blackducksoftware.integration.hub.nexus.http;
 
+import java.io.Serializable;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -34,7 +38,8 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 @XStreamAlias(value = "bdMeta")
 @XmlRootElement(name = "bdMeta")
-public class MetaDataResponse {
+@XmlAccessorType(XmlAccessType.FIELD)
+public class MetaDataResponse implements Serializable {
     final Logger logger = Loggers.getLogger(MetaDataResponse.class);
 
     private HubMetaData data;

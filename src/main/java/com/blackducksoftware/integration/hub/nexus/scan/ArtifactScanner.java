@@ -74,6 +74,7 @@ public class ArtifactScanner {
         hubServiceHelper = new HubServiceHelper(hubServerConfig);
     }
 
+    // TODO add timeout from hubServerConfig
     public void scan() {
         try {
             logger.info("Beginning scan of artifact");
@@ -107,11 +108,13 @@ public class ArtifactScanner {
         builder.setProjectName(nameVersionGuess.getProjectName());
         builder.setVersionName(nameVersionGuess.getVersionName());
         builder.setProjectLevelAdjustments(true);
+        // TODO Figure out what to do for Phase and Distribution
         builder.setPhase("Development");
         builder.setDistribution("External");
         return builder.build();
     }
 
+    // TODO Check item att for name and version (More options)
     private ProjectNameVersionGuess generateProjectNameVersion(final StorageItem item) {
         final String path = item.getParentPath();
         String name = item.getName();

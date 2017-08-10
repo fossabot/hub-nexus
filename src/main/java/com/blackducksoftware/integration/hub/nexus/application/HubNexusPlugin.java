@@ -32,22 +32,15 @@ import org.sonatype.nexus.plugin.PluginIdentity;
 @Named
 @EagerSingleton
 public class HubNexusPlugin extends PluginIdentity {
-
     public static final String ID_PREFIX = "hub-nexus";
-
     public static final String GROUP_ID = "com.blackducksoftware.integrations";
-
     public static final String ARTIFACT_ID = ID_PREFIX;
-
     public static final String REST_PREFIX = "/" + ID_PREFIX;
-
     public static final String PERMISSION_PREFIX_LOGGERS = "blackducksoftware:logconfig:";
-
     public static final String PERMISSION_PREFIX_LOG = "blackducksoftware:logs:";
 
     @Inject
     public HubNexusPlugin() throws Exception {
         super(GROUP_ID, ARTIFACT_ID);
     }
-
 }

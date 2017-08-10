@@ -94,12 +94,14 @@ public class HubServiceHelper {
         }
     }
 
+    // TODO Project request probably has project URL, Find and alternative using MetaService
     public ReportData retrieveRiskReport(final long timeout, final ProjectVersionView version, final ProjectView project) {
         logger.info("Generating risk report");
         try {
             final RiskReportDataService riskReport = hubServicesFactory.createRiskReportDataService(intLogger, timeout);
             return riskReport.getRiskReportData(project, version);
         } catch (final IntegrationException e) {
+            // TODO remove this
             throw new RuntimeException(e);
         }
     }
