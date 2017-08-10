@@ -78,7 +78,7 @@ public class ArtifactScanner {
         try {
             logger.info("Beginning scan of artifact");
             final HubScanConfig scanConfig = createScanConfig();
-            logger.info(String.format("Scan Path %s", scanConfig.getScanTargetPaths()));
+            logger.info("Scan Path {}", scanConfig.getScanTargetPaths());
             final CLIDataService cliDataService = hubServiceHelper.createCLIDataService();
             final ProjectRequest projectRequest = createProjectRequest();
             // TODO: Fix file paths. do not perform the scan the file paths do not exist causes scan to run in the hub for a long time.

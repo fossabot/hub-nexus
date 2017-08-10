@@ -86,7 +86,7 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
                 }
             }
         } catch (final Exception ex) {
-            logger.error(String.format("Error occurred in walker processor for repository: %s", ex));
+            logger.error("Error occurred in walker processor for repository: ", ex);
         }
     }
 }

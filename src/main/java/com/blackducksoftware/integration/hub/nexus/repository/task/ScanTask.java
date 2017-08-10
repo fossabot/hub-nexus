@@ -157,7 +157,7 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
         request.setRequestLocalOnly(true);
         final String fileMatchPatterns = getParameter(TaskField.FILE_PATTERNS.getParameterKey());
         final WalkerContext context = new DefaultWalkerContext(repository, request);
-        getLogger().info(String.format("Creating walker for repository %s", repository.getName()));
+        getLogger().info("Creating walker for repository {}", repository.getName());
         context.getProcessors().add(new RepositoryWalker(hubServerConfig, fileMatchPatterns, new ItemAttributesHelper(attributesHandler), blackDuckDirectory));
         return context;
     }
