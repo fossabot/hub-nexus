@@ -36,7 +36,8 @@ public enum TaskField {
     HUB_PROXY_USERNAME("blackduck.hub.proxy.username"),
     HUB_PROXY_PASSWORD("blackduck.hub.proxy.password"),
     HUB_AUTO_IMPORT_CERT("blackduck.hub.auto.import.cert"),
-    FILE_PATTERNS("file.pattern.match.wildcards");
+    FILE_PATTERNS("file.pattern.match.wildcards"),
+    WORKING_DIRECTORY("blackduck.working.directory");
 
     private String parameterKey;
 

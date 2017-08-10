@@ -62,9 +62,16 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
             if (item.getRepositoryItemUid().getBooleanAttributeValue(IsHiddenAttribute.class)) {
                 return;
             }
+
+            if (StringUtils.isNotBlank(item.getRemoteUrl())) {
+                logger.info("Item came from a proxied repository skipping: {}", item);
+                return;
+            }
+
             final String[] patternArray = StringUtils.split(fileMatchPatterns, ",");
             for (final String wildCardPattern : patternArray) {
                 if (FilenameUtils.wildcardMatch(item.getPath(), wildCardPattern)) {
+                    logger.debug("Evaluating item: {}", item);
                     final long lastScanned = attributesHelper.getAttributeLastScanned(item);
                     logger.debug("Last scanned " + lastScanned + " ms ago");
                     final long lastModified = item.getRepositoryItemAttributes().getModified();
@@ -79,7 +86,7 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
                 }
             }
         } catch (final Exception ex) {
-            logger.error(String.format("Error occurred in walker processor for repository: %s", ex));
+            logger.error("Error occurred in walker processor for repository: ", ex);
         }
     }
 }
