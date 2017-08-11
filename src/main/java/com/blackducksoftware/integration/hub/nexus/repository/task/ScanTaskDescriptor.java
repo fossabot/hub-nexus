@@ -39,12 +39,13 @@ import org.sonatype.nexus.tasks.descriptors.AbstractScheduledTaskDescriptor;
 import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionDistributionEnum;
 import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionPhaseEnum;
 
-@Named(ScanTaskDescriptor.ID)
+@Named
 @Singleton
 public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
 
-    public static final String ID = "Hub Repository Scan";
-
+    // This ID string must match the class name of the task that actually performs the opertaion
+    public static final String ID = "ScanTask";
+    public static final String TASK_NAME = "Hub Repository Scan";
     private static final String DEFAULT_FILE_PATTERNS = "*.war,*.zip,*.tar.gz,*.hpi";
     private static final String DEFAULT_HUB_TIMEOUT = "300";
     private static final String DEFAULT_SCAN_MEMORY = "4096";
@@ -83,30 +84,31 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
     private static final String LABEL_SCAN_MEMORY_ALLOCATION = "Scan Memory Allocation";
     private static final String LABEL_WORKING_DIRECTORY = "Working Directory";
 
+    private final RepoOrGroupComboFormField repoField = new RepoOrGroupComboFormField(TaskField.REPOSITORY_FIELD_ID.getParameterKey(), RepoOrGroupComboFormField.DEFAULT_LABEL, DESCRIPTION_REPO_NAME, FormField.MANDATORY);
+    private final StringTextFormField resourceStorePathField = new StringTextFormField(TaskField.REPOSITORY_PATH_FIELD_ID.getParameterKey(), LABEL_REPO_PATH, DESCRIPTION_REPO_PATH, FormField.OPTIONAL);
+    private final StringTextFormField hubUrlField = new StringTextFormField(TaskField.HUB_URL.getParameterKey(), LABEL_HUB_SERVER_URL, DESCRIPTION_HUB_URL, FormField.MANDATORY);
+    private final StringTextFormField usernameField = new StringTextFormField(TaskField.HUB_USERNAME.getParameterKey(), LABEL_HUB_USERNAME, DESCRIPTION_HUB_USERNAME, FormField.MANDATORY);
+    private final PasswordFormField passwordField = new PasswordFormField(TaskField.HUB_PASSWORD.getParameterKey(), LABEL_HUB_PASSWORD, DESCRIPTION_HUB_PASSWORD, FormField.MANDATORY);
+    private final StringTextFormField timeoutField = new StringTextFormField(TaskField.HUB_TIMEOUT.getParameterKey(), LABEL_CONNECTION_TIMEOUT, DESCRIPTION_HUB_TIMEOUT, FormField.OPTIONAL).withInitialValue(DEFAULT_HUB_TIMEOUT);
+    private final CheckboxFormField autoImportCert = new CheckboxFormField(TaskField.HUB_AUTO_IMPORT_CERT.getParameterKey(), LABEL_IMPORT_HUB_SSL_CERTIFICATE, DESCRIPTION_HUB_IMPORT_CERT, FormField.OPTIONAL);
+
+    private final StringTextFormField proxyHostField = new StringTextFormField(TaskField.HUB_PROXY_HOST.getParameterKey(), LABEL_PROXY_HOST, DESCRIPTION_PROXY_HOST, FormField.OPTIONAL);
+    private final StringTextFormField proxyPortField = new StringTextFormField(TaskField.HUB_PROXY_PORT.getParameterKey(), LABEL_PROXY_PORT, DESCRIPTION_PROXY_PORT, FormField.OPTIONAL);
+    private final StringTextFormField proxyUsernameField = new StringTextFormField(TaskField.HUB_PROXY_USERNAME.getParameterKey(), LABEL_PROXY_USERNAME, DESCRIPTION_PROXY_USERNAME, FormField.OPTIONAL);
+    private final PasswordFormField proxyPasswordField = new PasswordFormField(TaskField.HUB_PROXY_PASSWORD.getParameterKey(), LABEL_PROXY_PASSWORD, DESCRIPTION_PROXY_PASSWORD, FormField.OPTIONAL);
+    private final StringTextFormField distributionFormField = new StringTextFormField(TaskField.DISTRIBUTION.getParameterKey(), LABEL_DISTRIBUTION, DESCRIPTION_HUB_PROJECT_DISTRIBUTION, FormField.OPTIONAL)
+            .withInitialValue(ProjectVersionDistributionEnum.EXTERNAL.name());
+    private final StringTextFormField phaseFormField = new StringTextFormField(TaskField.PHASE.getParameterKey(), LABEL_PHASE, DESCRIPTION_HUB_PROJECT_PHASE, FormField.OPTIONAL).withInitialValue(ProjectVersionPhaseEnum.DEVELOPMENT.name());
+    private final StringTextFormField filePatternField = new StringTextFormField(TaskField.FILE_PATTERNS.getParameterKey(), LABEL_FILE_PATTERN_MATCHES, DESCRIPTION_SCAN_FILE_PATTERN_MATCH, FormField.MANDATORY)
+            .withInitialValue(DEFAULT_FILE_PATTERNS);
+    private final StringTextFormField workingDirectoryField = new StringTextFormField(TaskField.WORKING_DIRECTORY.getParameterKey(), LABEL_WORKING_DIRECTORY, DESCRIPTION_TASK_WORKING_DIRECTORY, FormField.MANDATORY)
+            .withInitialValue(DEFAULT_WORKING_DIRECTORY);
+    private final StringTextFormField scanMemoryField = new StringTextFormField(TaskField.HUB_SCAN_MEMORY.getParameterKey(), LABEL_SCAN_MEMORY_ALLOCATION, DESCRIPTION_HUB_SCAN_MEMORY, FormField.OPTIONAL)
+            .withInitialValue(DEFAULT_SCAN_MEMORY);
+
     @Override
     public List<FormField> formFields() {
         final List<FormField> fields = new ArrayList<>();
-
-        final RepoOrGroupComboFormField repoField = new RepoOrGroupComboFormField(TaskField.REPOSITORY_FIELD_ID.getParameterKey(), RepoOrGroupComboFormField.DEFAULT_LABEL, DESCRIPTION_REPO_NAME, FormField.MANDATORY);
-        final StringTextFormField resourceStorePathField = new StringTextFormField(TaskField.REPOSITORY_PATH_FIELD_ID.getParameterKey(), LABEL_REPO_PATH, DESCRIPTION_REPO_PATH, FormField.OPTIONAL);
-        final StringTextFormField hubUrlField = new StringTextFormField(TaskField.HUB_URL.getParameterKey(), LABEL_HUB_SERVER_URL, DESCRIPTION_HUB_URL, FormField.MANDATORY);
-        final StringTextFormField usernameField = new StringTextFormField(TaskField.HUB_USERNAME.getParameterKey(), LABEL_HUB_USERNAME, DESCRIPTION_HUB_USERNAME, FormField.MANDATORY);
-        final PasswordFormField passwordField = new PasswordFormField(TaskField.HUB_PASSWORD.getParameterKey(), LABEL_HUB_PASSWORD, DESCRIPTION_HUB_PASSWORD, FormField.MANDATORY);
-        final StringTextFormField timeoutField = new StringTextFormField(TaskField.HUB_TIMEOUT.getParameterKey(), LABEL_CONNECTION_TIMEOUT, DESCRIPTION_HUB_TIMEOUT, FormField.OPTIONAL).withInitialValue(DEFAULT_HUB_TIMEOUT);
-        final CheckboxFormField autoImportCert = new CheckboxFormField(TaskField.HUB_AUTO_IMPORT_CERT.getParameterKey(), LABEL_IMPORT_HUB_SSL_CERTIFICATE, DESCRIPTION_HUB_IMPORT_CERT, FormField.OPTIONAL);
-
-        final StringTextFormField proxyHostField = new StringTextFormField(TaskField.HUB_PROXY_HOST.getParameterKey(), LABEL_PROXY_HOST, DESCRIPTION_PROXY_HOST, FormField.OPTIONAL);
-        final StringTextFormField proxyPortField = new StringTextFormField(TaskField.HUB_PROXY_PORT.getParameterKey(), LABEL_PROXY_PORT, DESCRIPTION_PROXY_PORT, FormField.OPTIONAL);
-        final StringTextFormField proxyUsernameField = new StringTextFormField(TaskField.HUB_PROXY_USERNAME.getParameterKey(), LABEL_PROXY_USERNAME, DESCRIPTION_PROXY_USERNAME, FormField.OPTIONAL);
-        final PasswordFormField proxyPasswordField = new PasswordFormField(TaskField.HUB_PROXY_PASSWORD.getParameterKey(), LABEL_PROXY_PASSWORD, DESCRIPTION_PROXY_PASSWORD, FormField.OPTIONAL);
-        final StringTextFormField distributionFormField = new StringTextFormField(TaskField.DISTRIBUTION.getParameterKey(), LABEL_DISTRIBUTION, DESCRIPTION_HUB_PROJECT_DISTRIBUTION, FormField.OPTIONAL)
-                .withInitialValue(ProjectVersionDistributionEnum.EXTERNAL.name());
-        final StringTextFormField phaseFormField = new StringTextFormField(TaskField.PHASE.getParameterKey(), LABEL_PHASE, DESCRIPTION_HUB_PROJECT_PHASE, FormField.OPTIONAL).withInitialValue(ProjectVersionPhaseEnum.DEVELOPMENT.name());
-        final StringTextFormField filePatternField = new StringTextFormField(TaskField.FILE_PATTERNS.getParameterKey(), LABEL_FILE_PATTERN_MATCHES, DESCRIPTION_SCAN_FILE_PATTERN_MATCH, FormField.MANDATORY)
-                .withInitialValue(DEFAULT_FILE_PATTERNS);
-        final StringTextFormField workingDirectoryField = new StringTextFormField(TaskField.WORKING_DIRECTORY.getParameterKey(), LABEL_WORKING_DIRECTORY, DESCRIPTION_TASK_WORKING_DIRECTORY, FormField.MANDATORY)
-                .withInitialValue(DEFAULT_WORKING_DIRECTORY);
-        final StringTextFormField scanMemoryField = new StringTextFormField(TaskField.HUB_SCAN_MEMORY.getParameterKey(), LABEL_SCAN_MEMORY_ALLOCATION, DESCRIPTION_HUB_SCAN_MEMORY, FormField.OPTIONAL).withInitialValue(DEFAULT_SCAN_MEMORY);
 
         fields.add(repoField);
         fields.add(resourceStorePathField);
@@ -135,6 +137,6 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
 
     @Override
     public String getName() {
-        return ID;
+        return TASK_NAME;
     }
 }
