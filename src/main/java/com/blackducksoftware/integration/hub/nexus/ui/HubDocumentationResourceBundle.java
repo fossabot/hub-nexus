@@ -23,12 +23,19 @@
  */
 package com.blackducksoftware.integration.hub.nexus.ui;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import org.sonatype.nexus.plugin.support.DocumentationBundleSupport;
 
 import com.blackducksoftware.integration.hub.nexus.application.HubNexusPlugin;
 
+@Named
+@Singleton
 public class HubDocumentationResourceBundle extends DocumentationBundleSupport {
 
+    @Inject
     protected HubDocumentationResourceBundle(final HubNexusPlugin plugin) {
         super(plugin);
     }

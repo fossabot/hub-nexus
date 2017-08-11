@@ -23,20 +23,14 @@
  */
 package com.blackducksoftware.integration.hub.nexus.http;
 
-import java.io.Serializable;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlType;
-
 import org.slf4j.Logger;
 import org.sonatype.sisu.goodies.common.Loggers;
 
 import com.google.common.base.Objects;
 
-@XmlType(name = "blackduck-info")
-@XmlAccessorType(XmlAccessType.FIELD)
-public class HubMetaData implements Serializable {
+//@XmlType(name = "blackduck-info")
+//@XmlAccessorType(XmlAccessType.FIELD)
+public class HubMetaData {
     final Logger logger = Loggers.getLogger(HubMetaData.class);
 
     private String riskReportUrl;

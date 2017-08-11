@@ -41,8 +41,7 @@ public class HubNexusPlugin extends PluginIdentity {
     public static final String GROUP_ID = "com.blackducksoftware.integrations";
 
     @NonNls
-    // public static final String ARTIFACT_ID = "blackduck-" + ID_PREFIX + "-plugin";
-    public static final String ARTIFACT_ID = ID_PREFIX;
+    public static final String ARTIFACT_ID = "blackduck-" + ID_PREFIX + "-plugin";
 
     @Inject
     public HubNexusPlugin() throws Exception {

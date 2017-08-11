@@ -27,13 +27,16 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.slf4j.Logger;
 import org.sonatype.nexus.plugins.ui.contribution.UiContributorSupport;
+import org.sonatype.sisu.goodies.common.Loggers;
 
 import com.blackducksoftware.integration.hub.nexus.application.HubNexusPlugin;
 
 @Named
 @Singleton
 public class HubPluginUI extends UiContributorSupport {
+    final Logger logger = Loggers.getLogger(HubPluginUI.class);
 
     @Inject
     public HubPluginUI(final HubNexusPlugin owner) {

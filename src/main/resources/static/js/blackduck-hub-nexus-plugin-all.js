@@ -83,6 +83,10 @@ Ext.extend( Sonatype.repoServer.HubTab, Ext.Panel, {
 					if (isSuccess) {
 						var infoResp = Ext.decode(response.responseText);
 
+						this.find('name', 'lastScanned')[0].setRawValue(infoResp.blackduck-lastScanned);
+						this.find('name', 'riskReportUrl')[0].setRawValue(infoResp.blackduck-riskReportUrl);
+						this.find('name', 'policyCheckStatus')[0].setRawValue(infoResp.blackduck-policyCheckStatus);
+
 						this.find('name', 'lastScanned')[0].setRawValue(infoResp.data.lastScanned);
 						this.find('name', 'riskReportUrl')[0].setRawValue(infoResp.data.riskReportUrl);
 						this.find('name', 'policyCheckStatus')[0].setRawValue(infoResp.data.policyCheckStatus);

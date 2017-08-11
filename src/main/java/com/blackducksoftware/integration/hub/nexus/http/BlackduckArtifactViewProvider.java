@@ -25,6 +25,7 @@ package com.blackducksoftware.integration.hub.nexus.http;
 
 import java.io.IOException;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -32,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.restlet.data.Request;
 import org.slf4j.Logger;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
+import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.rest.AbstractArtifactViewProvider;
@@ -39,20 +41,21 @@ import org.sonatype.sisu.goodies.common.Loggers;
 
 @Named("blackduck")
 @Singleton
-public class ArtifactMetaDataProvider extends AbstractArtifactViewProvider {
-    final Logger logger = Loggers.getLogger(ArtifactMetaDataProvider.class);
+public class BlackduckArtifactViewProvider extends AbstractArtifactViewProvider {
+    final Logger logger = Loggers.getLogger(BlackduckArtifactViewProvider.class);
 
-    // private final DefaultAttributesHandler attributesHandler;
-    //
-    // @Inject
-    // public ArtifactMetaDataProvider(final DefaultAttributesHandler attributesHandler) {
-    // this.attributesHandler = attributesHandler;
-    //
-    // logger.info("Data provider");
-    // }
+    private final DefaultAttributesHandler attributesHandler;
+
+    @Inject
+    public BlackduckArtifactViewProvider(final DefaultAttributesHandler attributesHandler) {
+        this.attributesHandler = attributesHandler;
+
+        logger.info("Data provider");
+    }
 
     @Override
     protected Object retrieveView(final ResourceStoreRequest resourceStoreRequest, final RepositoryItemUid repositoryItemUid, final StorageItem item, final Request request) throws IOException {
+        logger.info("Retrieve view");
         return generateMetaData(item);
     }
 
