@@ -39,6 +39,7 @@ import org.sonatype.sisu.goodies.common.Loggers;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.nexus.scan.ArtifactScanner;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
+import com.blackducksoftware.integration.hub.phonehome.IntegrationInfo;
 
 public class RepositoryWalker extends AbstractWalkerProcessor {
     private final HubServerConfig hubServerConfig;
@@ -47,13 +48,16 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
     private final ItemAttributesHelper attributesHelper;
     private final File blackDuckDirectory;
     private final Map<String, String> taskParameters;
+    private final IntegrationInfo phoneHomeInfo;
 
-    public RepositoryWalker(final HubServerConfig hubServerConfig, final String fileMatchPatterns, final ItemAttributesHelper attributesHelper, final File blackDuckDirectory, final Map<String, String> taskParameters) {
+    public RepositoryWalker(final HubServerConfig hubServerConfig, final String fileMatchPatterns, final ItemAttributesHelper attributesHelper, final File blackDuckDirectory, final Map<String, String> taskParameters,
+            final IntegrationInfo phoneHomeInfo) {
         this.hubServerConfig = hubServerConfig;
         this.fileMatchPatterns = fileMatchPatterns;
         this.attributesHelper = attributesHelper;
         this.blackDuckDirectory = blackDuckDirectory;
         this.taskParameters = taskParameters;
+        this.phoneHomeInfo = phoneHomeInfo;
     }
 
     @Override
@@ -83,7 +87,8 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
                         logger.info(item.getName() + " already scanned");
                         return;
                     }
-                    final ArtifactScanner scanner = new ArtifactScanner(hubServerConfig, item.getRepositoryItemUid().getRepository(), context.getResourceStoreRequest(), item, attributesHelper, blackDuckDirectory, taskParameters);
+                    final ArtifactScanner scanner = new ArtifactScanner(hubServerConfig, item.getRepositoryItemUid().getRepository(), context.getResourceStoreRequest(), item, attributesHelper, blackDuckDirectory, taskParameters,
+                            phoneHomeInfo);
                     scanner.scan();
                     break;
                 }

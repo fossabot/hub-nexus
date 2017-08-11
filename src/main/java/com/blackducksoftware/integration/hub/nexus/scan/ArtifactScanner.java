@@ -58,9 +58,10 @@ public class ArtifactScanner {
     private final HubServiceHelper hubServiceHelper;
     private final File blackDuckDirectory;
     private final Map<String, String> taskParameters;
+    private final IntegrationInfo phoneHomeInfo;
 
     public ArtifactScanner(final HubServerConfig hubServerConfig, final Repository repository, final ResourceStoreRequest request, final StorageItem item, final ItemAttributesHelper attributesHelper, final File blackDuckDirectory,
-            final Map<String, String> taskParameters) {
+            final Map<String, String> taskParameters, final IntegrationInfo phoneHomeInfo) {
         this.hubServerConfig = hubServerConfig;
         this.repository = repository;
         this.item = item;
@@ -68,6 +69,7 @@ public class ArtifactScanner {
         this.attributesHelper = attributesHelper;
         this.blackDuckDirectory = blackDuckDirectory;
         this.taskParameters = taskParameters;
+        this.phoneHomeInfo = phoneHomeInfo;
         hubServiceHelper = new HubServiceHelper(hubServerConfig);
     }
 
@@ -81,7 +83,7 @@ public class ArtifactScanner {
             final String distribution = taskParameters.get(TaskField.DISTRIBUTION.getParameterKey());
             final String phase = taskParameters.get(TaskField.PHASE.getParameterKey());
             final ProjectRequest projectRequest = createProjectRequest(distribution, phase);
-            final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, projectRequest, true, IntegrationInfo.DO_NOT_PHONE_HOME);
+            final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, projectRequest, true, phoneHomeInfo);
             attributesHelper.setAttributeLastScanned(item, System.currentTimeMillis());
             logger.info("Checking scan results...");
             hubServiceHelper.waitForHubResponse(projectVersionView, hubServerConfig.getTimeout());

@@ -48,13 +48,15 @@ import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.nexus.repository.walker.RepositoryWalker;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
+import com.blackducksoftware.integration.hub.phonehome.IntegrationInfo;
+import com.blackducksoftware.integration.phone.home.enums.ThirdPartyName;
 
 @Named(ScanTaskDescriptor.ID)
 public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
     private static final String ALL_REPO_ID = "all_repo";
-    private final ApplicationConfiguration appConfiguration;
     private final Walker walker;
     private final DefaultAttributesHandler attributesHandler;
+    private final ApplicationConfiguration appConfiguration;
 
     @Inject
     public ScanTask(final ApplicationConfiguration appConfiguration, final Walker walker, final DefaultAttributesHandler attributesHandler) {
@@ -158,7 +160,8 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
         final String fileMatchPatterns = getParameter(TaskField.FILE_PATTERNS.getParameterKey());
         final WalkerContext context = new DefaultWalkerContext(repository, request);
         getLogger().info("Creating walker for repository {}", repository.getName());
-        context.getProcessors().add(new RepositoryWalker(hubServerConfig, fileMatchPatterns, new ItemAttributesHelper(attributesHandler), blackDuckDirectory, getParameters()));
+        final IntegrationInfo phoneHomeInfo = new IntegrationInfo(ThirdPartyName.NEXUS, appConfiguration.getConfigurationModel().getNexusVersion(), ScanTaskDescriptor.PLUGIN_VERSION);
+        context.getProcessors().add(new RepositoryWalker(hubServerConfig, fileMatchPatterns, new ItemAttributesHelper(attributesHandler), blackDuckDirectory, getParameters(), phoneHomeInfo));
         return context;
     }
 
