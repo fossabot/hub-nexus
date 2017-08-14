@@ -55,7 +55,7 @@ Sonatype.repoServer.HubTab = function(config) {
 		        }, {
 		        	xtype : 'displayfield',
 		        	fieldLabel : 'Policy check status',
-		        	name : 'policyCheckStatus',
+		        	name : 'policyResult',
 		        	anchor : Sonatype.view.FIELD_OFFSET_WITH_SCROLL,
 		        	allowBlank : true,
 		        	readOnly : true
@@ -72,18 +72,6 @@ Sonatype.repoServer.HubTab = function(config) {
 };
 
 Ext.extend( Sonatype.repoServer.HubTab, Ext.Panel, {
-	setupNonLocalView : function(hubTab) {
-		this.find('name', 'lastScanned')[0].setRawValue(null);
-		this.find('name', 'riskReportUrl')[0].setRawValue(null);
-		this.find('name', 'policyCheckStatus')[0].setRawValue(null);
-	  },
-
-	  clearNonLocalView : function(hubTab) {
-		this.find('name', 'lastScanned')[0].show();
-		this.find('name', 'riskReportUrl')[0].show();
-		this.find('name', 'policyCheckStatus')[0].show();
-	  },
-
 	showArtifact : function(data, artifactContainer) {
 		var self = this;
 		this.data = data;
@@ -96,9 +84,32 @@ Ext.extend( Sonatype.repoServer.HubTab, Ext.Panel, {
 						var infoResp = Ext.decode(response.responseText);
 						showBasicMetaData(self);
 
-						this.find('name', 'lastScanned')[0].setRawValue(infoResp.data[0]);
-						this.find('name', 'riskReportUrl')[0].setRawValue('test');
-						this.find('name', 'policyCheckStatus')[0].setRawValue(infoResp.data['blackduck-policyCheckStatus']);
+						var filteredArray = infoResp.data.response.attributes.filter(item => item.includes('blackducksoftware-'));
+
+						if(filteredArray.length == 0) {
+							artifactContainer.hideTab(this);
+						} else {
+							for (let index of filteredArray) {
+								var keyAndValue = index.split("=");
+								var key = keyAndValue[0].split("-")[1];
+								var value = keyAndValue[1];
+								
+								var dateTime;
+
+								if(key == 'lastScanned') {
+									dateTime = Date(parseInt(value));
+									value = dateTime.toLocaleString()
+								}
+
+								this.find('name', key)[0].setRawValue(value);
+							}
+
+							artifactContainer.showTab(this);
+						}
+					} else {
+						if(response.status = 404) {
+							artifactContainer.hideTab(this);
+						}
 					}
 				},
 				scope : this,
@@ -116,13 +127,13 @@ Ext.extend( Sonatype.repoServer.HubTab, Ext.Panel, {
 function noData(hubTab){
 	hubTab.find('name', 'lastScanned')[0].setRawValue(null);
 	hubTab.find('name', 'riskReportUrl')[0].setRawValue(null);
-	hubTab.find('name', 'policyCheckStatus')[0].setRawValue(null);
+	hubTab.find('name', 'policyResult')[0].setRawValue(null);
 }
 
 function showBasicMetaData(hubTab){
 	hubTab.find('name', 'riskReportUrl')[0].show();
 	hubTab.find('name', 'lastScanned')[0].show();
-	hubTab.find('name', 'policyCheckStatus')[0].show();
+	hubTab.find('name', 'policyResult')[0].show();
 }
 
 Sonatype.Events.addListener('fileContainerInit', function(items) {
