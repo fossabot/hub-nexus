@@ -25,7 +25,6 @@ package com.blackducksoftware.integration.hub.nexus.http;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -38,9 +37,7 @@ import org.restlet.data.Status;
 import org.restlet.resource.ResourceException;
 import org.restlet.resource.Variant;
 import org.slf4j.Logger;
-import org.sonatype.nexus.proxy.NoSuchResourceStoreException;
-import org.sonatype.nexus.proxy.ResourceStore;
-import org.sonatype.nexus.rest.AbstractResourceStoreContentPlexusResource;
+import org.sonatype.nexus.rest.AbstractNexusPlexusResource;
 import org.sonatype.nexus.rest.model.HtmlUnescapeStringConverter;
 import org.sonatype.plexus.rest.resource.PathProtectionDescriptor;
 import org.sonatype.sisu.goodies.common.Loggers;
@@ -49,10 +46,10 @@ import com.thoughtworks.xstream.XStream;
 
 @Path(HubNexusPlexusResource.RESOURCE_PATH)
 @Produces({ "application/xml", "application/json" })
-@Consumes({ "application/xml", "application/json" })
+// @Consumes({ "application/xml", "application/json" })
 @Named("HubNexusPlexusResource")
 @Singleton
-public class HubNexusPlexusResource extends AbstractResourceStoreContentPlexusResource {
+public class HubNexusPlexusResource extends AbstractNexusPlexusResource {
     public static final String RESOURCE_PATH = "/blackduck";
 
     final Logger logger = Loggers.getLogger(HubNexusPlexusResource.class);
@@ -70,7 +67,7 @@ public class HubNexusPlexusResource extends AbstractResourceStoreContentPlexusRe
 
     @Override
     public PathProtectionDescriptor getResourceProtection() {
-        return new PathProtectionDescriptor(getResourceUri(), "authcBasic,perms[nexus:*]");
+        return new PathProtectionDescriptor(getResourceUri(), "authcBasic,perms[nexus:artifact]");
     }
 
     @Override
@@ -125,11 +122,5 @@ public class HubNexusPlexusResource extends AbstractResourceStoreContentPlexusRe
         hubResponse.setData(data);
 
         return hubResponse;
-    }
-
-    @Override
-    protected ResourceStore getResourceStore(final Request request) throws NoSuchResourceStoreException, ResourceException {
-
-        return null;
     }
 }

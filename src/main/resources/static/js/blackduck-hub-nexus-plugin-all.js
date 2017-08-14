@@ -72,41 +72,57 @@ Sonatype.repoServer.HubTab = function(config) {
 };
 
 Ext.extend( Sonatype.repoServer.HubTab, Ext.Panel, {
+	setupNonLocalView : function(hubTab) {
+		this.find('name', 'lastScanned')[0].setRawValue(null);
+		this.find('name', 'riskReportUrl')[0].setRawValue(null);
+		this.find('name', 'policyCheckStatus')[0].setRawValue(null);
+	  },
+
+	  clearNonLocalView : function(hubTab) {
+		this.find('name', 'lastScanned')[0].show();
+		this.find('name', 'riskReportUrl')[0].show();
+		this.find('name', 'policyCheckStatus')[0].show();
+	  },
+
 	showArtifact : function(data, artifactContainer) {
-		noData(this);
-		showBasicMetaData(this);
+		var self = this;
 		this.data = data;
-		if (data) {
+		if (data != null) {
+			console.log('data is NOT null');
 			Ext.Ajax.request({
-				url : this.data.resourceURI,
+				url : this.data.resourceURI + '?describe',
 				callback : function(options, isSuccess, response) {
 					if (isSuccess) {
 						var infoResp = Ext.decode(response.responseText);
+						showBasicMetaData(self);
 
-						this.find('name', 'lastScanned')[0].setRawValue(infoResp.blackduck-lastScanned);
-						this.find('name', 'riskReportUrl')[0].setRawValue(infoResp.blackduck-riskReportUrl);
-						this.find('name', 'policyCheckStatus')[0].setRawValue(infoResp.blackduck-policyCheckStatus);
-
-						this.find('name', 'lastScanned')[0].setRawValue(infoResp.data.lastScanned);
-						this.find('name', 'riskReportUrl')[0].setRawValue(infoResp.data.riskReportUrl);
-						this.find('name', 'policyCheckStatus')[0].setRawValue(infoResp.data.policyCheckStatus);
+						this.find('name', 'lastScanned')[0].setRawValue(infoResp.data[0]);
+						this.find('name', 'riskReportUrl')[0].setRawValue('test');
+						this.find('name', 'policyCheckStatus')[0].setRawValue(infoResp.data['blackduck-policyCheckStatus']);
 					}
-				}
-			})
+				},
+				scope : this,
+				method : 'GET',
+				suppressStatus : '404'
+			});
+		} else {
+			console.log('data is null');
+			noData(this);
+			artifactContainer.hideTab(this);
 		}
 	}
 });
 
 function noData(hubTab){
 	hubTab.find('name', 'lastScanned')[0].setRawValue(null);
-	hubTab.find('name', 'compName')[0].setRawValue(null);
-	hubTab.find('name', 'approvalStatus')[0].setRawValue(null);
+	hubTab.find('name', 'riskReportUrl')[0].setRawValue(null);
+	hubTab.find('name', 'policyCheckStatus')[0].setRawValue(null);
 }
 
 function showBasicMetaData(hubTab){
-	hubTab.find('name', 'compName')[0].show();
+	hubTab.find('name', 'riskReportUrl')[0].show();
 	hubTab.find('name', 'lastScanned')[0].show();
-	hubTab.find('name', 'approvalStatus')[0].setRawValue(null);
+	hubTab.find('name', 'policyCheckStatus')[0].show();
 }
 
 Sonatype.Events.addListener('fileContainerInit', function(items) {

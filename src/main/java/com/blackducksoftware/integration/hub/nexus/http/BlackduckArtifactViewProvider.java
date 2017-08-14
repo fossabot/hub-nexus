@@ -29,7 +29,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang3.StringUtils;
 import org.restlet.data.Request;
 import org.slf4j.Logger;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
@@ -39,7 +38,7 @@ import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.rest.AbstractArtifactViewProvider;
 import org.sonatype.sisu.goodies.common.Loggers;
 
-@Named("blackduck")
+@Named("blackduck-hub-nexus-plugin")
 @Singleton
 public class BlackduckArtifactViewProvider extends AbstractArtifactViewProvider {
     final Logger logger = Loggers.getLogger(BlackduckArtifactViewProvider.class);
@@ -49,6 +48,7 @@ public class BlackduckArtifactViewProvider extends AbstractArtifactViewProvider 
     @Inject
     public BlackduckArtifactViewProvider(final DefaultAttributesHandler attributesHandler) {
         this.attributesHandler = attributesHandler;
+        this.getLogger().info("DATAAAAA");
 
         logger.info("Data provider");
     }
@@ -83,9 +83,9 @@ public class BlackduckArtifactViewProvider extends AbstractArtifactViewProvider 
         logger.info("Risk report URL: " + hubMetaData.getRiskReportUrl());
         logger.info("Policy check: " + hubMetaData.getPolicyCheckResult());
 
-        if (StringUtils.isNotBlank(hubMetaData.getLastScanned())) {
-            metaDataResponse.setData(hubMetaData);
-        }
+        // if (StringUtils.isNotBlank(hubMetaData.getLastScanned())) {
+        metaDataResponse.setData(hubMetaData);
+        // }
 
         return metaDataResponse;
     }
