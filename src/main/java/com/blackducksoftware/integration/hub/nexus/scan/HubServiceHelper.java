@@ -37,6 +37,7 @@ import com.blackducksoftware.integration.hub.dataservice.cli.CLIDataService;
 import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDescription;
 import com.blackducksoftware.integration.hub.dataservice.report.RiskReportDataService;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
+import com.blackducksoftware.integration.hub.exception.HubTimeoutExceededException;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.model.view.CodeLocationView;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
@@ -45,6 +46,7 @@ import com.blackducksoftware.integration.hub.model.view.ScanSummaryView;
 import com.blackducksoftware.integration.hub.model.view.VersionBomPolicyStatusView;
 import com.blackducksoftware.integration.hub.report.api.ReportData;
 import com.blackducksoftware.integration.hub.rest.CredentialsRestConnection;
+import com.blackducksoftware.integration.hub.service.HubResponseService;
 import com.blackducksoftware.integration.hub.service.HubServicesFactory;
 import com.blackducksoftware.integration.log.IntLogger;
 import com.blackducksoftware.integration.log.Slf4jIntLogger;
@@ -53,35 +55,30 @@ public class HubServiceHelper {
     private final Logger logger = Loggers.getLogger(ArtifactScanner.class);
     private final IntLogger intLogger = new Slf4jIntLogger(logger);
 
-    private HubServicesFactory hubServicesFactory;
+    private final HubServicesFactory hubServicesFactory;
+    private final MetaService metaService;
 
-    public HubServiceHelper(final HubServerConfig hubServerConfig) {
+    public HubServiceHelper(final HubServerConfig hubServerConfig) throws EncryptionException {
         CredentialsRestConnection credentialsRestConnection;
-        try {
-            credentialsRestConnection = hubServerConfig.createCredentialsRestConnection(intLogger);
-            hubServicesFactory = new HubServicesFactory(credentialsRestConnection);
-        } catch (final EncryptionException e) {
-            throw new RuntimeException(e);
-        }
+        credentialsRestConnection = hubServerConfig.createCredentialsRestConnection(intLogger);
+        hubServicesFactory = new HubServicesFactory(credentialsRestConnection);
+        metaService = hubServicesFactory.createMetaService(intLogger);
     }
 
-    public void waitForHubResponse(final ProjectVersionView version, final long timeout) {
+    public void waitForHubResponse(final ProjectVersionView version, final long timeout) throws HubTimeoutExceededException, IntegrationException {
         logger.info("Waiting for hub response");
-        try {
-            final List<CodeLocationView> allCodeLocations = hubServicesFactory.createCodeLocationRequestService(intLogger).getAllCodeLocationsForProjectVersion(version);
-            logger.info("Checking policy of + " + allCodeLocations.size() + " code location's");
-            final List<ScanSummaryView> scanSummaryViews = new ArrayList<>();
-            for (final CodeLocationView codeLocationView : allCodeLocations) {
-                final String scansLink = hubServicesFactory.createMetaService(intLogger).getFirstLinkSafely(codeLocationView, MetaService.SCANS_LINK);
-                final List<ScanSummaryView> codeLocationScanSummaryViews = hubServicesFactory.createScanSummaryRequestService().getAllScanSummaryItems(scansLink);
-                scanSummaryViews.addAll(codeLocationScanSummaryViews);
-            }
-            logger.info("Checking scan policy");
-            hubServicesFactory.createScanStatusDataService(intLogger, timeout).assertScansFinished(scanSummaryViews);
-            logger.info("Policy check completed");
-        } catch (final IntegrationException e) {
-            throw new RuntimeException(e);
+        final List<CodeLocationView> allCodeLocations = hubServicesFactory.createCodeLocationRequestService(intLogger).getAllCodeLocationsForProjectVersion(version);
+        logger.info("Checking policy of + " + allCodeLocations.size() + " code location's");
+        final List<ScanSummaryView> scanSummaryViews = new ArrayList<>();
+        for (final CodeLocationView codeLocationView : allCodeLocations) {
+            final String scansLink = hubServicesFactory.createMetaService(intLogger).getFirstLinkSafely(codeLocationView, MetaService.SCANS_LINK);
+            final List<ScanSummaryView> codeLocationScanSummaryViews = hubServicesFactory.createScanSummaryRequestService().getAllScanSummaryItems(scansLink);
+            scanSummaryViews.addAll(codeLocationScanSummaryViews);
         }
+        logger.info("Checking scan policy");
+        hubServicesFactory.createScanStatusDataService(intLogger, timeout).assertScansFinished(scanSummaryViews);
+        logger.info("Policy check completed");
+
     }
 
     public PolicyStatusDescription checkPolicyStatus(final ProjectVersionView version) {
@@ -95,11 +92,18 @@ public class HubServiceHelper {
         }
     }
 
-    public String retrieveReportUrl(final ProjectVersionView project) {
+    public String retrieveApiUrl(final ProjectVersionView project) {
         try {
-            return hubServicesFactory.createMetaService(intLogger).getHref(project);
+            return metaService.getHref(project);
         } catch (final HubIntegrationException e) {
-            e.printStackTrace();
+            return "";
+        }
+    }
+
+    public String retrieveUIUrl(final ProjectVersionView project) {
+        try {
+            return metaService.getFirstLink(project, "components");
+        } catch (final HubIntegrationException e) {
             return "";
         }
     }
@@ -126,5 +130,13 @@ public class HubServiceHelper {
         } catch (final IntegrationException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public VersionBomPolicyStatusView getOverallPolicyStatus(final ProjectVersionView projectVersionView) throws IntegrationException {
+        final String policyStatusUrl = metaService.getFirstLink(projectVersionView, MetaService.POLICY_STATUS_LINK);
+        final HubResponseService hubResponseService = hubServicesFactory.createHubResponseService();
+        final VersionBomPolicyStatusView versionBomPolicyStatusView = hubResponseService.getItem(policyStatusUrl, VersionBomPolicyStatusView.class);
+
+        return versionBomPolicyStatusView;
     }
 }

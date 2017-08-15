@@ -26,8 +26,6 @@ package com.blackducksoftware.integration.hub.nexus.http;
 import org.slf4j.Logger;
 import org.sonatype.sisu.goodies.common.Loggers;
 
-import com.google.common.base.Objects;
-
 //@XmlType(name = "blackduck-info")
 //@XmlAccessorType(XmlAccessType.FIELD)
 public class HubMetaData {
@@ -35,7 +33,10 @@ public class HubMetaData {
 
     private String apiUrl;
     private String policyStatus;
+    private String policyOverallStatus;
     private String scanTime;
+    private String scanStatus;
+    private String uiUrl;
 
     public HubMetaData() {
         logger.info("HubMetaData");
@@ -57,6 +58,14 @@ public class HubMetaData {
         this.policyStatus = policyStatus;
     }
 
+    public String getPolicyOverallStatus() {
+        return policyOverallStatus;
+    }
+
+    public void setPolicyOverallStatus(final String policyOverallStatus) {
+        this.policyOverallStatus = policyOverallStatus;
+    }
+
     public String getScanTime() {
         return scanTime;
     }
@@ -65,8 +74,24 @@ public class HubMetaData {
         this.scanTime = scanTime;
     }
 
+    public String getScanStatus() {
+        return scanStatus;
+    }
+
+    public void setScanStatus(final String scanStatus) {
+        this.scanStatus = scanStatus;
+    }
+
+    public String getUiUrl() {
+        return uiUrl;
+    }
+
+    public void setUiUrl(final String uiUrl) {
+        this.uiUrl = uiUrl;
+    }
+
     @Override
     public String toString() {
-        return Objects.toStringHelper(this).add("riskReportUrl", apiUrl).add("policyCheckResult", policyStatus).add("lastScanned", scanTime).toString();
+        return "HubMetaData [logger=" + logger + ", apiUrl=" + apiUrl + ", policyStatus=" + policyStatus + ", policyOverallStatus=" + policyOverallStatus + ", scanTime=" + scanTime + ", scanStatus=" + scanStatus + ", uiUrl=" + uiUrl + "]";
     }
 }

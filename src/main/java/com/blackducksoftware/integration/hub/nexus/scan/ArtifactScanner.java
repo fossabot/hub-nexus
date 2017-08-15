@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.StorageItem;
@@ -34,12 +35,15 @@ import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
 import org.sonatype.sisu.goodies.common.Loggers;
 
+import com.blackducksoftware.integration.exception.EncryptionException;
+import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.builder.HubScanConfigBuilder;
 import com.blackducksoftware.integration.hub.dataservice.cli.CLIDataService;
 import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDescription;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
+import com.blackducksoftware.integration.hub.model.view.VersionBomPolicyStatusView;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.phonehome.IntegrationInfo;
@@ -55,7 +59,7 @@ public class ArtifactScanner {
     private final Repository repository;
     private final ResourceStoreRequest request;
     private final ItemAttributesHelper attributesHelper;
-    private final HubServiceHelper hubServiceHelper;
+    private HubServiceHelper hubServiceHelper;
     private final File blackDuckDirectory;
     private final Map<String, String> taskParameters;
     private final IntegrationInfo phoneHomeInfo;
@@ -70,34 +74,55 @@ public class ArtifactScanner {
         this.blackDuckDirectory = blackDuckDirectory;
         this.taskParameters = taskParameters;
         this.phoneHomeInfo = phoneHomeInfo;
-        hubServiceHelper = new HubServiceHelper(hubServerConfig);
+        try {
+            hubServiceHelper = new HubServiceHelper(hubServerConfig);
+        } catch (final EncryptionException ex) {
+            logger.error("HubServiceHelper couldn't be instantiated", ex);
+            hubServiceHelper = null;
+        }
     }
 
     public void scan() {
         try {
             logger.info("Beginning scan of artifact");
-            final String scanMemoryValue = taskParameters.get(TaskField.HUB_SCAN_MEMORY.getParameterKey());
-            final HubScanConfig scanConfig = createScanConfig(Integer.parseInt(scanMemoryValue));
-            logger.info("Scan Path {}", scanConfig.getScanTargetPaths());
-            final CLIDataService cliDataService = hubServiceHelper.createCLIDataService();
-            final String distribution = taskParameters.get(TaskField.DISTRIBUTION.getParameterKey());
-            final String phase = taskParameters.get(TaskField.PHASE.getParameterKey());
-            final ProjectRequest projectRequest = createProjectRequest(distribution, phase);
-            final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, projectRequest, true, phoneHomeInfo);
-            attributesHelper.setScanTime(item, System.currentTimeMillis());
-            logger.info("Checking scan results...");
-            hubServiceHelper.waitForHubResponse(projectVersionView, hubServerConfig.getTimeout());
-            final PolicyStatusDescription policyCheckResults = hubServiceHelper.checkPolicyStatus(projectVersionView);
-            final String riskReport = hubServiceHelper.retrieveReportUrl(projectVersionView);
-            if (policyCheckResults != null) {
-                attributesHelper.setPolicyStatus(item, policyCheckResults.getPolicyStatusMessage());
-            }
-            if (riskReport != null) {
-                attributesHelper.setApiUrl(item, riskReport);
+            if (hubServiceHelper == null) {
+                logger.error("Hub Service Helper not initialized.  Unable to communicate with the configured hub server");
+            } else {
+                final String scanMemoryValue = taskParameters.get(TaskField.HUB_SCAN_MEMORY.getParameterKey());
+                final HubScanConfig scanConfig = createScanConfig(Integer.parseInt(scanMemoryValue));
+                logger.info("Scan Path {}", scanConfig.getScanTargetPaths());
+                final CLIDataService cliDataService = hubServiceHelper.createCLIDataService();
+                final String distribution = taskParameters.get(TaskField.DISTRIBUTION.getParameterKey());
+                final String phase = taskParameters.get(TaskField.PHASE.getParameterKey());
+                final ProjectRequest projectRequest = createProjectRequest(distribution, phase);
+                final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, projectRequest, true, phoneHomeInfo);
+                attributesHelper.setScanTime(item, System.currentTimeMillis());
+                logger.info("Checking scan results...");
+                hubServiceHelper.waitForHubResponse(projectVersionView, hubServerConfig.getTimeout());
+                final String apiUrl = hubServiceHelper.retrieveApiUrl(projectVersionView);
+                final String uiUrl = hubServiceHelper.retrieveUIUrl(projectVersionView);
+                if (StringUtils.isNotBlank(apiUrl)) {
+                    attributesHelper.setApiUrl(item, apiUrl);
+                }
+
+                if (StringUtils.isNotBlank(uiUrl)) {
+                    attributesHelper.setUiUrl(item, uiUrl);
+                }
+                populatePolicyStatus(projectVersionView);
+                attributesHelper.setScanResult(item, "SUCCESS");
             }
         } catch (final Exception ex) {
             logger.error("Error occurred during scan task", ex);
             attributesHelper.clearAttributes(item);
+        }
+    }
+
+    private void populatePolicyStatus(final ProjectVersionView projectVersionView) throws IntegrationException {
+        final PolicyStatusDescription policyCheckResults = hubServiceHelper.checkPolicyStatus(projectVersionView);
+        if (policyCheckResults != null) {
+            final VersionBomPolicyStatusView versionBomPolicyStatusView = hubServiceHelper.getOverallPolicyStatus(projectVersionView);
+            attributesHelper.setPolicyStatus(item, policyCheckResults.getPolicyStatusMessage());
+            attributesHelper.setOverallPolicyStatus(item, versionBomPolicyStatusView.overallStatus.toString());
         }
     }
 

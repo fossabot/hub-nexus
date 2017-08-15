@@ -44,6 +44,14 @@ Sonatype.repoServer.HubTab = function(config) {
 		items: [ 
 		        {
 		        	html:'<img src="static/bd_logo.png" align= "right" />'
+		        },{
+		        	xtype : 'displayfield',
+		        	fieldLabel : 'UI URL',
+		        	name : 'uiUrl',
+		        	anchor : Sonatype.view.FIELD_OFFSET_WITH_SCROLL,
+		        	allowBlank : true,
+		        	readOnly : true    	     
+
 		        }, {
 		        	xtype : 'displayfield',
 		        	fieldLabel : 'API URL',
@@ -54,7 +62,14 @@ Sonatype.repoServer.HubTab = function(config) {
 
 		        }, {
 		        	xtype : 'displayfield',
-		        	fieldLabel : 'Policy check status',
+		        	fieldLabel : 'Overall Policy Status',
+		        	name : 'overallPolicyStatus',
+		        	anchor : Sonatype.view.FIELD_OFFSET_WITH_SCROLL,
+		        	allowBlank : true,
+		        	readOnly : true
+		        }, {
+		        	xtype : 'displayfield',
+		        	fieldLabel : 'Policy Status',
 		        	name : 'policyStatus',
 		        	anchor : Sonatype.view.FIELD_OFFSET_WITH_SCROLL,
 		        	allowBlank : true,
@@ -66,7 +81,15 @@ Sonatype.repoServer.HubTab = function(config) {
 		        	anchor : Sonatype.view.FIELD_OFFSET_WITH_SCROLL,
 		        	allowBlank : true,
 		        	readOnly : true
+		        }, {
+		        	xtype : 'displayfield',
+		        	fieldLabel : 'Scan Result',
+		        	name : 'scanResult',
+		        	anchor : Sonatype.view.FIELD_OFFSET_WITH_SCROLL,
+		        	allowBlank : true,
+		        	readOnly : true
 		        }
+		        
 		    ]
 	});
 };
@@ -100,7 +123,7 @@ Ext.extend( Sonatype.repoServer.HubTab, Ext.Panel, {
 									value = dateTime.toLocaleString();
 								}
 								
-								if(key == 'apiUrl') {
+								if(key == 'apiUrl' || key == 'uiUrl') {
 									value = '<a href="' + value + '" target="_blank">' + value + '</a>';
 								} 
 								
