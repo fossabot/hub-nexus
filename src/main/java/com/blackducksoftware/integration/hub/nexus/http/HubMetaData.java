@@ -33,40 +33,40 @@ import com.google.common.base.Objects;
 public class HubMetaData {
     final Logger logger = Loggers.getLogger(HubMetaData.class);
 
-    private String riskReportUrl;
-    private String policyCheckResult;
-    private String lastScanned;
+    private String apiUrl;
+    private String policyStatus;
+    private String scanTime;
 
     public HubMetaData() {
         logger.info("HubMetaData");
     }
 
-    public String getRiskReportUrl() {
-        return riskReportUrl;
+    public String getApiUrl() {
+        return apiUrl;
     }
 
-    public void setRiskReportUrl(final String riskReportUrl) {
-        this.riskReportUrl = riskReportUrl;
+    public void setApiUrl(final String apiUrl) {
+        this.apiUrl = apiUrl;
     }
 
-    public String getPolicyCheckResult() {
-        return policyCheckResult;
+    public String getPolicyStatus() {
+        return policyStatus;
     }
 
-    public void setPolicyCheckResult(final String policyCheckResult) {
-        this.policyCheckResult = policyCheckResult;
+    public void setPolicyStatus(final String policyStatus) {
+        this.policyStatus = policyStatus;
     }
 
-    public String getLastScanned() {
-        return lastScanned;
+    public String getScanTime() {
+        return scanTime;
     }
 
-    public void setLastScanned(final String lastScanned) {
-        this.lastScanned = lastScanned;
+    public void setScanTime(final String scanTime) {
+        this.scanTime = scanTime;
     }
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this).add("riskReportUrl", riskReportUrl).add("policyCheckResult", policyCheckResult).add("lastScanned", lastScanned).toString();
+        return Objects.toStringHelper(this).add("riskReportUrl", apiUrl).add("policyCheckResult", policyStatus).add("lastScanned", scanTime).toString();
     }
 }

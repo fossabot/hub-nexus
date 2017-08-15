@@ -75,13 +75,13 @@ public class BlackduckArtifactViewProvider extends AbstractArtifactViewProvider 
         // hubMetaData.setPolicyCheckResult(attHelper.getAttributePolicyResult(storageItem));
         // }
 
-        hubMetaData.setLastScanned("Test");
-        hubMetaData.setPolicyCheckResult("Policy result");
-        hubMetaData.setRiskReportUrl("Google");
+        hubMetaData.setScanTime("Test");
+        hubMetaData.setPolicyStatus("Policy result");
+        hubMetaData.setApiUrl("Google");
 
-        logger.info("Last scanned: " + hubMetaData.getLastScanned());
-        logger.info("Risk report URL: " + hubMetaData.getRiskReportUrl());
-        logger.info("Policy check: " + hubMetaData.getPolicyCheckResult());
+        logger.info("Last scanned: " + hubMetaData.getScanTime());
+        logger.info("Risk report URL: " + hubMetaData.getApiUrl());
+        logger.info("Policy check: " + hubMetaData.getPolicyStatus());
 
         // if (StringUtils.isNotBlank(hubMetaData.getLastScanned())) {
         metaDataResponse.setData(hubMetaData);

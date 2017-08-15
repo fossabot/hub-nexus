@@ -84,9 +84,9 @@ public class HubNexusPlexusResource extends AbstractNexusPlexusResource {
 
         final HtmlUnescapeStringConverter unescapeStringConverter = new HtmlUnescapeStringConverter(true);
 
-        stream.registerLocalConverter(HubMetaData.class, "lastScanned", unescapeStringConverter);
-        stream.registerLocalConverter(HubMetaData.class, "riskReportUrl", unescapeStringConverter);
-        stream.registerLocalConverter(HubMetaData.class, "policyCheckStatus", unescapeStringConverter);
+        stream.registerLocalConverter(HubMetaData.class, "scanTime", unescapeStringConverter);
+        stream.registerLocalConverter(HubMetaData.class, "apiUrl", unescapeStringConverter);
+        stream.registerLocalConverter(HubMetaData.class, "policyStatus", unescapeStringConverter);
     }
 
     @Override
@@ -99,9 +99,9 @@ public class HubNexusPlexusResource extends AbstractNexusPlexusResource {
         }
 
         final HubMetaData info = hubResponse.getData();
-        info.setLastScanned("Put lastScanned");
-        info.setPolicyCheckResult("PUT policy");
-        info.setRiskReportUrl("PUT RTeisks apsdjalsjfskdf");
+        info.setScanTime("Put lastScanned");
+        info.setPolicyStatus("PUT policy");
+        info.setApiUrl("PUT RTeisks apsdjalsjfskdf");
 
         hubResponse.setData(info);
 
@@ -115,9 +115,9 @@ public class HubNexusPlexusResource extends AbstractNexusPlexusResource {
         final MetaDataResponse hubResponse = new MetaDataResponse();
         final HubMetaData data = new HubMetaData();
 
-        data.setLastScanned("Get lastScanned");
-        data.setPolicyCheckResult("GET POLCIY");
-        data.setRiskReportUrl("GET REEEEEEEE");
+        data.setScanTime("Get lastScanned");
+        data.setPolicyStatus("GET POLCIY");
+        data.setApiUrl("GET REEEEEEEE");
 
         hubResponse.setData(data);
 

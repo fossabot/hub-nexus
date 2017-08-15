@@ -84,16 +84,16 @@ public class ArtifactScanner {
             final String phase = taskParameters.get(TaskField.PHASE.getParameterKey());
             final ProjectRequest projectRequest = createProjectRequest(distribution, phase);
             final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, projectRequest, true, phoneHomeInfo);
-            attributesHelper.setAttributeLastScanned(item, System.currentTimeMillis());
+            attributesHelper.setScanTime(item, System.currentTimeMillis());
             logger.info("Checking scan results...");
             hubServiceHelper.waitForHubResponse(projectVersionView, hubServerConfig.getTimeout());
             final PolicyStatusDescription policyCheckResults = hubServiceHelper.checkPolicyStatus(projectVersionView);
             final String riskReport = hubServiceHelper.retrieveReportUrl(projectVersionView);
             if (policyCheckResults != null) {
-                attributesHelper.setAttributePolicyResult(item, policyCheckResults.getPolicyStatusMessage());
+                attributesHelper.setPolicyStatus(item, policyCheckResults.getPolicyStatusMessage());
             }
             if (riskReport != null) {
-                attributesHelper.setAttributeRiskReportUrl(item, riskReport);
+                attributesHelper.setApiUrl(item, riskReport);
             }
         } catch (final Exception ex) {
             logger.error("Error occurred during scan task", ex);

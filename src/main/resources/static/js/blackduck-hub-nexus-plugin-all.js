@@ -46,8 +46,8 @@ Sonatype.repoServer.HubTab = function(config) {
 		        	html:'<img src="static/bd_logo.png" align= "right" />'
 		        }, {
 		        	xtype : 'displayfield',
-		        	fieldLabel : 'Risk report URL',
-		        	name : 'riskReportUrl',
+		        	fieldLabel : 'API URL',
+		        	name : 'apiUrl',
 		        	anchor : Sonatype.view.FIELD_OFFSET_WITH_SCROLL,
 		        	allowBlank : true,
 		        	readOnly : true    	     
@@ -55,14 +55,14 @@ Sonatype.repoServer.HubTab = function(config) {
 		        }, {
 		        	xtype : 'displayfield',
 		        	fieldLabel : 'Policy check status',
-		        	name : 'policyResult',
+		        	name : 'policyStatus',
 		        	anchor : Sonatype.view.FIELD_OFFSET_WITH_SCROLL,
 		        	allowBlank : true,
 		        	readOnly : true
 		        }, {
 		        	xtype : 'displayfield',
-		        	fieldLabel : 'Last scanned',
-		        	name : 'lastScanned',
+		        	fieldLabel : 'Scan Time',
+		        	name : 'scanTime',
 		        	anchor : Sonatype.view.FIELD_OFFSET_WITH_SCROLL,
 		        	allowBlank : true,
 		        	readOnly : true
@@ -83,7 +83,7 @@ Ext.extend( Sonatype.repoServer.HubTab, Ext.Panel, {
 						var infoResp = Ext.decode(response.responseText);
 						showBasicMetaData(self);
 
-						var filteredArray = infoResp.data.response.attributes.filter(item => item.includes('blackducksoftware-'));
+						var filteredArray = infoResp.data.response.attributes.filter(item => item.includes('blackduck-'));
 
 						if(filteredArray.length == 0) {
 							artifactContainer.hideTab(this);
@@ -95,12 +95,12 @@ Ext.extend( Sonatype.repoServer.HubTab, Ext.Panel, {
 								
 								var dateTime;
 
-								if(key == 'lastScanned') {
+								if(key == 'scanTime') {
 									dateTime = Date(parseInt(value));
 									value = dateTime.toLocaleString();
 								}
 								
-								if(key == 'riskReportUrl') {
+								if(key == 'apiUrl') {
 									value = '<a href="' + value + '" target="_blank">' + value + '</a>';
 								} 
 								
@@ -128,15 +128,15 @@ Ext.extend( Sonatype.repoServer.HubTab, Ext.Panel, {
 });
 
 function noData(hubTab){
-	hubTab.find('name', 'lastScanned')[0].setRawValue(null);
-	hubTab.find('name', 'riskReportUrl')[0].setRawValue(null);
-	hubTab.find('name', 'policyResult')[0].setRawValue(null);
+	hubTab.find('name', 'scanTime')[0].setRawValue(null);
+	hubTab.find('name', 'apiUrl')[0].setRawValue(null);
+	hubTab.find('name', 'policyStatus')[0].setRawValue(null);
 }
 
 function showBasicMetaData(hubTab){
-	hubTab.find('name', 'riskReportUrl')[0].show();
-	hubTab.find('name', 'lastScanned')[0].show();
-	hubTab.find('name', 'policyResult')[0].show();
+	hubTab.find('name', 'apiUrl')[0].show();
+	hubTab.find('name', 'scanTime')[0].show();
+	hubTab.find('name', 'policyStatus')[0].show();
 }
 
 Sonatype.Events.addListener('fileContainerInit', function(items) {

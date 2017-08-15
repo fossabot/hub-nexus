@@ -79,11 +79,11 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
             for (final String wildCardPattern : patternArray) {
                 if (FilenameUtils.wildcardMatch(item.getPath(), wildCardPattern)) {
                     logger.debug("Evaluating item: {}", item);
-                    final long lastScanned = attributesHelper.getAttributeLastScanned(item);
-                    logger.debug("Last scanned " + lastScanned + " ms ago");
+                    final long scanTime = attributesHelper.getScanTime(item);
+                    logger.debug("Last scanned " + scanTime + " ms ago");
                     final long lastModified = item.getRepositoryItemAttributes().getModified();
                     logger.debug("Last modified " + lastModified + " ms ago");
-                    if (lastScanned > lastModified) {
+                    if (scanTime > lastModified) {
                         logger.info(item.getName() + " already scanned");
                         return;
                     }

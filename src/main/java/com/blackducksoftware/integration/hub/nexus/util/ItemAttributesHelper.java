@@ -39,11 +39,14 @@ import org.sonatype.sisu.goodies.common.Loggers;
 @Named
 @Singleton
 public class ItemAttributesHelper {
-    public static final String LAST_SCANNED = "lastScanned";
-    public static final String POLICY_CHECK_RESULT = "policyResult";
-    public static final String RISK_REPORT_URL = "riskReportUrl";
+    public static final String BLACK_DUCK_SCAN_TIME_PROPERTY_NAME = "scanTime";
+    public static final String BLACK_DUCK_SCAN_RESULT_PROPERTY_NAME = "scanResult";
+    public static final String BLACK_DUCK_PROJECT_VERSION_URL_PROPERTY_NAME = "apiUrl";
+    public static final String BLACK_DUCK_PROJECT_VERSION_UI_URL_PROPERTY_NAME = "uiUrl";
+    public static final String BLACK_DUCK_POLICY_STATUS_PROPERTY_NAME = "policyStatus";
+    public static final String BLACK_DUCK_OVERALL_POLICY_STATUS_PROPERTY_NAME = "overallPolicyStatus";
 
-    public static final String BLACKDUCK = "blackducksoftware-";
+    public static final String BLACKDUCK = "blackduck-";
 
     private final DefaultAttributesHandler attributesHandler;
 
@@ -99,29 +102,52 @@ public class ItemAttributesHelper {
         }
     }
 
-    public long getAttributeLastScanned(final StorageItem item) {
-        return getLong(item, LAST_SCANNED, 0);
+    public long getScanTime(final StorageItem item) {
+        return getLong(item, BLACK_DUCK_SCAN_TIME_PROPERTY_NAME, 0);
     }
 
-    public void setAttributeLastScanned(final StorageItem item, final long newTime) {
+    public void setScanTime(final StorageItem item, final long newTime) {
         final String timeString = String.valueOf(newTime);
-        addAttribute(LAST_SCANNED, timeString, item);
+        addAttribute(BLACK_DUCK_SCAN_TIME_PROPERTY_NAME, timeString, item);
     }
 
-    public String getAttributePolicyResult(final StorageItem item) {
-        return getString(item, POLICY_CHECK_RESULT, "");
+    public String getScanResult(final StorageItem item) {
+        return getString(item, BLACK_DUCK_SCAN_RESULT_PROPERTY_NAME, "");
     }
 
-    public void setAttributePolicyResult(final StorageItem item, final String newResult) {
-        addAttribute(POLICY_CHECK_RESULT, newResult, item);
+    public void setScanResult(final StorageItem item, final String scanResult) {
+        addAttribute(BLACK_DUCK_SCAN_RESULT_PROPERTY_NAME, scanResult, item);
     }
 
-    public String getAttributeRiskReportUrl(final StorageItem item) {
-        return getString(item, RISK_REPORT_URL, "");
+    public String getPolicyStatus(final StorageItem item) {
+        return getString(item, BLACK_DUCK_POLICY_STATUS_PROPERTY_NAME, "");
     }
 
-    public void setAttributeRiskReportUrl(final StorageItem item, final String url) {
-        addAttribute(RISK_REPORT_URL, url, item);
+    public void setPolicyStatus(final StorageItem item, final String newResult) {
+        addAttribute(BLACK_DUCK_POLICY_STATUS_PROPERTY_NAME, newResult, item);
     }
 
+    public String getOverallPolicyStatus(final StorageItem item) {
+        return getString(item, BLACK_DUCK_OVERALL_POLICY_STATUS_PROPERTY_NAME, "");
+    }
+
+    public void setOverallPolicyStatus(final StorageItem item, final String overallPolicyStatus) {
+        addAttribute(BLACK_DUCK_OVERALL_POLICY_STATUS_PROPERTY_NAME, overallPolicyStatus, item);
+    }
+
+    public String getApiUrl(final StorageItem item) {
+        return getString(item, BLACK_DUCK_PROJECT_VERSION_URL_PROPERTY_NAME, "");
+    }
+
+    public void setApiUrl(final StorageItem item, final String url) {
+        addAttribute(BLACK_DUCK_PROJECT_VERSION_URL_PROPERTY_NAME, url, item);
+    }
+
+    public String getUiUrl(final StorageItem item) {
+        return getString(item, BLACK_DUCK_PROJECT_VERSION_UI_URL_PROPERTY_NAME, "");
+    }
+
+    public void setUiUrl(final StorageItem item, final String url) {
+        addAttribute(BLACK_DUCK_PROJECT_VERSION_UI_URL_PROPERTY_NAME, url, item);
+    }
 }
