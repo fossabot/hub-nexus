@@ -23,19 +23,38 @@
  */
 package com.blackducksoftware.integration.hub.nexus.http;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+
 import org.slf4j.Logger;
 import org.sonatype.sisu.goodies.common.Loggers;
 
-//@XmlType(name = "blackduck-info")
-//@XmlAccessorType(XmlAccessType.FIELD)
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@XmlRootElement(name = "blackduck")
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(name = "blackduck")
 public class HubMetaData {
     final Logger logger = Loggers.getLogger(HubMetaData.class);
 
+    @JsonProperty("apiUrl")
     private String apiUrl;
+
+    @JsonProperty("policyStatus")
     private String policyStatus;
+
+    @JsonProperty("policyOverallStatus")
     private String policyOverallStatus;
+
+    @JsonProperty("scanTime")
     private String scanTime;
+
+    @JsonProperty("scanStatus")
     private String scanStatus;
+
+    @JsonProperty("uiUrl")
     private String uiUrl;
 
     public HubMetaData() {
