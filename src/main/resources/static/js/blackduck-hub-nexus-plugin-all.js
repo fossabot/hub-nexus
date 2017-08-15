@@ -76,7 +76,6 @@ Ext.extend( Sonatype.repoServer.HubTab, Ext.Panel, {
 		var self = this;
 		this.data = data;
 		if (data != null) {
-			console.log('data is NOT null');
 			Ext.Ajax.request({
 				url : this.data.resourceURI + '?describe',
 				callback : function(options, isSuccess, response) {
@@ -98,9 +97,13 @@ Ext.extend( Sonatype.repoServer.HubTab, Ext.Panel, {
 
 								if(key == 'lastScanned') {
 									dateTime = Date(parseInt(value));
-									value = dateTime.toLocaleString()
+									value = dateTime.toLocaleString();
 								}
-
+								
+								if(key == 'riskReportUrl') {
+									value = '<a href="' + value + '" target="_blank">' + value + '</a>';
+								} 
+								
 								this.find('name', key)[0].setRawValue(value);
 							}
 
