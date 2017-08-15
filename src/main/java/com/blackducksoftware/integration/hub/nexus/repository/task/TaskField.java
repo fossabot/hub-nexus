@@ -40,7 +40,8 @@ public enum TaskField {
     PHASE("blackduck.hub.project.version.phase"),
     REPOSITORY_FIELD_ID("repositoryId"),
     REPOSITORY_PATH_FIELD_ID("repositoryPath"),
-    WORKING_DIRECTORY("blackduck.working.directory");
+    WORKING_DIRECTORY("blackduck.working.directory"),
+    OLD_ARTIFACT_CUTOFF("artifact.cutoff");
 
     private String parameterKey;
 

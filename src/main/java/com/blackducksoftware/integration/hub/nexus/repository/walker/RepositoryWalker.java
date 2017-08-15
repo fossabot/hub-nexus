@@ -25,6 +25,7 @@ package com.blackducksoftware.integration.hub.nexus.repository.walker;
 
 import java.io.File;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
@@ -37,6 +38,7 @@ import org.sonatype.nexus.proxy.walker.WalkerContext;
 import org.sonatype.sisu.goodies.common.Loggers;
 
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
+import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.scan.ArtifactScanner;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.phonehome.IntegrationInfo;
@@ -71,13 +73,18 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
             }
 
             if (StringUtils.isNotBlank(item.getRemoteUrl())) {
-                logger.info("Item came from a proxied repository skipping: {}", item);
+                logger.info("Item came from a proxied repository, skipping: {}", item);
                 return;
             }
 
             final String[] patternArray = StringUtils.split(fileMatchPatterns, ",");
             for (final String wildCardPattern : patternArray) {
                 if (FilenameUtils.wildcardMatch(item.getPath(), wildCardPattern)) {
+                    if (isArtifactTooOld(item)) {
+                        logger.info("Item is older than specified date, skipping: {}", item);
+                        return;
+                    }
+
                     logger.debug("Evaluating item: {}", item);
                     final long scanTime = attributesHelper.getScanTime(item);
                     logger.debug("Last scanned " + scanTime + " ms ago");
@@ -96,5 +103,22 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
         } catch (final Exception ex) {
             logger.error("Error occurred in walker processor for repository: ", ex);
         }
+    }
+
+    private boolean isArtifactTooOld(final StorageItem item) {
+        final int daysCutoff = Integer.parseInt(taskParameters.get(TaskField.OLD_ARTIFACT_CUTOFF.getParameterKey()));
+        final long createdTime = item.getCreated();
+        logger.info("Created time: " + createdTime);
+
+        final long daysInMill = TimeUnit.MILLISECONDS.convert(daysCutoff, TimeUnit.DAYS);
+        logger.info("Days in Mill: " + daysInMill);
+        final long cutoffTime = System.currentTimeMillis() - daysInMill;
+        logger.info("Cutoff time: " + cutoffTime);
+
+        if (createdTime < cutoffTime) {
+            return true;
+        }
+
+        return false;
     }
 }
