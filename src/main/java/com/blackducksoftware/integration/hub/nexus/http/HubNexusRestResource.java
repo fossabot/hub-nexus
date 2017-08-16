@@ -26,19 +26,30 @@ package com.blackducksoftware.integration.hub.nexus.http;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 
 import org.slf4j.Logger;
+import org.sonatype.nexus.proxy.AccessDeniedException;
+import org.sonatype.nexus.proxy.IllegalOperationException;
+import org.sonatype.nexus.proxy.ItemNotFoundException;
+import org.sonatype.nexus.proxy.NoSuchRepositoryException;
+import org.sonatype.nexus.proxy.ResourceStoreRequest;
+import org.sonatype.nexus.proxy.StorageException;
+import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
+import org.sonatype.nexus.proxy.item.StorageItem;
+import org.sonatype.nexus.proxy.registry.RepositoryRegistry;
+import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.sisu.goodies.common.ComponentSupport;
 import org.sonatype.sisu.goodies.common.Loggers;
 import org.sonatype.sisu.siesta.common.Resource;
+
+import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
 @Path(HubNexusRestResource.RESOURCE_PATH)
 @Named
@@ -46,21 +57,53 @@ import org.sonatype.sisu.siesta.common.Resource;
 public class HubNexusRestResource extends ComponentSupport implements Resource {
     public static final String RESOURCE_PATH = "/blackduck/info";
 
+    private final RepositoryRegistry repoRegistry;
+    private final ItemAttributesHelper attHelper;
+
     final Logger logger = Loggers.getLogger(HubNexusRestResource.class);
+
+    @Inject
+    public HubNexusRestResource(final RepositoryRegistry repoRegistry, final DefaultAttributesHandler attributesHandler) {
+        this.repoRegistry = repoRegistry;
+        attHelper = new ItemAttributesHelper(attributesHandler);
+    }
 
     @GET
     @Produces({ APPLICATION_JSON, APPLICATION_XML })
-    public List<HubMetaData> get() {
-        final HubMetaData data = new HubMetaData();
+    public HubMetaData get(@QueryParam("repoId") final String repoId, @QueryParam("itemPath") final String itemPath) {
+        Repository repo = null;
 
-        data.setScanTime("Get lastScanned");
-        data.setPolicyStatus("GET POLCIY");
-        data.setApiUrl("GET REEEEEEEE");
+        try {
+            repo = repoRegistry.getRepository(repoId);
+        } catch (final NoSuchRepositoryException e) {
+            logger.info("Error retrieving repo");
+            e.printStackTrace();
+        }
 
-        final List<HubMetaData> allData = new ArrayList<>();
-        allData.add(data);
+        if (repo != null) {
+            StorageItem item = null;
+            final ResourceStoreRequest request = new ResourceStoreRequest(itemPath);
 
-        return allData;
+            try {
+                item = repo.retrieveItem(request);
+            } catch (StorageException | AccessDeniedException | ItemNotFoundException | IllegalOperationException e) {
+                logger.info("Error retrieving item");
+                e.printStackTrace();
+            }
+
+            if (item != null) {
+                final HubMetaData data = new HubMetaData();
+                data.setScanStatus(attHelper.getScanResult(item));
+                data.setPolicyStatus(attHelper.getPolicyStatus(item));
+                data.setPolicyOverallStatus(attHelper.getOverallPolicyStatus(item));
+                data.setScanTime(String.valueOf(attHelper.getScanTime(item)));
+                data.setUiUrl(attHelper.getUiUrl(item));
+
+                return data;
+            }
+        }
+
+        return new HubMetaData();
     }
 
 }
