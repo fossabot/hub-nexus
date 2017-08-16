@@ -25,66 +25,61 @@ package com.blackducksoftware.integration.hub.nexus.scan;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
-import org.sonatype.sisu.goodies.common.Loggers;
 
 import com.blackducksoftware.integration.hub.builder.HubScanConfigBuilder;
 import com.blackducksoftware.integration.hub.dataservice.cli.CLIDataService;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
+import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
+import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.phonehome.IntegrationInfo;
 import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder;
 import com.blackducksoftware.integration.hub.scan.HubScanConfig;
 
 public class ArtifactScanner {
-    final Logger logger = Loggers.getLogger(ArtifactScanner.class);
     final boolean HUB_SCAN_DRY_RUN = false;
 
+    private final HubEventLogger logger;
+    private final HubScanEvent event;
     private final HubServerConfig hubServerConfig;
-    private final StorageItem item;
-    private final Repository repository;
-    private final ResourceStoreRequest request;
     private final ItemAttributesHelper attributesHelper;
     private final HubServiceHelper hubServiceHelper;
     private final File blackDuckDirectory;
-    private final Map<String, String> taskParameters;
     private final IntegrationInfo phoneHomeInfo;
 
-    public ArtifactScanner(final HubServerConfig hubServerConfig, final Repository repository, final ResourceStoreRequest request, final StorageItem item, final ItemAttributesHelper attributesHelper, final File blackDuckDirectory,
-            final Map<String, String> taskParameters, final HubServiceHelper hubserviceHelper, final IntegrationInfo phoneHomeInfo) {
+    public ArtifactScanner(final HubScanEvent event, final HubEventLogger logger, final HubServerConfig hubServerConfig, final ItemAttributesHelper attributesHelper, final File blackDuckDirectory, final HubServiceHelper hubserviceHelper,
+            final IntegrationInfo phoneHomeInfo) {
+        this.event = event;
+        this.logger = logger;
         this.hubServerConfig = hubServerConfig;
-        this.repository = repository;
-        this.item = item;
-        this.request = request;
         this.attributesHelper = attributesHelper;
         this.blackDuckDirectory = blackDuckDirectory;
-        this.taskParameters = taskParameters;
         this.phoneHomeInfo = phoneHomeInfo;
         this.hubServiceHelper = hubserviceHelper;
     }
 
     public ProjectVersionView scan() {
+        final StorageItem item = event.getItem();
         try {
             logger.info("Beginning scan of artifact");
             if (hubServiceHelper == null) {
                 logger.error("Hub Service Helper not initialized.  Unable to communicate with the configured hub server");
             } else {
-                final String scanMemoryValue = taskParameters.get(TaskField.HUB_SCAN_MEMORY.getParameterKey());
+                final String scanMemoryValue = getParameter(TaskField.HUB_SCAN_MEMORY.getParameterKey());
                 final HubScanConfig scanConfig = createScanConfig(Integer.parseInt(scanMemoryValue));
-                logger.info("Scan Path {}", scanConfig.getScanTargetPaths());
+                logger.info(String.format("Scan Path %s", scanConfig.getScanTargetPaths()));
                 final CLIDataService cliDataService = hubServiceHelper.createCLIDataService();
-                final String distribution = taskParameters.get(TaskField.DISTRIBUTION.getParameterKey());
-                final String phase = taskParameters.get(TaskField.PHASE.getParameterKey());
+                final String distribution = getParameter(TaskField.DISTRIBUTION.getParameterKey());
+                final String phase = getParameter(TaskField.PHASE.getParameterKey());
                 final ProjectRequest projectRequest = createProjectRequest(distribution, phase);
                 final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, projectRequest, true, phoneHomeInfo);
                 attributesHelper.setScanTime(item, System.currentTimeMillis());
@@ -110,9 +105,13 @@ public class ArtifactScanner {
         return null;
     }
 
+    private String getParameter(final String key) {
+        return event.getTaskParameters().get(key);
+    }
+
     private ProjectRequest createProjectRequest(final String distribution, final String phase) {
         final ProjectRequestBuilder builder = new ProjectRequestBuilder();
-        final NameVersionNode nameVersionGuess = generateProjectNameVersion(item);
+        final NameVersionNode nameVersionGuess = generateProjectNameVersion(event.getItem());
         builder.setProjectName(nameVersionGuess.getName());
         builder.setVersionName(nameVersionGuess.getVersion());
         builder.setProjectLevelAdjustments(true);
@@ -144,6 +143,9 @@ public class ArtifactScanner {
         hubScanConfigBuilder.setWorkingDirectory(this.blackDuckDirectory);
         hubScanConfigBuilder.disableScanTargetPathExistenceCheck();
 
+        final Repository repository = event.getRepository();
+        final StorageItem item = event.getItem();
+        final ResourceStoreRequest request = event.getRequest();
         final DefaultFSLocalRepositoryStorage storage = (DefaultFSLocalRepositoryStorage) repository.getLocalStorage();
         final File repositoryPath = storage.getFileFromBase(repository, request);
         final File file = new File(repositoryPath, item.getPath());

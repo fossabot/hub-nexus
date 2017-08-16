@@ -31,6 +31,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.apache.commons.lang3.StringUtils;
+import org.sonatype.nexus.proxy.NoSuchRepositoryException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.item.RepositoryItemUid;
@@ -38,6 +39,7 @@ import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.walker.DefaultWalkerContext;
 import org.sonatype.nexus.proxy.walker.Walker;
 import org.sonatype.nexus.proxy.walker.WalkerContext;
+import org.sonatype.nexus.proxy.walker.WalkerException;
 import org.sonatype.nexus.scheduling.AbstractNexusRepositoriesPathAwareTask;
 
 import com.blackducksoftware.integration.hub.nexus.repository.walker.RepositoryWalker;
@@ -68,18 +70,10 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
     @Override
     protected Object doRun() throws Exception {
         try {
-
             final String repositoryFieldId = getParameter(TaskField.REPOSITORY_FIELD_ID.getParameterKey());
-            List<Repository> repositoryList = new Vector<>();
+            final List<Repository> repositoryList = createRepositoryList(repositoryFieldId);
             final List<WalkerContext> contextList = new ArrayList<>();
 
-            if (StringUtils.isNotBlank(repositoryFieldId)) {
-                if (repositoryFieldId.equals(ALL_REPO_ID)) {
-                    repositoryList = getRepositoryRegistry().getRepositories();
-                } else {
-                    repositoryList.add(getRepositoryRegistry().getRepository(repositoryFieldId));
-                }
-            }
             for (final Repository repository : repositoryList) {
                 contextList.add(createRepositoryWalker(repository));
             }
@@ -100,6 +94,18 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
         return "Searching to scan artifacts in the repository";
     }
 
+    private List<Repository> createRepositoryList(final String repositoryFieldId) throws NoSuchRepositoryException {
+        List<Repository> repositoryList = new Vector<>();
+        if (StringUtils.isNotBlank(repositoryFieldId)) {
+            if (repositoryFieldId.equals(ALL_REPO_ID)) {
+                repositoryList = getRepositoryRegistry().getRepositories();
+            } else {
+                repositoryList.add(getRepositoryRegistry().getRepository(repositoryFieldId));
+            }
+        }
+        return repositoryList;
+    }
+
     private WalkerContext createRepositoryWalker(final Repository repository) {
         final ResourceStoreRequest request = new ResourceStoreRequest(getResourceStorePath(), true, false);
         if (StringUtils.isBlank(request.getRequestPath())) {
@@ -115,12 +121,12 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
     }
 
     private void walkRepositories(final List<WalkerContext> contextList) {
-        try {
-            for (final WalkerContext context : contextList) {
+        for (final WalkerContext context : contextList) {
+            try {
                 walker.walk(context);
+            } catch (final WalkerException walkerEx) {
+                logger.error("Exception walking repository. ", walkerEx);
             }
-        } catch (final Exception ex) {
-            throw ex;
         }
     }
 }
