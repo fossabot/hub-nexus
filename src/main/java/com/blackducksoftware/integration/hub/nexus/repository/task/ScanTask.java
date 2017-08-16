@@ -23,8 +23,6 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -32,9 +30,7 @@ import java.util.Vector;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.sonatype.nexus.configuration.application.ApplicationConfiguration;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.item.RepositoryItemUid;
@@ -44,23 +40,17 @@ import org.sonatype.nexus.proxy.walker.Walker;
 import org.sonatype.nexus.proxy.walker.WalkerContext;
 import org.sonatype.nexus.scheduling.AbstractNexusRepositoriesPathAwareTask;
 
-import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
-import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.nexus.repository.walker.RepositoryWalker;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
-import com.blackducksoftware.integration.hub.phonehome.IntegrationInfo;
-import com.blackducksoftware.integration.phone.home.enums.ThirdPartyName;
 
 @Named(ScanTaskDescriptor.ID)
 public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
     private static final String ALL_REPO_ID = "all_repo";
     private final Walker walker;
     private final DefaultAttributesHandler attributesHandler;
-    private final ApplicationConfiguration appConfiguration;
 
     @Inject
-    public ScanTask(final ApplicationConfiguration appConfiguration, final Walker walker, final DefaultAttributesHandler attributesHandler) {
-        this.appConfiguration = appConfiguration;
+    public ScanTask(final Walker walker, final DefaultAttributesHandler attributesHandler) {
         this.walker = walker;
         this.attributesHandler = attributesHandler;
     }
@@ -77,12 +67,8 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
 
     @Override
     protected Object doRun() throws Exception {
-        File blackDuckDirectory = null;
         try {
-            blackDuckDirectory = new File(getParameter(TaskField.WORKING_DIRECTORY.getParameterKey()), "blackduck");
-            if (!blackDuckDirectory.exists()) {
-                blackDuckDirectory.mkdirs();
-            }
+
             final String repositoryFieldId = getParameter(TaskField.REPOSITORY_FIELD_ID.getParameterKey());
             List<Repository> repositoryList = new Vector<>();
             final List<WalkerContext> contextList = new ArrayList<>();
@@ -94,22 +80,12 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
                     repositoryList.add(getRepositoryRegistry().getRepository(repositoryFieldId));
                 }
             }
-
-            final HubServerConfig hubServerConfig = createHubServerConfig();
             for (final Repository repository : repositoryList) {
-                contextList.add(createRepositoryWalker(hubServerConfig, repository, blackDuckDirectory));
+                contextList.add(createRepositoryWalker(repository));
             }
             walkRepositories(contextList);
         } catch (final Exception ex) {
             logger.error("Error occurred during task execution {}", ex);
-        } finally {
-            try {
-                if (blackDuckDirectory != null) {
-                    FileUtils.deleteDirectory(blackDuckDirectory);
-                }
-            } catch (final IOException ioex) {
-                logger.error("Error deleting blackduck working directory", ioex);
-            }
         }
         return null;
     }
@@ -124,33 +100,7 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
         return "Searching to scan artifacts in the repository";
     }
 
-    private HubServerConfig createHubServerConfig() {
-
-        final String hubUrl = getParameter(TaskField.HUB_URL.getParameterKey());
-        final String hubUsername = getParameter(TaskField.HUB_USERNAME.getParameterKey());
-        final String hubPassword = getParameter(TaskField.HUB_PASSWORD.getParameterKey());
-        final String hubTimeout = getParameter(TaskField.HUB_TIMEOUT.getParameterKey());
-        final String proxyHost = getParameter(TaskField.HUB_PROXY_HOST.getParameterKey());
-        final String proxyPort = getParameter(TaskField.HUB_PROXY_PORT.getParameterKey());
-        final String proxyUsername = getParameter(TaskField.HUB_PROXY_USERNAME.getParameterKey());
-        final String proxyPassword = getParameter(TaskField.HUB_PROXY_PASSWORD.getParameterKey());
-        final String autoImport = getParameter(TaskField.HUB_AUTO_IMPORT_CERT.getParameterKey());
-
-        final HubServerConfigBuilder hubServerConfigBuilder = new HubServerConfigBuilder();
-        hubServerConfigBuilder.setHubUrl(hubUrl);
-        hubServerConfigBuilder.setUsername(hubUsername);
-        hubServerConfigBuilder.setPassword(hubPassword);
-        hubServerConfigBuilder.setTimeout(hubTimeout);
-        hubServerConfigBuilder.setProxyHost(proxyHost);
-        hubServerConfigBuilder.setProxyPort(proxyPort);
-        hubServerConfigBuilder.setProxyUsername(proxyUsername);
-        hubServerConfigBuilder.setProxyPassword(proxyPassword);
-        hubServerConfigBuilder.setAutoImportHttpsCertificates(Boolean.parseBoolean(autoImport));
-
-        return hubServerConfigBuilder.build();
-    }
-
-    private WalkerContext createRepositoryWalker(final HubServerConfig hubServerConfig, final Repository repository, final File blackDuckDirectory) {
+    private WalkerContext createRepositoryWalker(final Repository repository) {
         final ResourceStoreRequest request = new ResourceStoreRequest(getResourceStorePath(), true, false);
         if (StringUtils.isBlank(request.getRequestPath())) {
             request.setRequestPath(RepositoryItemUid.PATH_ROOT);
@@ -160,8 +110,7 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
         final String fileMatchPatterns = getParameter(TaskField.FILE_PATTERNS.getParameterKey());
         final WalkerContext context = new DefaultWalkerContext(repository, request);
         getLogger().info("Creating walker for repository {}", repository.getName());
-        final IntegrationInfo phoneHomeInfo = new IntegrationInfo(ThirdPartyName.NEXUS, appConfiguration.getConfigurationModel().getNexusVersion(), ScanTaskDescriptor.PLUGIN_VERSION);
-        context.getProcessors().add(new RepositoryWalker(hubServerConfig, fileMatchPatterns, new ItemAttributesHelper(attributesHandler), blackDuckDirectory, getParameters(), phoneHomeInfo));
+        context.getProcessors().add(new RepositoryWalker(fileMatchPatterns, new ItemAttributesHelper(attributesHandler), getParameters(), getEventBus()));
         return context;
     }
 

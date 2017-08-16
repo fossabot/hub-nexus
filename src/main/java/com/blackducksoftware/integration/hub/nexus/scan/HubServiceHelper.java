@@ -82,7 +82,6 @@ public class HubServiceHelper {
     }
 
     public PolicyStatusDescription checkPolicyStatus(final ProjectVersionView version) {
-        logger.info("Checking policy status");
         try {
             final VersionBomPolicyStatusView versionBomPolicyStatusView = hubServicesFactory.createPolicyStatusDataService(intLogger).getPolicyStatusForVersion(version);
             final PolicyStatusDescription policyStatusDescription = new PolicyStatusDescription(versionBomPolicyStatusView);

@@ -23,7 +23,6 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.walker;
 
-import java.io.File;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -36,30 +35,24 @@ import org.sonatype.nexus.proxy.item.uid.IsHiddenAttribute;
 import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
 import org.sonatype.nexus.proxy.walker.WalkerContext;
 import org.sonatype.sisu.goodies.common.Loggers;
+import org.sonatype.sisu.goodies.eventbus.EventBus;
 
-import com.blackducksoftware.integration.hub.global.HubServerConfig;
+import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
-import com.blackducksoftware.integration.hub.nexus.scan.ArtifactScanner;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
-import com.blackducksoftware.integration.hub.phonehome.IntegrationInfo;
 
 public class RepositoryWalker extends AbstractWalkerProcessor {
-    private final HubServerConfig hubServerConfig;
     private final Logger logger = Loggers.getLogger(getClass());
     private final String fileMatchPatterns;
     private final ItemAttributesHelper attributesHelper;
-    private final File blackDuckDirectory;
     private final Map<String, String> taskParameters;
-    private final IntegrationInfo phoneHomeInfo;
+    private final EventBus eventBus;
 
-    public RepositoryWalker(final HubServerConfig hubServerConfig, final String fileMatchPatterns, final ItemAttributesHelper attributesHelper, final File blackDuckDirectory, final Map<String, String> taskParameters,
-            final IntegrationInfo phoneHomeInfo) {
-        this.hubServerConfig = hubServerConfig;
+    public RepositoryWalker(final String fileMatchPatterns, final ItemAttributesHelper attributesHelper, final Map<String, String> taskParameters, final EventBus eventBus) {
         this.fileMatchPatterns = fileMatchPatterns;
         this.attributesHelper = attributesHelper;
-        this.blackDuckDirectory = blackDuckDirectory;
         this.taskParameters = taskParameters;
-        this.phoneHomeInfo = phoneHomeInfo;
+        this.eventBus = eventBus;
     }
 
     @Override
@@ -94,9 +87,7 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
                         logger.info(item.getName() + " already scanned");
                         return;
                     }
-                    final ArtifactScanner scanner = new ArtifactScanner(hubServerConfig, item.getRepositoryItemUid().getRepository(), context.getResourceStoreRequest(), item, attributesHelper, blackDuckDirectory, taskParameters,
-                            phoneHomeInfo);
-                    scanner.scan();
+                    eventBus.post(new HubScanEvent(item.getRepositoryItemUid().getRepository(), item, taskParameters, context.getResourceStoreRequest()));
                     break;
                 }
             }

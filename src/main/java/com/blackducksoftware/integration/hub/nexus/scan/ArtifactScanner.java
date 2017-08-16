@@ -35,15 +35,11 @@ import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
 import org.sonatype.sisu.goodies.common.Loggers;
 
-import com.blackducksoftware.integration.exception.EncryptionException;
-import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.builder.HubScanConfigBuilder;
 import com.blackducksoftware.integration.hub.dataservice.cli.CLIDataService;
-import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDescription;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
-import com.blackducksoftware.integration.hub.model.view.VersionBomPolicyStatusView;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.phonehome.IntegrationInfo;
@@ -59,13 +55,13 @@ public class ArtifactScanner {
     private final Repository repository;
     private final ResourceStoreRequest request;
     private final ItemAttributesHelper attributesHelper;
-    private HubServiceHelper hubServiceHelper;
+    private final HubServiceHelper hubServiceHelper;
     private final File blackDuckDirectory;
     private final Map<String, String> taskParameters;
     private final IntegrationInfo phoneHomeInfo;
 
     public ArtifactScanner(final HubServerConfig hubServerConfig, final Repository repository, final ResourceStoreRequest request, final StorageItem item, final ItemAttributesHelper attributesHelper, final File blackDuckDirectory,
-            final Map<String, String> taskParameters, final IntegrationInfo phoneHomeInfo) {
+            final Map<String, String> taskParameters, final HubServiceHelper hubserviceHelper, final IntegrationInfo phoneHomeInfo) {
         this.hubServerConfig = hubServerConfig;
         this.repository = repository;
         this.item = item;
@@ -74,15 +70,10 @@ public class ArtifactScanner {
         this.blackDuckDirectory = blackDuckDirectory;
         this.taskParameters = taskParameters;
         this.phoneHomeInfo = phoneHomeInfo;
-        try {
-            hubServiceHelper = new HubServiceHelper(hubServerConfig);
-        } catch (final EncryptionException ex) {
-            logger.error("HubServiceHelper couldn't be instantiated", ex);
-            hubServiceHelper = null;
-        }
+        this.hubServiceHelper = hubserviceHelper;
     }
 
-    public void scan() {
+    public ProjectVersionView scan() {
         try {
             logger.info("Beginning scan of artifact");
             if (hubServiceHelper == null) {
@@ -108,22 +99,15 @@ public class ArtifactScanner {
                 if (StringUtils.isNotBlank(uiUrl)) {
                     attributesHelper.setUiUrl(item, uiUrl);
                 }
-                populatePolicyStatus(projectVersionView);
+
                 attributesHelper.setScanResult(item, "SUCCESS");
+                return projectVersionView;
             }
         } catch (final Exception ex) {
             logger.error("Error occurred during scan task", ex);
             attributesHelper.clearAttributes(item);
         }
-    }
-
-    private void populatePolicyStatus(final ProjectVersionView projectVersionView) throws IntegrationException {
-        final PolicyStatusDescription policyCheckResults = hubServiceHelper.checkPolicyStatus(projectVersionView);
-        if (policyCheckResults != null) {
-            final VersionBomPolicyStatusView versionBomPolicyStatusView = hubServiceHelper.getOverallPolicyStatus(projectVersionView);
-            attributesHelper.setPolicyStatus(item, policyCheckResults.getPolicyStatusMessage());
-            attributesHelper.setOverallPolicyStatus(item, versionBomPolicyStatusView.overallStatus.toString());
-        }
+        return null;
     }
 
     private ProjectRequest createProjectRequest(final String distribution, final String phase) {
