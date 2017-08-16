@@ -53,7 +53,7 @@ Sonatype.repoServer.HubTab = function(config) {
 		        	readOnly : true    	     
 
 		        }, {
-		        	xtype : 'displayfield',
+		        	xtype : 'hidden',
 		        	fieldLabel : 'API URL',
 		        	name : 'apiUrl',
 		        	anchor : Sonatype.view.FIELD_OFFSET_WITH_SCROLL,
@@ -96,39 +96,35 @@ Sonatype.repoServer.HubTab = function(config) {
 
 Ext.extend( Sonatype.repoServer.HubTab, Ext.Panel, {
 	showArtifact : function(data, artifactContainer) {
+		var currentUri = data.resourceURI;
+		var urlSeg = currentUri.split("/");
+		var repoId = urlSeg[7];
+		var newArr = urlSeg.slice(9, urlSeg.length);
+		var artPath = '/' + newArr.join('/');
 		var self = this;
 		this.data = data;
 		if (data != null) {
 			Ext.Ajax.request({
-				url : this.data.resourceURI + '?describe',
+				url : '/nexus/service/siesta/blackduck/info?repoId=' + repoId + '&itemPath=' + artPath,
 				callback : function(options, isSuccess, response) {
 					if (isSuccess) {
 						var infoResp = Ext.decode(response.responseText);
 						showBasicMetaData(self);
 
-						var filteredArray = infoResp.data.response.attributes.filter(item => item.includes('blackduck-'));
-
-						if(filteredArray.length == 0) {
+						if(infoResp.scanTime == '0') {
 							artifactContainer.hideTab(this);
 						} else {
-							for (let index of filteredArray) {
-								var keyAndValue = index.split("=");
-								var key = keyAndValue[0].split("-")[1];
-								var value = keyAndValue[1];
-								
-								var dateTime;
 
-								if(key == 'scanTime') {
-									dateTime = Date(parseInt(value));
-									value = dateTime.toLocaleString();
-								}
-								
-								if(key == 'apiUrl' || key == 'uiUrl') {
-									value = '<a href="' + value + '" target="_blank">' + value + '</a>';
-								} 
-								
-								this.find('name', key)[0].setRawValue(value);
-							}
+							var dateTime = Date(parseInt(infoResp.scanTime));
+							dateTime = dateTime.toLocaleString();
+							
+							var uiUrl = '<a href="' + infoResp.uiUrl + '" target="_blank">' + infoResp.uiUrl + '</a>';
+
+							this.find('name', 'uiUrl')[0].setRawValue(uiUrl);
+							this.find('name', 'overallPolicyStatus')[0].setRawValue(infoResp.policyOverallStatus);
+							this.find('name', 'policyStatus')[0].setRawValue(infoResp.policyStatus);
+							this.find('name', 'scanTime')[0].setRawValue(dateTime);
+							this.find('name', 'scanResult')[0].setRawValue(infoResp.scanStatus);
 
 							artifactContainer.showTab(this);
 						}
