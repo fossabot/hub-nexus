@@ -24,6 +24,7 @@
 package com.blackducksoftware.integration.hub.nexus.event;
 
 import java.util.Map;
+import java.util.UUID;
 
 import org.sonatype.nexus.events.AbstractEvent;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
@@ -34,12 +35,18 @@ public class HubEvent extends AbstractEvent<Repository> {
     private final StorageItem item;
     private final Map<String, String> taskParameters;
     private final ResourceStoreRequest request;
+    private final UUID eventId;
 
     public HubEvent(final Repository repository, final StorageItem item, final Map<String, String> taskParameters, final ResourceStoreRequest request) {
         super(repository);
         this.item = item;
         this.taskParameters = taskParameters;
         this.request = request;
+        this.eventId = UUID.randomUUID();
+    }
+
+    public UUID getEventId() {
+        return eventId;
     }
 
     public ResourceStoreRequest getRequest() {
@@ -56,10 +63,5 @@ public class HubEvent extends AbstractEvent<Repository> {
 
     public Map<String, String> getTaskParameters() {
         return taskParameters;
-    }
-
-    @Override
-    public String toString() {
-        return "AbstractHubEvent [item=" + item + ", taskParameters=" + taskParameters + "]";
     }
 }

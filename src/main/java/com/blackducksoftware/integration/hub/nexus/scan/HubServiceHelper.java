@@ -26,9 +26,6 @@ package com.blackducksoftware.integration.hub.nexus.scan;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.sonatype.sisu.goodies.common.Loggers;
-
 import com.blackducksoftware.integration.exception.EncryptionException;
 import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.api.item.MetaService;
@@ -44,21 +41,20 @@ import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.model.view.ProjectView;
 import com.blackducksoftware.integration.hub.model.view.ScanSummaryView;
 import com.blackducksoftware.integration.hub.model.view.VersionBomPolicyStatusView;
+import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger;
 import com.blackducksoftware.integration.hub.report.api.ReportData;
 import com.blackducksoftware.integration.hub.rest.CredentialsRestConnection;
 import com.blackducksoftware.integration.hub.service.HubResponseService;
 import com.blackducksoftware.integration.hub.service.HubServicesFactory;
-import com.blackducksoftware.integration.log.IntLogger;
-import com.blackducksoftware.integration.log.Slf4jIntLogger;
 
 public class HubServiceHelper {
-    private final Logger logger = Loggers.getLogger(ArtifactScanner.class);
-    private final IntLogger intLogger = new Slf4jIntLogger(logger);
+    private final HubEventLogger intLogger;
 
     private final HubServicesFactory hubServicesFactory;
     private final MetaService metaService;
 
-    public HubServiceHelper(final HubServerConfig hubServerConfig) throws EncryptionException {
+    public HubServiceHelper(final HubEventLogger logger, final HubServerConfig hubServerConfig) throws EncryptionException {
+        this.intLogger = logger;
         CredentialsRestConnection credentialsRestConnection;
         credentialsRestConnection = hubServerConfig.createCredentialsRestConnection(intLogger);
         hubServicesFactory = new HubServicesFactory(credentialsRestConnection);
@@ -66,18 +62,18 @@ public class HubServiceHelper {
     }
 
     public void waitForHubResponse(final ProjectVersionView version, final long timeout) throws HubTimeoutExceededException, IntegrationException {
-        logger.info("Waiting for hub response");
+        intLogger.info("Waiting for hub response");
         final List<CodeLocationView> allCodeLocations = hubServicesFactory.createCodeLocationRequestService(intLogger).getAllCodeLocationsForProjectVersion(version);
-        logger.info("Checking policy of + " + allCodeLocations.size() + " code location's");
+        intLogger.info("Checking policy of + " + allCodeLocations.size() + " code location's");
         final List<ScanSummaryView> scanSummaryViews = new ArrayList<>();
         for (final CodeLocationView codeLocationView : allCodeLocations) {
             final String scansLink = hubServicesFactory.createMetaService(intLogger).getFirstLinkSafely(codeLocationView, MetaService.SCANS_LINK);
             final List<ScanSummaryView> codeLocationScanSummaryViews = hubServicesFactory.createScanSummaryRequestService().getAllScanSummaryItems(scansLink);
             scanSummaryViews.addAll(codeLocationScanSummaryViews);
         }
-        logger.info("Checking scan policy");
+        intLogger.info("Checking scan policy");
         hubServicesFactory.createScanStatusDataService(intLogger, timeout).assertScansFinished(scanSummaryViews);
-        logger.info("Policy check completed");
+        intLogger.info("Policy check completed");
 
     }
 
@@ -108,7 +104,7 @@ public class HubServiceHelper {
     }
 
     public ReportData retrieveRiskReport(final long timeout, final ProjectVersionView version, final ProjectView project) {
-        logger.info("Generating risk report");
+        intLogger.info("Generating risk report");
         try {
             final RiskReportDataService riskReport = hubServicesFactory.createRiskReportDataService(intLogger, timeout);
             return riskReport.getRiskReportData(project, version);

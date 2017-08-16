@@ -34,6 +34,7 @@ import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.scan.HubServiceHelper;
+import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
 public class HubEventHandler extends ComponentSupport implements EventSubscriber {
@@ -73,9 +74,9 @@ public class HubEventHandler extends ComponentSupport implements EventSubscriber
         return hubServerConfigBuilder.build();
     }
 
-    public HubServiceHelper createServiceHelper(final HubServerConfig hubServerConfig) {
+    public HubServiceHelper createServiceHelper(final HubEventLogger logger, final HubServerConfig hubServerConfig) {
         try {
-            return new HubServiceHelper(hubServerConfig);
+            return new HubServiceHelper(logger, hubServerConfig);
         } catch (final EncryptionException ex) {
             return null;
         }
