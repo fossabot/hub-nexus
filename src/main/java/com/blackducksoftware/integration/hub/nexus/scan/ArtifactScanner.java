@@ -43,7 +43,6 @@ import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.phonehome.IntegrationInfo;
-import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder;
 import com.blackducksoftware.integration.hub.scan.HubScanConfig;
 
 public class ArtifactScanner {
@@ -51,19 +50,16 @@ public class ArtifactScanner {
 
     private final HubEventLogger logger;
     private final HubScanEvent event;
-    private final HubServerConfig hubServerConfig;
     private final ItemAttributesHelper attributesHelper;
     private final HubServiceHelper hubServiceHelper;
-    private final File blackDuckDirectory;
+    private final File scanInstallDirectory;
     private final IntegrationInfo phoneHomeInfo;
 
-    public ArtifactScanner(final HubScanEvent event, final HubEventLogger logger, final HubServerConfig hubServerConfig, final ItemAttributesHelper attributesHelper, final File blackDuckDirectory, final HubServiceHelper hubserviceHelper,
-            final IntegrationInfo phoneHomeInfo) {
+    public ArtifactScanner(final HubScanEvent event, final HubEventLogger logger, final ItemAttributesHelper attributesHelper, final File scanInstallDirectory, final HubServiceHelper hubserviceHelper, final IntegrationInfo phoneHomeInfo) {
         this.event = event;
         this.logger = logger;
-        this.hubServerConfig = hubServerConfig;
         this.attributesHelper = attributesHelper;
-        this.blackDuckDirectory = blackDuckDirectory;
+        this.scanInstallDirectory = scanInstallDirectory;
         this.phoneHomeInfo = phoneHomeInfo;
         this.hubServiceHelper = hubserviceHelper;
     }
@@ -76,18 +72,23 @@ public class ArtifactScanner {
                 logger.error("Hub Service Helper not initialized.  Unable to communicate with the configured hub server");
             } else {
                 final String scanMemoryValue = getParameter(TaskField.HUB_SCAN_MEMORY.getParameterKey());
+                final HubServerConfig hubServerConfig = hubServiceHelper.getHubServerConfig();
                 final HubScanConfig scanConfig = createScanConfig(Integer.parseInt(scanMemoryValue));
                 logger.info(String.format("Scan Path %s", scanConfig.getScanTargetPaths()));
                 final CLIDataService cliDataService = hubServiceHelper.createCLIDataService();
                 final String distribution = getParameter(TaskField.DISTRIBUTION.getParameterKey());
                 final String phase = getParameter(TaskField.PHASE.getParameterKey());
-                final ProjectRequest projectRequest = createProjectRequest(distribution, phase);
+                final ProjectRequest projectRequest = hubServiceHelper.createProjectRequest(distribution, phase, event.getItem());
                 final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, projectRequest, true, phoneHomeInfo);
                 attributesHelper.setScanTime(item, System.currentTimeMillis());
                 logger.info("Checking scan results...");
                 hubServiceHelper.waitForHubResponse(projectVersionView, hubServerConfig.getTimeout());
                 final String apiUrl = hubServiceHelper.retrieveApiUrl(projectVersionView);
                 final String uiUrl = hubServiceHelper.retrieveUIUrl(projectVersionView);
+
+                logger.info("ProjectVersionView = " + projectVersionView);
+                logger.info("apiUrl = " + apiUrl);
+                logger.info("uiUrl = " + uiUrl);
                 if (StringUtils.isNotBlank(apiUrl)) {
                     attributesHelper.setApiUrl(item, apiUrl);
                 }
@@ -110,38 +111,13 @@ public class ArtifactScanner {
         return event.getTaskParameters().get(key);
     }
 
-    private ProjectRequest createProjectRequest(final String distribution, final String phase) {
-        final ProjectRequestBuilder builder = new ProjectRequestBuilder();
-        final NameVersionNode nameVersionGuess = generateProjectNameVersion(event.getItem());
-        builder.setProjectName(nameVersionGuess.getName());
-        builder.setVersionName(nameVersionGuess.getVersion());
-        builder.setProjectLevelAdjustments(true);
-        builder.setPhase(phase);
-        builder.setDistribution(distribution);
-        return builder.build();
-    }
-
-    // TODO Check item att for name and version (More options)
-    private NameVersionNode generateProjectNameVersion(final StorageItem item) {
-        final String path = item.getParentPath();
-        String name = item.getName();
-        String version = "0.0.0";
-        final String[] pathSections = path.split("/");
-        if (pathSections.length > 1) {
-            version = pathSections[pathSections.length - 1];
-            name = pathSections[pathSections.length - 2];
-        }
-        final NameVersionNode nameVersion = new NameVersionNode(name, version);
-        return nameVersion;
-    }
-
     private HubScanConfig createScanConfig(final int scanMemory) throws IOException {
         final HubScanConfigBuilder hubScanConfigBuilder = new HubScanConfigBuilder();
         hubScanConfigBuilder.setScanMemory(scanMemory);
         hubScanConfigBuilder.setDryRun(HUB_SCAN_DRY_RUN);
-        final File cliInstallDirectory = new File(blackDuckDirectory, "tools");
+        final File cliInstallDirectory = new File(scanInstallDirectory, "tools");
         hubScanConfigBuilder.setToolsDir(cliInstallDirectory);
-        hubScanConfigBuilder.setWorkingDirectory(this.blackDuckDirectory);
+        hubScanConfigBuilder.setWorkingDirectory(this.scanInstallDirectory);
         hubScanConfigBuilder.disableScanTargetPathExistenceCheck();
 
         final Repository repository = event.getRepository();

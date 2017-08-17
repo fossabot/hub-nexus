@@ -34,7 +34,6 @@ import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.item.StorageItem;
 
 import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDescription;
-import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.model.view.VersionBomPolicyStatusView;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
@@ -56,12 +55,12 @@ public class HubPolicyCheckEventHandler extends HubEventHandler {
     public void handle(final HubPolicyCheckEvent event) {
         final HubEventLogger logger = new HubEventLogger(event, LoggerFactory.getLogger(getClass()));
         try {
+            logger.info("Begin checking policy event");
             final StorageItem item = event.getItem();
 
             final ProjectVersionView projectVersionView = event.getProjectVersionView();
             final Map<String, String> taskParameters = event.getTaskParameters();
-            final HubServerConfig hubServerConfig = createHubServerConfig(taskParameters);
-            final HubServiceHelper hubServiceHelper = createServiceHelper(logger, hubServerConfig);
+            final HubServiceHelper hubServiceHelper = createServiceHelper(logger, taskParameters);
             if (hubServiceHelper != null) {
                 final PolicyStatusDescription policyCheckResults = hubServiceHelper.checkPolicyStatus(projectVersionView);
                 if (policyCheckResults != null) {
@@ -72,6 +71,8 @@ public class HubPolicyCheckEventHandler extends HubEventHandler {
             }
         } catch (final Exception ex) {
             logger.error("Error occurred checking policy", ex);
+        } finally {
+            logger.info("Finished checking policy event");
         }
     }
 }

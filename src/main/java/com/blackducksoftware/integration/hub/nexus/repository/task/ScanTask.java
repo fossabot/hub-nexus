@@ -23,6 +23,7 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -41,19 +42,24 @@ import org.sonatype.nexus.proxy.walker.Walker;
 import org.sonatype.nexus.proxy.walker.WalkerContext;
 import org.sonatype.nexus.proxy.walker.WalkerException;
 import org.sonatype.nexus.scheduling.AbstractNexusRepositoriesPathAwareTask;
+import org.sonatype.nexus.scheduling.NexusScheduler;
 
+import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
+import com.blackducksoftware.integration.log.Slf4jIntLogger;
 
 @Named(ScanTaskDescriptor.ID)
 public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
     private static final String ALL_REPO_ID = "all_repo";
     private final Walker walker;
     private final DefaultAttributesHandler attributesHandler;
+    private final NexusScheduler scheduler;
 
     @Inject
-    public ScanTask(final Walker walker, final DefaultAttributesHandler attributesHandler) {
+    public ScanTask(final Walker walker, final DefaultAttributesHandler attributesHandler, final NexusScheduler scheduler) {
         this.walker = walker;
         this.attributesHandler = attributesHandler;
+        this.scheduler = scheduler;
     }
 
     @Override
@@ -68,7 +74,16 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
 
     @Override
     protected Object doRun() throws Exception {
+        File blackDuckDirectory = null;
         try {
+            blackDuckDirectory = new File(getParameter(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
+            final File taskDirectory = new File(blackDuckDirectory, getParameter(".name"));
+            final File cliInstallDirectory = new File(taskDirectory, "tools");
+            if (!cliInstallDirectory.exists()) {
+                cliInstallDirectory.mkdirs();
+            }
+            final HubServiceHelper hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), this.getParameters());
+            hubServiceHelper.installCLI(cliInstallDirectory);
             final String repositoryFieldId = getParameter(TaskField.REPOSITORY_FIELD_ID.getParameterKey());
             final List<Repository> repositoryList = createRepositoryList(repositoryFieldId);
             final List<WalkerContext> contextList = new ArrayList<>();

@@ -37,8 +37,11 @@ import org.sonatype.nexus.proxy.walker.WalkerContext;
 import org.sonatype.sisu.goodies.common.Loggers;
 import org.sonatype.sisu.goodies.eventbus.EventBus;
 
+import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
+import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
+import com.blackducksoftware.integration.log.Slf4jIntLogger;
 
 public class RepositoryWalker extends AbstractWalkerProcessor {
     private final Logger logger = Loggers.getLogger(getClass());
@@ -86,7 +89,13 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
                         logger.info(item.getName() + " already scanned");
                         return;
                     }
-                    eventBus.post(new HubScanEvent(item.getRepositoryItemUid().getRepository(), item, taskParameters, context.getResourceStoreRequest()));
+                    final String distribution = taskParameters.get(TaskField.DISTRIBUTION.getParameterKey());
+                    final String phase = taskParameters.get(TaskField.PHASE.getParameterKey());
+                    final HubServiceHelper hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), taskParameters);
+                    final ProjectRequest projectRequest = hubServiceHelper.createProjectRequest(distribution, phase, item);
+                    hubServiceHelper.createProjectAndVersion(projectRequest);
+                    final HubScanEvent event = new HubScanEvent(item.getRepositoryItemUid().getRepository(), item, taskParameters, context.getResourceStoreRequest());
+                    eventBus.post(event);
                     break;
                 }
             }

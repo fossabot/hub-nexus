@@ -25,19 +25,17 @@ package com.blackducksoftware.integration.hub.nexus.event;
 
 import java.util.Map;
 
+import org.sonatype.nexus.events.Asynchronous;
 import org.sonatype.nexus.events.EventSubscriber;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.sisu.goodies.common.ComponentSupport;
 
 import com.blackducksoftware.integration.exception.EncryptionException;
-import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
-import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
-import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
-public class HubEventHandler extends ComponentSupport implements EventSubscriber {
+public class HubEventHandler extends ComponentSupport implements EventSubscriber, Asynchronous {
     private final ItemAttributesHelper attributeHelper;
 
     public HubEventHandler(final DefaultAttributesHandler attributesHandler) {
@@ -48,35 +46,9 @@ public class HubEventHandler extends ComponentSupport implements EventSubscriber
         return attributeHelper;
     }
 
-    public HubServerConfig createHubServerConfig(final Map<String, String> taskParameters) {
-
-        final String hubUrl = taskParameters.get(TaskField.HUB_URL.getParameterKey());
-        final String hubUsername = taskParameters.get(TaskField.HUB_USERNAME.getParameterKey());
-        final String hubPassword = taskParameters.get(TaskField.HUB_PASSWORD.getParameterKey());
-        final String hubTimeout = taskParameters.get(TaskField.HUB_TIMEOUT.getParameterKey());
-        final String proxyHost = taskParameters.get(TaskField.HUB_PROXY_HOST.getParameterKey());
-        final String proxyPort = taskParameters.get(TaskField.HUB_PROXY_PORT.getParameterKey());
-        final String proxyUsername = taskParameters.get(TaskField.HUB_PROXY_USERNAME.getParameterKey());
-        final String proxyPassword = taskParameters.get(TaskField.HUB_PROXY_PASSWORD.getParameterKey());
-        final String autoImport = taskParameters.get(TaskField.HUB_AUTO_IMPORT_CERT.getParameterKey());
-
-        final HubServerConfigBuilder hubServerConfigBuilder = new HubServerConfigBuilder();
-        hubServerConfigBuilder.setHubUrl(hubUrl);
-        hubServerConfigBuilder.setUsername(hubUsername);
-        hubServerConfigBuilder.setPassword(hubPassword);
-        hubServerConfigBuilder.setTimeout(hubTimeout);
-        hubServerConfigBuilder.setProxyHost(proxyHost);
-        hubServerConfigBuilder.setProxyPort(proxyPort);
-        hubServerConfigBuilder.setProxyUsername(proxyUsername);
-        hubServerConfigBuilder.setProxyPassword(proxyPassword);
-        hubServerConfigBuilder.setAutoImportHttpsCertificates(Boolean.parseBoolean(autoImport));
-
-        return hubServerConfigBuilder.build();
-    }
-
-    public HubServiceHelper createServiceHelper(final HubEventLogger logger, final HubServerConfig hubServerConfig) {
+    public HubServiceHelper createServiceHelper(final HubEventLogger logger, final Map<String, String> taskParameters) {
         try {
-            return new HubServiceHelper(logger, hubServerConfig);
+            return new HubServiceHelper(logger, taskParameters);
         } catch (final EncryptionException ex) {
             return null;
         }

@@ -29,13 +29,11 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.LoggerFactory;
 import org.sonatype.nexus.configuration.application.ApplicationConfiguration;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.sisu.goodies.eventbus.EventBus;
 
-import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.repository.task.ScanTaskDescriptor;
@@ -64,29 +62,23 @@ public class HubScanEventHandler extends HubEventHandler {
     @Subscribe
     public void handle(final HubScanEvent event) {
         final HubEventLogger logger = new HubEventLogger(event, LoggerFactory.getLogger(getClass()));
-        File blackDuckDirectory = null;
         try {
             logger.info("Begin handling scan event");
-            blackDuckDirectory = new File(event.getTaskParameters().get(TaskField.WORKING_DIRECTORY.getParameterKey()), "blackduck");
-            if (!blackDuckDirectory.exists()) {
-                blackDuckDirectory.mkdirs();
-            }
+            final File blackDuckDirectory = new File(event.getTaskParameters().get(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
+            final File taskDirectory = new File(blackDuckDirectory, event.getTaskParameters().get(".name"));
             final IntegrationInfo phoneHomeInfo = new IntegrationInfo(ThirdPartyName.NEXUS, appConfiguration.getConfigurationModel().getNexusVersion(), ScanTaskDescriptor.PLUGIN_VERSION);
-            final HubServerConfig hubServerConfig = createHubServerConfig(event.getTaskParameters());
-            final HubServiceHelper hubServiceHelper = createServiceHelper(logger, hubServerConfig);
+            final HubServiceHelper hubServiceHelper = createServiceHelper(logger, event.getTaskParameters());
 
-            final ArtifactScanner scanner = new ArtifactScanner(event, logger, hubServerConfig, getAttributeHelper(), blackDuckDirectory, hubServiceHelper, phoneHomeInfo);
+            final ArtifactScanner scanner = new ArtifactScanner(event, logger, getAttributeHelper(), taskDirectory, hubServiceHelper, phoneHomeInfo);
             final ProjectVersionView projectVersionView = scanner.scan();
-
+            logger.info("Checking policy next");
+            logger.info("ProjectVersionView: " + projectVersionView);
             if (projectVersionView != null) {
                 eventBus.post(new HubPolicyCheckEvent(event.getRepository(), event.getItem(), event.getTaskParameters(), event.getRequest(), projectVersionView));
             }
         } catch (final Exception ex) {
             logger.error("Error occurred during scanning", ex);
         } finally {
-            if (blackDuckDirectory != null) {
-                FileUtils.deleteQuietly(blackDuckDirectory);
-            }
             logger.info("Finished handling scan event");
         }
     }

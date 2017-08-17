@@ -47,6 +47,7 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
     // This ID string must match the class name of the task that actually performs the opertaion
     public static final String ID = "ScanTask";
     public static final String PLUGIN_VERSION = "0.0.1-SNAPSHOT";
+    public static final String BLACKDUCK_DIRECTORY = "blackduck";
     public static final String TASK_NAME = "Hub Repository Scan";
     private static final String DEFAULT_FILE_PATTERNS = "*.war,*.zip,*.tar.gz,*.hpi";
     private static final String DEFAULT_HUB_TIMEOUT = "300";
