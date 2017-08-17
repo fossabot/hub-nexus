@@ -86,9 +86,6 @@ public class ArtifactScanner {
                 final String apiUrl = hubServiceHelper.retrieveApiUrl(projectVersionView);
                 final String uiUrl = hubServiceHelper.retrieveUIUrl(projectVersionView);
 
-                logger.info("ProjectVersionView = " + projectVersionView);
-                logger.info("apiUrl = " + apiUrl);
-                logger.info("uiUrl = " + uiUrl);
                 if (StringUtils.isNotBlank(apiUrl)) {
                     attributesHelper.setApiUrl(item, apiUrl);
                 }
