@@ -97,9 +97,11 @@ Sonatype.repoServer.HubTab = function(config) {
 Ext.extend( Sonatype.repoServer.HubTab, Ext.Panel, {
 	showArtifact : function(data, artifactContainer) {
 		var currentUri = data.resourceURI;
+		var indexOfNexus = currentUri.indexOf('/nexus')
+		currentUri = currentUri.slice(indexOfNexus, currentUri.length);
 		var urlSeg = currentUri.split("/");
-		var repoId = urlSeg[7];
-		var newArr = urlSeg.slice(9, urlSeg.length);
+		var repoId = urlSeg[5];
+		var newArr = urlSeg.slice(7, urlSeg.length);
 		var artPath = '/' + newArr.join('/');
 		var self = this;
 		this.data = data;
