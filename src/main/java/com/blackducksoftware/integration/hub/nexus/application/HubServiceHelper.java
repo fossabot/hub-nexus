@@ -124,54 +124,33 @@ public class HubServiceHelper {
 
     }
 
-    public PolicyStatusDescription checkPolicyStatus(final ProjectVersionView version) {
-        try {
-            final VersionBomPolicyStatusView versionBomPolicyStatusView = hubServicesFactory.createPolicyStatusDataService(intLogger).getPolicyStatusForVersion(version);
-            final PolicyStatusDescription policyStatusDescription = new PolicyStatusDescription(versionBomPolicyStatusView);
-            return policyStatusDescription;
-        } catch (final IntegrationException e) {
-            throw new RuntimeException(e);
-        }
+    public PolicyStatusDescription checkPolicyStatus(final ProjectVersionView version) throws IntegrationException {
+        final VersionBomPolicyStatusView versionBomPolicyStatusView = hubServicesFactory.createPolicyStatusDataService(intLogger).getPolicyStatusForVersion(version);
+        final PolicyStatusDescription policyStatusDescription = new PolicyStatusDescription(versionBomPolicyStatusView);
+        return policyStatusDescription;
     }
 
-    public String retrieveApiUrl(final ProjectVersionView project) {
-        try {
-            return metaService.getHref(project);
-        } catch (final HubIntegrationException e) {
-            return "";
-        }
+    public String retrieveApiUrl(final ProjectVersionView project) throws HubIntegrationException {
+        return metaService.getHref(project);
     }
 
-    public String retrieveUIUrl(final ProjectVersionView project) {
-        try {
-            return metaService.getFirstLink(project, "components");
-        } catch (final HubIntegrationException e) {
-            return "";
-        }
+    public String retrieveUIUrl(final ProjectVersionView project) throws HubIntegrationException {
+        return metaService.getFirstLink(project, "components");
     }
 
-    public ReportData retrieveRiskReport(final long timeout, final ProjectVersionView version, final ProjectView project) {
+    public ReportData retrieveRiskReport(final long timeout, final ProjectVersionView version, final ProjectView project) throws IntegrationException {
         intLogger.info("Generating risk report");
-        try {
-            final RiskReportDataService riskReport = hubServicesFactory.createRiskReportDataService(intLogger, timeout);
-            return riskReport.getRiskReportData(project, version);
-        } catch (final IntegrationException e) {
-            e.printStackTrace();
-            return null;
-        }
+        final RiskReportDataService riskReport = hubServicesFactory.createRiskReportDataService(intLogger, timeout);
+        return riskReport.getRiskReportData(project, version);
     }
 
     public CLIDataService createCLIDataService() {
         return hubServicesFactory.createCLIDataService(intLogger);
     }
 
-    public ProjectView getProjectView(final String projectName) {
+    public ProjectView getProjectView(final String projectName) throws IntegrationException {
         final ProjectRequestService requestService = hubServicesFactory.createProjectRequestService(intLogger);
-        try {
-            return requestService.getProjectByName(projectName);
-        } catch (final IntegrationException e) {
-            throw new RuntimeException(e);
-        }
+        return requestService.getProjectByName(projectName);
     }
 
     public VersionBomPolicyStatusView getOverallPolicyStatus(final ProjectVersionView projectVersionView) throws IntegrationException {
@@ -193,7 +172,6 @@ public class HubServiceHelper {
         return builder.build();
     }
 
-    // TODO Check item att for name and version (More options)
     private NameVersionNode generateProjectNameVersion(final StorageItem item) {
         final String path = item.getParentPath();
         String name = item.getName();
