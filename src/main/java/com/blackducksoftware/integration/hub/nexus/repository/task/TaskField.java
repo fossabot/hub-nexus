@@ -24,7 +24,6 @@
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
 public enum TaskField {
-
     DISTRIBUTION("blackduck.hub.project.version.distribution"),
     FILE_PATTERNS("file.pattern.match.wildcards"),
     HUB_AUTO_IMPORT_CERT("blackduck.hub.auto.import.cert"),

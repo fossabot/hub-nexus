@@ -57,10 +57,6 @@ public class HubMetaData {
     @JsonProperty("uiUrl")
     private String uiUrl;
 
-    public HubMetaData() {
-        logger.info("HubMetaData");
-    }
-
     public String getApiUrl() {
         return apiUrl;
     }
@@ -107,10 +103,5 @@ public class HubMetaData {
 
     public void setUiUrl(final String uiUrl) {
         this.uiUrl = uiUrl;
-    }
-
-    @Override
-    public String toString() {
-        return "HubMetaData [logger=" + logger + ", apiUrl=" + apiUrl + ", policyStatus=" + policyStatus + ", policyOverallStatus=" + policyOverallStatus + ", scanTime=" + scanTime + ", scanStatus=" + scanStatus + ", uiUrl=" + uiUrl + "]";
     }
 }

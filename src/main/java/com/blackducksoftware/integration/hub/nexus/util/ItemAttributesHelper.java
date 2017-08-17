@@ -32,7 +32,7 @@ import javax.inject.Singleton;
 
 import org.slf4j.Logger;
 import org.sonatype.nexus.proxy.attributes.Attributes;
-import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
+import org.sonatype.nexus.proxy.attributes.AttributesHandler;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.sisu.goodies.common.Loggers;
 
@@ -48,12 +48,12 @@ public class ItemAttributesHelper {
 
     public static final String BLACKDUCK = "blackduck-";
 
-    private final DefaultAttributesHandler attributesHandler;
+    private final AttributesHandler attributesHandler;
 
-    final Logger logger = Loggers.getLogger(ItemAttributesHelper.class);
+    final Logger logger = Loggers.getLogger(getClass());
 
     @Inject
-    public ItemAttributesHelper(final DefaultAttributesHandler attributesHandler) {
+    public ItemAttributesHelper(final AttributesHandler attributesHandler) {
         this.attributesHandler = attributesHandler;
     }
 
@@ -61,12 +61,13 @@ public class ItemAttributesHelper {
         return BLACKDUCK.concat(key);
     }
 
-    private void addAttribute(final String key, final String value, final StorageItem item) {
+    public void addAttribute(final String key, final String value, final StorageItem item) {
         item.getRepositoryItemAttributes().put(keyName(key), value);
         try {
             attributesHandler.storeAttributes(item);
         } catch (final IOException e) {
-            throw new RuntimeException(e);
+            logger.error("AttributesHandler error when adding error");
+            e.printStackTrace();
         }
     }
 
@@ -84,6 +85,18 @@ public class ItemAttributesHelper {
         return defaultValue;
     }
 
+    public boolean contains(String key, final StorageItem item) {
+        final Attributes attList = item.getRepositoryItemAttributes();
+        if (!key.contains(BLACKDUCK)) {
+            key = keyName(key);
+        }
+        if (attList.containsKey(key)) {
+            return true;
+        }
+
+        return false;
+    }
+
     public void clearAttributes(final StorageItem item) {
         final Attributes attList = item.getRepositoryItemAttributes();
         final Set<String> keys = attList.asMap().keySet();
@@ -98,7 +111,7 @@ public class ItemAttributesHelper {
         try {
             attributesHandler.storeAttributes(item);
         } catch (final IOException e) {
-            throw new RuntimeException(e);
+            logger.error("AttributesHandler error when clearing attributes");
         }
     }
 
