@@ -42,7 +42,6 @@ import org.sonatype.nexus.proxy.walker.WalkerContext;
 import org.sonatype.nexus.proxy.walker.WalkerException;
 import org.sonatype.nexus.scheduling.AbstractNexusRepositoriesPathAwareTask;
 
-import com.blackducksoftware.integration.hub.nexus.repository.walker.RepositoryWalker;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
 @Named(ScanTaskDescriptor.ID)

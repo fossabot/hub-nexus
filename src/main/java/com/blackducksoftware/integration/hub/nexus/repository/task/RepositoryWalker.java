@@ -21,7 +21,7 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.repository.walker;
+package com.blackducksoftware.integration.hub.nexus.repository.task;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +38,6 @@ import org.sonatype.sisu.goodies.common.Loggers;
 import org.sonatype.sisu.goodies.eventbus.EventBus;
 
 import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent;
-import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
 public class RepositoryWalker extends AbstractWalkerProcessor {
@@ -99,12 +98,12 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
     private boolean isArtifactTooOld(final StorageItem item) {
         final int daysCutoff = Integer.parseInt(taskParameters.get(TaskField.OLD_ARTIFACT_CUTOFF.getParameterKey()));
         final long createdTime = item.getCreated();
-        logger.info("Created time: " + createdTime);
+        logger.debug("Created time: " + createdTime);
 
         final long daysInMill = TimeUnit.MILLISECONDS.convert(daysCutoff, TimeUnit.DAYS);
-        logger.info("Days in Mill: " + daysInMill);
+        logger.debug("Days in Mill: " + daysInMill);
         final long cutoffTime = System.currentTimeMillis() - daysInMill;
-        logger.info("Cutoff time: " + cutoffTime);
+        logger.debug("Cutoff time: " + cutoffTime);
 
         if (createdTime < cutoffTime) {
             return true;

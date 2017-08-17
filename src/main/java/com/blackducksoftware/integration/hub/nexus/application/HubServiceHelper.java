@@ -21,7 +21,7 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.scan;
+package com.blackducksoftware.integration.hub.nexus.application;
 
 import java.util.ArrayList;
 import java.util.List;
