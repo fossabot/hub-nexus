@@ -40,6 +40,6 @@ public class TaskFieldTest {
     @Test
     public void getParameterKeyTest() throws Exception {
         final TaskField field = TaskField.DISTRIBUTION;
-        Assert.assertSame("blackduck.hub.project.version.distribution", field.getParameterKey());
+        Assert.assertEquals("blackduck.hub.project.version.distribution", field.getParameterKey());
     }
 }

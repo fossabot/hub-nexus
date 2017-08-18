@@ -31,13 +31,13 @@ public class ScanTaskDescriptorTest {
     @Test
     public void getIdTest() {
         final ScanTaskDescriptor taskDesc = new ScanTaskDescriptor(null);
-        Assert.assertSame("ScanTask", taskDesc.getId());
+        Assert.assertEquals("ScanTask", taskDesc.getId());
     }
 
     @Test
     public void getNameTest() {
         final ScanTaskDescriptor taskDesc = new ScanTaskDescriptor(null);
-        Assert.assertSame("Hub Repository Scan", taskDesc.getName());
+        Assert.assertEquals("Hub Repository Scan", taskDesc.getName());
     }
 
     @Test

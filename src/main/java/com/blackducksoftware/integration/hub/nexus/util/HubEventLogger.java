@@ -23,7 +23,6 @@
  */
 package com.blackducksoftware.integration.hub.nexus.util;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
 import com.blackducksoftware.integration.hub.nexus.event.HubEvent;
@@ -39,11 +38,7 @@ public class HubEventLogger extends Slf4jIntLogger {
     }
 
     private String eventInfoMessage(final String txt) {
-        if (StringUtils.isBlank(txt)) {
-            return String.format("Event %s - ", event.getEventId().toString());
-        } else {
-            return String.format("Event %s - %s", event.getEventId().toString(), txt);
-        }
+        return String.format("Event %s - %s", event.getEventId().toString(), txt);
     }
 
     @Override
