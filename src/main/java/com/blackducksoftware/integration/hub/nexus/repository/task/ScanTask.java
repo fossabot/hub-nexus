@@ -76,13 +76,15 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
     protected Object doRun() throws Exception {
         File blackDuckDirectory = null;
         try {
+            final HubServiceHelper hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), this.getParameters());
             blackDuckDirectory = new File(getParameter(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
-            final File taskDirectory = new File(blackDuckDirectory, getParameter(".name"));
+            final String cliInstallRootDirectory = hubServiceHelper.createCLIInstallDirectoryName();
+            final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
             final File cliInstallDirectory = new File(taskDirectory, "tools");
             if (!cliInstallDirectory.exists()) {
                 cliInstallDirectory.mkdirs();
             }
-            final HubServiceHelper hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), this.getParameters());
+
             hubServiceHelper.installCLI(cliInstallDirectory);
             final String repositoryFieldId = getParameter(TaskField.REPOSITORY_FIELD_ID.getParameterKey());
             final List<Repository> repositoryList = createRepositoryList(repositoryFieldId);

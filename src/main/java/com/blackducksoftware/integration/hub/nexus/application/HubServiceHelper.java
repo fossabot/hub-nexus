@@ -185,6 +185,12 @@ public class HubServiceHelper {
         return nameVersion;
     }
 
+    public String createCLIInstallDirectoryName() {
+        final String hubCLIInstallDirectoryName = String.format("hub%s", String.valueOf(hubServerConfig.getHubUrl().getHost().hashCode()));
+        intLogger.info(String.format("CLI Installation Root Directory for %s: %s", hubServerConfig.getHubUrl().toString(), hubCLIInstallDirectoryName));
+        return hubCLIInstallDirectoryName;
+    }
+
     public void createProjectAndVersion(final ProjectRequest projectRequest) throws IntegrationException {
         ProjectView project = null;
         final ProjectRequestService projectRequestService = hubServicesFactory.createProjectRequestService(intLogger);

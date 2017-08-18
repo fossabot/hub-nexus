@@ -64,16 +64,15 @@ public class HubScanEventHandler extends HubEventHandler {
         final HubEventLogger logger = new HubEventLogger(event, LoggerFactory.getLogger(getClass()));
         try {
             logger.info("Begin handling scan event");
-            final File blackDuckDirectory = new File(event.getTaskParameters().get(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
-            final File taskDirectory = new File(blackDuckDirectory, event.getTaskParameters().get(".name"));
             final IntegrationInfo phoneHomeInfo = new IntegrationInfo(ThirdPartyName.NEXUS, appConfiguration.getConfigurationModel().getNexusVersion(), ScanTaskDescriptor.PLUGIN_VERSION);
             final HubServiceHelper hubServiceHelper = createServiceHelper(logger, event.getTaskParameters());
-
+            final String cliInstallRootDirectory = hubServiceHelper.createCLIInstallDirectoryName();
+            final File blackDuckDirectory = new File(event.getTaskParameters().get(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
+            final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
             final ArtifactScanner scanner = new ArtifactScanner(event, logger, getAttributeHelper(), taskDirectory, hubServiceHelper, phoneHomeInfo);
             final ProjectVersionView projectVersionView = scanner.scan();
-            logger.info("Checking policy next");
-            logger.info("ProjectVersionView: " + projectVersionView);
             if (projectVersionView != null) {
+                logger.info("Posting policy check event for " + projectVersionView.versionName);
                 eventBus.post(new HubPolicyCheckEvent(event.getRepository(), event.getItem(), event.getTaskParameters(), event.getRequest(), projectVersionView));
             }
         } catch (final Exception ex) {
