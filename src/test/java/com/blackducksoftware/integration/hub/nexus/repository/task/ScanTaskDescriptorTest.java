@@ -30,19 +30,19 @@ public class ScanTaskDescriptorTest {
 
     @Test
     public void getIdTest() {
-        final ScanTaskDescriptor taskDesc = new ScanTaskDescriptor();
+        final ScanTaskDescriptor taskDesc = new ScanTaskDescriptor(null);
         Assert.assertSame("ScanTask", taskDesc.getId());
     }
 
     @Test
     public void getNameTest() {
-        final ScanTaskDescriptor taskDesc = new ScanTaskDescriptor();
+        final ScanTaskDescriptor taskDesc = new ScanTaskDescriptor(null);
         Assert.assertSame("Hub Repository Scan", taskDesc.getName());
     }
 
     @Test
     public void formFieldsTest() {
-        final ScanTaskDescriptor taskDesc = new ScanTaskDescriptor();
+        final ScanTaskDescriptor taskDesc = new ScanTaskDescriptor(null);
         Assert.assertTrue(taskDesc.formFields().size() == 17);
     }
 }

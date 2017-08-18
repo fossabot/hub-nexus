@@ -23,12 +23,15 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.sonatype.nexus.configuration.application.ApplicationDirectories;
 import org.sonatype.nexus.formfields.CheckboxFormField;
 import org.sonatype.nexus.formfields.FormField;
 import org.sonatype.nexus.formfields.NumberTextFormField;
@@ -96,7 +99,7 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
     private final PasswordFormField passwordField = new PasswordFormField(TaskField.HUB_PASSWORD.getParameterKey(), LABEL_HUB_PASSWORD, DESCRIPTION_HUB_PASSWORD, FormField.MANDATORY);
     private final StringTextFormField timeoutField = new StringTextFormField(TaskField.HUB_TIMEOUT.getParameterKey(), LABEL_CONNECTION_TIMEOUT, DESCRIPTION_HUB_TIMEOUT, FormField.OPTIONAL).withInitialValue(DEFAULT_HUB_TIMEOUT);
     private final CheckboxFormField autoImportCert = new CheckboxFormField(TaskField.HUB_AUTO_IMPORT_CERT.getParameterKey(), LABEL_IMPORT_HUB_SSL_CERTIFICATE, DESCRIPTION_HUB_IMPORT_CERT, FormField.OPTIONAL);
-    private final NumberTextFormField artifactCutoffField = new NumberTextFormField(TaskField.OLD_ARTIFACT_CUTOFF.getParameterKey(), LABEL_ARTIFACT_CUTOFF, DESCRIPTION_SCAN_CUTOFF_DAYS, FormField.OPTIONAL);
+    private final NumberTextFormField artifactCutoffField = new NumberTextFormField(TaskField.OLD_ARTIFACT_CUTOFF.getParameterKey(), LABEL_ARTIFACT_CUTOFF, DESCRIPTION_SCAN_CUTOFF_DAYS, FormField.OPTIONAL).withInitialValue(365);
 
     private final StringTextFormField proxyHostField = new StringTextFormField(TaskField.HUB_PROXY_HOST.getParameterKey(), LABEL_PROXY_HOST, DESCRIPTION_PROXY_HOST, FormField.OPTIONAL);
     private final StringTextFormField proxyPortField = new StringTextFormField(TaskField.HUB_PROXY_PORT.getParameterKey(), LABEL_PROXY_PORT, DESCRIPTION_PROXY_PORT, FormField.OPTIONAL);
@@ -107,14 +110,27 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
     private final StringTextFormField phaseFormField = new StringTextFormField(TaskField.PHASE.getParameterKey(), LABEL_PHASE, DESCRIPTION_HUB_PROJECT_PHASE, FormField.OPTIONAL).withInitialValue(ProjectVersionPhaseEnum.DEVELOPMENT.name());
     private final StringTextFormField filePatternField = new StringTextFormField(TaskField.FILE_PATTERNS.getParameterKey(), LABEL_FILE_PATTERN_MATCHES, DESCRIPTION_SCAN_FILE_PATTERN_MATCH, FormField.MANDATORY)
             .withInitialValue(DEFAULT_FILE_PATTERNS);
-    private final StringTextFormField workingDirectoryField = new StringTextFormField(TaskField.WORKING_DIRECTORY.getParameterKey(), LABEL_WORKING_DIRECTORY, DESCRIPTION_TASK_WORKING_DIRECTORY, FormField.MANDATORY)
-            .withInitialValue(DEFAULT_WORKING_DIRECTORY);
     private final StringTextFormField scanMemoryField = new StringTextFormField(TaskField.HUB_SCAN_MEMORY.getParameterKey(), LABEL_SCAN_MEMORY_ALLOCATION, DESCRIPTION_HUB_SCAN_MEMORY, FormField.OPTIONAL)
             .withInitialValue(DEFAULT_SCAN_MEMORY);
+
+    private final ApplicationDirectories appDirectories;
+
+    @Inject
+    public ScanTaskDescriptor(final ApplicationDirectories appDirectories) {
+        this.appDirectories = appDirectories;
+    }
 
     @Override
     public List<FormField> formFields() {
         final List<FormField> fields = new ArrayList<>();
+
+        StringTextFormField workingDirectoryField;
+        try {
+            workingDirectoryField = new StringTextFormField(TaskField.WORKING_DIRECTORY.getParameterKey(), LABEL_WORKING_DIRECTORY, DESCRIPTION_TASK_WORKING_DIRECTORY, FormField.MANDATORY)
+                    .withInitialValue(appDirectories.getWorkDirectory().getCanonicalPath());
+        } catch (final IOException | NullPointerException e) {
+            workingDirectoryField = new StringTextFormField(TaskField.WORKING_DIRECTORY.getParameterKey(), LABEL_WORKING_DIRECTORY, DESCRIPTION_TASK_WORKING_DIRECTORY, FormField.MANDATORY).withInitialValue(DEFAULT_WORKING_DIRECTORY);
+        }
 
         fields.add(repoField);
         fields.add(resourceStorePathField);
