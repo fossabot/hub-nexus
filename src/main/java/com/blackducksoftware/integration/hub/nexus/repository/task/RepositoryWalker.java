@@ -35,11 +35,10 @@ import org.sonatype.nexus.proxy.item.uid.IsHiddenAttribute;
 import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
 import org.sonatype.nexus.proxy.walker.WalkerContext;
 import org.sonatype.sisu.goodies.common.Loggers;
-import org.sonatype.sisu.goodies.eventbus.EventBus;
 
 import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
-import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent;
+import com.blackducksoftware.integration.hub.nexus.event.ScanEventManager;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.log.Slf4jIntLogger;
 
@@ -48,13 +47,13 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
     private final String fileMatchPatterns;
     private final ItemAttributesHelper attributesHelper;
     private final Map<String, String> taskParameters;
-    private final EventBus eventBus;
+    private final ScanEventManager eventManager;
 
-    public RepositoryWalker(final String fileMatchPatterns, final ItemAttributesHelper attributesHelper, final Map<String, String> taskParameters, final EventBus eventBus) {
+    public RepositoryWalker(final String fileMatchPatterns, final ItemAttributesHelper attributesHelper, final Map<String, String> taskParameters, final ScanEventManager eventManager) {
         this.fileMatchPatterns = fileMatchPatterns;
         this.attributesHelper = attributesHelper;
         this.taskParameters = taskParameters;
-        this.eventBus = eventBus;
+        this.eventManager = eventManager;
     }
 
     @Override
@@ -94,8 +93,7 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
                     final HubServiceHelper hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), taskParameters);
                     final ProjectRequest projectRequest = hubServiceHelper.createProjectRequest(distribution, phase, item);
                     hubServiceHelper.createProjectAndVersion(projectRequest);
-                    final HubScanEvent event = new HubScanEvent(item.getRepositoryItemUid().getRepository(), item, taskParameters, context.getResourceStoreRequest());
-                    eventBus.post(event);
+                    eventManager.addNewEvent(item, context.getResourceStoreRequest(), taskParameters);
                     break;
                 }
             }

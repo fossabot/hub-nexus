@@ -80,5 +80,6 @@ public class HubScanEventHandler extends HubEventHandler {
         } finally {
             logger.info("Finished handling scan event");
         }
+        event.getLock().countDown();
     }
 }

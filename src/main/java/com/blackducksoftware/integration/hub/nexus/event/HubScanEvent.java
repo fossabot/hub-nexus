@@ -24,6 +24,7 @@
 package com.blackducksoftware.integration.hub.nexus.event;
 
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.StorageItem;
@@ -31,7 +32,14 @@ import org.sonatype.nexus.proxy.repository.Repository;
 
 public class HubScanEvent extends HubEvent {
 
-    public HubScanEvent(final Repository repository, final StorageItem item, final Map<String, String> taskParameters, final ResourceStoreRequest request) {
+    private final CountDownLatch lock;
+
+    public HubScanEvent(final CountDownLatch lock, final Repository repository, final StorageItem item, final Map<String, String> taskParameters, final ResourceStoreRequest request) {
         super(repository, item, taskParameters, request);
+        this.lock = lock;
+    }
+
+    public CountDownLatch getLock() {
+        return lock;
     }
 }

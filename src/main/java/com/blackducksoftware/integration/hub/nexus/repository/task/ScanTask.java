@@ -42,9 +42,9 @@ import org.sonatype.nexus.proxy.walker.Walker;
 import org.sonatype.nexus.proxy.walker.WalkerContext;
 import org.sonatype.nexus.proxy.walker.WalkerException;
 import org.sonatype.nexus.scheduling.AbstractNexusRepositoriesPathAwareTask;
-import org.sonatype.nexus.scheduling.NexusScheduler;
 
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
+import com.blackducksoftware.integration.hub.nexus.event.ScanEventManager;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.log.Slf4jIntLogger;
 
@@ -53,13 +53,11 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
     private static final String ALL_REPO_ID = "all_repo";
     private final Walker walker;
     private final DefaultAttributesHandler attributesHandler;
-    private final NexusScheduler scheduler;
 
     @Inject
-    public ScanTask(final Walker walker, final DefaultAttributesHandler attributesHandler, final NexusScheduler scheduler) {
+    public ScanTask(final Walker walker, final DefaultAttributesHandler attributesHandler) {
         this.walker = walker;
         this.attributesHandler = attributesHandler;
-        this.scheduler = scheduler;
     }
 
     @Override
@@ -76,6 +74,7 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
     protected Object doRun() throws Exception {
         File blackDuckDirectory = null;
         try {
+            final ScanEventManager eventManager = new ScanEventManager(getEventBus());
             final HubServiceHelper hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), this.getParameters());
             blackDuckDirectory = new File(getParameter(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
             final String cliInstallRootDirectory = hubServiceHelper.createCLIInstallDirectoryName();
@@ -91,9 +90,10 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
             final List<WalkerContext> contextList = new ArrayList<>();
 
             for (final Repository repository : repositoryList) {
-                contextList.add(createRepositoryWalker(repository));
+                contextList.add(createRepositoryWalker(eventManager, repository));
             }
             walkRepositories(contextList);
+            eventManager.processEvents();
         } catch (final Exception ex) {
             logger.error("Error occurred during task execution {}", ex);
         }
@@ -122,7 +122,7 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
         return repositoryList;
     }
 
-    private WalkerContext createRepositoryWalker(final Repository repository) {
+    private WalkerContext createRepositoryWalker(final ScanEventManager eventManager, final Repository repository) {
         final ResourceStoreRequest request = new ResourceStoreRequest(getResourceStorePath(), true, false);
         if (StringUtils.isBlank(request.getRequestPath())) {
             request.setRequestPath(RepositoryItemUid.PATH_ROOT);
@@ -132,7 +132,7 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
         final String fileMatchPatterns = getParameter(TaskField.FILE_PATTERNS.getParameterKey());
         final WalkerContext context = new DefaultWalkerContext(repository, request);
         getLogger().info("Creating walker for repository {}", repository.getName());
-        context.getProcessors().add(new RepositoryWalker(fileMatchPatterns, new ItemAttributesHelper(attributesHandler), getParameters(), getEventBus()));
+        context.getProcessors().add(new RepositoryWalker(fileMatchPatterns, new ItemAttributesHelper(attributesHandler), getParameters(), eventManager));
         return context;
     }
 
