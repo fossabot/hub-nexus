@@ -79,6 +79,7 @@
       <artifactId>nexus-capabilities-plugin</artifactId>
       <scope>provided</scope>
     </dependency>
+    <!-- Testing dependencies -->
     <dependency>
       <groupId>org.sonatype.nexus.plugins</groupId>
       <artifactId>nexus-kazuki-plugin</artifactId>
@@ -87,6 +88,11 @@
     <dependency>
       <groupId>org.sonatype.nexus</groupId>
       <artifactId>nexus-plugin-testsupport</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sonatype.nexus</groupId>
+      <artifactId>nexus-testsuite-support</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
