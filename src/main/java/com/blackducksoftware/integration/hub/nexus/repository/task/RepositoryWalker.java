@@ -39,6 +39,7 @@ import org.sonatype.sisu.goodies.common.Loggers;
 import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.ScanEventManager;
+import com.blackducksoftware.integration.hub.nexus.event.ScanItemMetaData;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.log.Slf4jIntLogger;
 
@@ -71,35 +72,49 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
                 return;
             }
 
-            final String[] patternArray = StringUtils.split(fileMatchPatterns, ",");
-            for (final String wildCardPattern : patternArray) {
-                if (FilenameUtils.wildcardMatch(item.getPath(), wildCardPattern)) {
-                    if (isArtifactTooOld(item)) {
-                        logger.info("Item is older than specified date, skipping: {}", item);
-                        return;
-                    }
-
-                    logger.debug("Evaluating item: {}", item);
-                    final long scanTime = attributesHelper.getScanTime(item);
-                    logger.debug("Last scanned " + scanTime + " ms ago");
-                    final long lastModified = item.getRepositoryItemAttributes().getModified();
-                    logger.debug("Last modified " + lastModified + " ms ago");
-                    if (scanTime > lastModified) {
-                        logger.info(item.getName() + " already scanned");
-                        return;
-                    }
-                    final String distribution = taskParameters.get(TaskField.DISTRIBUTION.getParameterKey());
-                    final String phase = taskParameters.get(TaskField.PHASE.getParameterKey());
-                    final HubServiceHelper hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), taskParameters);
-                    final ProjectRequest projectRequest = hubServiceHelper.createProjectRequest(distribution, phase, item);
-                    hubServiceHelper.createProjectAndVersion(projectRequest);
-                    eventManager.addNewEvent(item, context.getResourceStoreRequest(), taskParameters);
-                    break;
-                }
+            if (shouldScan(item)) {
+                final String distribution = taskParameters.get(TaskField.DISTRIBUTION.getParameterKey());
+                final String phase = taskParameters.get(TaskField.PHASE.getParameterKey());
+                final HubServiceHelper hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), taskParameters);
+                final ProjectRequest projectRequest = hubServiceHelper.createProjectRequest(distribution, phase, item);
+                hubServiceHelper.createProjectAndVersion(projectRequest);
+                final ScanItemMetaData scanItem = new ScanItemMetaData(item, context.getResourceStoreRequest(), taskParameters);
+                eventManager.processItem(scanItem);
             }
         } catch (final Exception ex) {
             logger.error("Error occurred in walker processor for repository: ", ex);
         }
+    }
+
+    private boolean shouldScan(final StorageItem item) {
+        final String[] patternArray = StringUtils.split(fileMatchPatterns, ",");
+        for (final String wildCardPattern : patternArray) {
+            if (FilenameUtils.wildcardMatch(item.getPath(), wildCardPattern)) {
+                if (isArtifactTooOld(item)) {
+                    logger.info("Item is older than specified age, skipping: {}", item);
+                    return false;
+                }
+
+                logger.debug("Evaluating item: {}", item);
+                final long scanTime = attributesHelper.getScanTime(item);
+                logger.debug("Last scanned " + scanTime + " ms ago");
+                final long lastModified = item.getRepositoryItemAttributes().getModified();
+                logger.debug("Last modified " + lastModified + " ms ago");
+                if (scanTime > lastModified) {
+                    final String scanResult = attributesHelper.getScanResult(item);
+                    if (StringUtils.isNotBlank(scanResult) && scanResult.equals("FAILURE")) {
+                        logger.info("{} already scanned but re-scan failed option selected.", item.getName());
+                        return true;
+                    } else {
+                        logger.info("{} already successfully scanned", item.getName());
+                        return false;
+                    }
+                } else {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private boolean isArtifactTooOld(final StorageItem item) {

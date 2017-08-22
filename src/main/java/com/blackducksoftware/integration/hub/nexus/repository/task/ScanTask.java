@@ -53,11 +53,13 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
     private static final String ALL_REPO_ID = "all_repo";
     private final Walker walker;
     private final DefaultAttributesHandler attributesHandler;
+    private final ScanEventManager eventManager;
 
     @Inject
-    public ScanTask(final Walker walker, final DefaultAttributesHandler attributesHandler) {
+    public ScanTask(final Walker walker, final DefaultAttributesHandler attributesHandler, final ScanEventManager eventManager) {
         this.walker = walker;
         this.attributesHandler = attributesHandler;
+        this.eventManager = eventManager;
     }
 
     @Override
@@ -74,26 +76,30 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
     protected Object doRun() throws Exception {
         File blackDuckDirectory = null;
         try {
-            final ScanEventManager eventManager = new ScanEventManager(getEventBus());
-            final HubServiceHelper hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), this.getParameters());
-            blackDuckDirectory = new File(getParameter(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
-            final String cliInstallRootDirectory = hubServiceHelper.createCLIInstallDirectoryName();
-            final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
-            final File cliInstallDirectory = new File(taskDirectory, "tools");
-            if (!cliInstallDirectory.exists()) {
-                cliInstallDirectory.mkdirs();
-            }
+            final int pendingEvents = eventManager.pendingEventCount(getName());
+            if (pendingEvents > 0) {
+                logger.info("{} pending events from the last run.  Skipping task execution.", pendingEvents);
+            } else {
+                logger.info("No Pending events for this task.  Start task execution.");
+                final HubServiceHelper hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), this.getParameters());
+                blackDuckDirectory = new File(getParameter(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
+                final String cliInstallRootDirectory = hubServiceHelper.createCLIInstallDirectoryName();
+                final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
+                final File cliInstallDirectory = new File(taskDirectory, "tools");
+                if (!cliInstallDirectory.exists()) {
+                    cliInstallDirectory.mkdirs();
+                }
 
-            hubServiceHelper.installCLI(cliInstallDirectory);
-            final String repositoryFieldId = getParameter(TaskField.REPOSITORY_FIELD_ID.getParameterKey());
-            final List<Repository> repositoryList = createRepositoryList(repositoryFieldId);
-            final List<WalkerContext> contextList = new ArrayList<>();
+                hubServiceHelper.installCLI(cliInstallDirectory);
+                final String repositoryFieldId = getParameter(TaskField.REPOSITORY_FIELD_ID.getParameterKey());
+                final List<Repository> repositoryList = createRepositoryList(repositoryFieldId);
+                final List<WalkerContext> contextList = new ArrayList<>();
 
-            for (final Repository repository : repositoryList) {
-                contextList.add(createRepositoryWalker(eventManager, repository));
+                for (final Repository repository : repositoryList) {
+                    contextList.add(createRepositoryWalker(eventManager, repository));
+                }
+                walkRepositories(contextList);
             }
-            walkRepositories(contextList);
-            eventManager.processEvents();
         } catch (final Exception ex) {
             logger.error("Error occurred during task execution {}", ex);
         }

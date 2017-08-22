@@ -50,12 +50,14 @@ import com.google.common.eventbus.Subscribe;
 public class HubScanEventHandler extends HubEventHandler {
     private final ApplicationConfiguration appConfiguration;
     private final EventBus eventBus;
+    private final ScanEventManager eventManager;
 
     @Inject
-    public HubScanEventHandler(final ApplicationConfiguration appConfiguration, final EventBus eventBus, final DefaultAttributesHandler attributesHandler) {
+    public HubScanEventHandler(final ApplicationConfiguration appConfiguration, final EventBus eventBus, final DefaultAttributesHandler attributesHandler, final ScanEventManager eventManager) {
         super(attributesHandler);
         this.appConfiguration = appConfiguration;
         this.eventBus = eventBus;
+        this.eventManager = eventManager;
     }
 
     @AllowConcurrentEvents
@@ -64,22 +66,26 @@ public class HubScanEventHandler extends HubEventHandler {
         final HubEventLogger logger = new HubEventLogger(event, LoggerFactory.getLogger(getClass()));
         try {
             logger.info("Begin handling scan event");
-            final IntegrationInfo phoneHomeInfo = new IntegrationInfo(ThirdPartyName.NEXUS, appConfiguration.getConfigurationModel().getNexusVersion(), ScanTaskDescriptor.PLUGIN_VERSION);
-            final HubServiceHelper hubServiceHelper = createServiceHelper(logger, event.getTaskParameters());
-            final String cliInstallRootDirectory = hubServiceHelper.createCLIInstallDirectoryName();
-            final File blackDuckDirectory = new File(event.getTaskParameters().get(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
-            final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
-            final ArtifactScanner scanner = new ArtifactScanner(event, logger, getAttributeHelper(), taskDirectory, hubServiceHelper, phoneHomeInfo);
-            final ProjectVersionView projectVersionView = scanner.scan();
-            if (projectVersionView != null) {
-                logger.info("Posting policy check event for " + projectVersionView.versionName);
-                eventBus.post(new HubPolicyCheckEvent(event.getRepository(), event.getItem(), event.getTaskParameters(), event.getRequest(), projectVersionView));
+            if (event.isProcessed()) {
+                logger.info("Event already processed.");
+            } else {
+                final IntegrationInfo phoneHomeInfo = new IntegrationInfo(ThirdPartyName.NEXUS, appConfiguration.getConfigurationModel().getNexusVersion(), ScanTaskDescriptor.PLUGIN_VERSION);
+                final HubServiceHelper hubServiceHelper = createServiceHelper(logger, event.getTaskParameters());
+                final String cliInstallRootDirectory = hubServiceHelper.createCLIInstallDirectoryName();
+                final File blackDuckDirectory = new File(event.getTaskParameters().get(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
+                final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
+                final ArtifactScanner scanner = new ArtifactScanner(event, logger, getAttributeHelper(), taskDirectory, hubServiceHelper, phoneHomeInfo);
+                final ProjectVersionView projectVersionView = scanner.scan();
+                if (projectVersionView != null) {
+                    logger.info("Posting policy check event for " + projectVersionView.versionName);
+                    eventBus.post(new HubPolicyCheckEvent(event.getRepository(), event.getItem(), event.getTaskParameters(), event.getRequest(), projectVersionView));
+                }
             }
         } catch (final Exception ex) {
             logger.error("Error occurred during scanning", ex);
         } finally {
+            eventManager.markScanEventProcessed(event);
             logger.info("Finished handling scan event");
         }
-        event.getLock().countDown();
     }
 }
