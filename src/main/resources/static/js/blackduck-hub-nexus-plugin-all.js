@@ -29,10 +29,6 @@ Sonatype.repoServer.HubTab = function(config) {
 
 	this.sp = Sonatype.lib.Permissions;
 
-	this.servicePath = {
-		connectionInfo: Sonatype.config.servicePath + '/blackduck',
-	};
-
 	Sonatype.repoServer.HubTab.superclass.constructor.call( this, {
 		title : 'Hub',
 		autoScroll : true,
@@ -94,8 +90,9 @@ Sonatype.repoServer.HubTab = function(config) {
 	});
 };
 
-Ext.extend( Sonatype.repoServer.HubTab, Ext.Panel, {
+Ext.extend(Sonatype.repoServer.HubTab, Ext.Panel, {
 	showArtifact : function(data, artifactContainer) {
+		// debugger;
 		var currentUri = data.resourceURI;
 		var indexOfNexus = currentUri.indexOf('/nexus')
 		currentUri = currentUri.slice(indexOfNexus, currentUri.length);
@@ -113,10 +110,9 @@ Ext.extend( Sonatype.repoServer.HubTab, Ext.Panel, {
 						var infoResp = Ext.decode(response.responseText);
 						showBasicMetaData(self);
 
-						if(infoResp.scanTime == '0') {
+						if (infoResp.scanTime == '0') {
 							artifactContainer.hideTab(this);
 						} else {
-
 							var dateTime = Date(parseInt(infoResp.scanTime));
 							dateTime = dateTime.toLocaleString();
 							
@@ -131,7 +127,7 @@ Ext.extend( Sonatype.repoServer.HubTab, Ext.Panel, {
 							artifactContainer.showTab(this);
 						}
 					} else {
-						if(response.status = 404) {
+						if (response.status = 404) {
 							artifactContainer.hideTab(this);
 						}
 					}

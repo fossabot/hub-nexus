@@ -57,15 +57,17 @@ import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 public class HubNexusRestResource extends ComponentSupport implements Resource {
     public static final String RESOURCE_PATH = "/blackduck/info";
 
-    private final RepositoryRegistry repoRegistry;
-    private final ItemAttributesHelper attHelper;
+    // TODO Write out the entire names
+
+    private final RepositoryRegistry repositoryRegistry;
+    private final ItemAttributesHelper itemAttributesHelper;
 
     final Logger logger = Loggers.getLogger(HubNexusRestResource.class);
 
     @Inject
-    public HubNexusRestResource(final RepositoryRegistry repoRegistry, final DefaultAttributesHandler attributesHandler) {
-        this.repoRegistry = repoRegistry;
-        attHelper = new ItemAttributesHelper(attributesHandler);
+    public HubNexusRestResource(final RepositoryRegistry repoRegistry, final DefaultAttributesHandler defaultAttributesHandler) {
+        this.repositoryRegistry = repoRegistry;
+        itemAttributesHelper = new ItemAttributesHelper(defaultAttributesHandler);
     }
 
     @GET
@@ -74,7 +76,7 @@ public class HubNexusRestResource extends ComponentSupport implements Resource {
         Repository repo = null;
 
         try {
-            repo = repoRegistry.getRepository(repoId);
+            repo = repositoryRegistry.getRepository(repoId);
         } catch (final NoSuchRepositoryException e) {
             logger.info("Error retrieving repo");
             e.printStackTrace();
@@ -93,11 +95,11 @@ public class HubNexusRestResource extends ComponentSupport implements Resource {
 
             if (item != null) {
                 final HubMetaData data = new HubMetaData();
-                data.setScanStatus(attHelper.getScanResult(item));
-                data.setPolicyStatus(attHelper.getPolicyStatus(item));
-                data.setPolicyOverallStatus(attHelper.getOverallPolicyStatus(item));
-                data.setScanTime(String.valueOf(attHelper.getScanTime(item)));
-                data.setUiUrl(attHelper.getUiUrl(item));
+                data.setScanStatus(itemAttributesHelper.getScanResult(item));
+                data.setPolicyStatus(itemAttributesHelper.getPolicyStatus(item));
+                data.setPolicyOverallStatus(itemAttributesHelper.getOverallPolicyStatus(item));
+                data.setScanTime(String.valueOf(itemAttributesHelper.getScanTime(item)));
+                data.setUiUrl(itemAttributesHelper.getUiUrl(item));
 
                 return data;
             }

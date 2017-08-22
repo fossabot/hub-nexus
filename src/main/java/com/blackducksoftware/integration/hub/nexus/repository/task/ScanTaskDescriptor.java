@@ -120,6 +120,7 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
         this.appDirectories = appDirectories;
     }
 
+    // TODO Change field from days back to a specific date (Have them enter a string and parse it)
     @Override
     public List<FormField> formFields() {
         final List<FormField> fields = new ArrayList<>();
