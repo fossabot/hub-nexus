@@ -63,7 +63,6 @@ public class ItemAttributesHelperTest extends AbstractAttributesHandlerTest {
         Assert.assertTrue(attHelper.contains(key, item));
     }
 
-    @Test
     public void addAttributeTest() throws IOException {
         // final StorageItem item = createItem();
         // final ItemAttributesHelper attHelper = new ItemAttributesHelper(attributesHandler);
