@@ -24,10 +24,11 @@
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
 import org.slf4j.Logger;
 import org.sonatype.nexus.proxy.item.StorageCollectionItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
@@ -126,19 +127,15 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
     }
 
     private boolean isArtifactTooOld(final StorageItem item) {
-        final int daysCutoff = Integer.parseInt(taskParameters.get(TaskField.OLD_ARTIFACT_CUTOFF.getParameterKey()));
+        final String cutoffDate = taskParameters.get(TaskField.OLD_ARTIFACT_CUTOFF.getParameterKey());
+        final long cutoffTime = getTimeFromString(cutoffDate);
         final long createdTime = item.getCreated();
-        logger.debug("Created time: " + createdTime);
 
-        final long daysInMill = TimeUnit.MILLISECONDS.convert(daysCutoff, TimeUnit.DAYS);
-        logger.debug("Days in Mill: " + daysInMill);
-        final long cutoffTime = System.currentTimeMillis() - daysInMill;
-        logger.debug("Cutoff time: " + cutoffTime);
+        return createdTime < cutoffTime;
+    }
 
-        if (createdTime < cutoffTime) {
-            return true;
-        }
-
-        return false;
+    private long getTimeFromString(final String dateTimeString) {
+        final String dateTimePattern = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+        return DateTime.parse(dateTimeString, DateTimeFormat.forPattern(dateTimePattern).withZoneUTC()).toDate().getTime();
     }
 }
