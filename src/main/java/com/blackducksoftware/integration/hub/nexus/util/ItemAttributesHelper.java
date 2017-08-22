@@ -68,8 +68,7 @@ public class ItemAttributesHelper {
         try {
             attributesHandler.storeAttributes(item);
         } catch (final IOException e) {
-            logger.error("AttributesHandler error when adding error");
-            e.printStackTrace();
+            logger.error("AttributesHandler error when adding error", e);
         }
     }
 
