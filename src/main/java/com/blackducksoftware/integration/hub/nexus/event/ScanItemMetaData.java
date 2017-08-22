@@ -27,22 +27,27 @@ import java.util.Map;
 
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.StorageItem;
-import org.sonatype.nexus.proxy.repository.Repository;
 
-public class HubScanEvent extends HubEvent {
+public class ScanItemMetaData {
+    private final StorageItem item;
+    private final ResourceStoreRequest request;
+    private final Map<String, String> taskParameters;
 
-    private boolean processed;
-
-    public HubScanEvent(final Repository repository, final StorageItem item, final Map<String, String> taskParameters, final ResourceStoreRequest request) {
-        super(repository, item, taskParameters, request);
-        this.processed = false;
+    public ScanItemMetaData(final StorageItem item, final ResourceStoreRequest request, final Map<String, String> taskParameters) {
+        this.item = item;
+        this.request = request;
+        this.taskParameters = taskParameters;
     }
 
-    public boolean isProcessed() {
-        return processed;
+    public StorageItem getItem() {
+        return item;
     }
 
-    public void setProcessed(final boolean processed) {
-        this.processed = processed;
+    public ResourceStoreRequest getRequest() {
+        return request;
+    }
+
+    public Map<String, String> getTaskParameters() {
+        return taskParameters;
     }
 }

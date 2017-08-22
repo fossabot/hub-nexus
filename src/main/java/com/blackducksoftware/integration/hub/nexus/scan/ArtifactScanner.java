@@ -70,6 +70,9 @@ public class ArtifactScanner {
             logger.info("Beginning scan of artifact");
             if (hubServiceHelper == null) {
                 logger.error("Hub Service Helper not initialized.  Unable to communicate with the configured hub server");
+                attributesHelper.clearAttributes(item);
+                attributesHelper.setScanResult(item, ItemAttributesHelper.SCAN_STATUS_FAILED);
+                return null;
             } else {
                 final String scanMemoryValue = getParameter(TaskField.HUB_SCAN_MEMORY.getParameterKey());
                 final HubServerConfig hubServerConfig = hubServiceHelper.getHubServerConfig();
@@ -80,9 +83,9 @@ public class ArtifactScanner {
                 final String phase = getParameter(TaskField.PHASE.getParameterKey());
                 final ProjectRequest projectRequest = hubServiceHelper.createProjectRequest(distribution, phase, event.getItem());
                 final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, projectRequest, true, phoneHomeInfo);
-                attributesHelper.setScanTime(item, System.currentTimeMillis());
                 logger.info("Checking scan results...");
-                hubServiceHelper.waitForHubResponse(projectVersionView, hubServerConfig.getTimeout());
+                final long timeoutInMilliseconds = hubServerConfig.getTimeout() * 1000;
+                hubServiceHelper.waitForHubResponse(projectVersionView, timeoutInMilliseconds);
                 final String apiUrl = hubServiceHelper.retrieveApiUrl(projectVersionView);
                 final String uiUrl = hubServiceHelper.retrieveUIUrl(projectVersionView);
 
@@ -93,15 +96,18 @@ public class ArtifactScanner {
                 if (StringUtils.isNotBlank(uiUrl)) {
                     attributesHelper.setUiUrl(item, uiUrl);
                 }
+                attributesHelper.setScanResult(item, ItemAttributesHelper.SCAN_STATUS_SUCCESS);
 
-                attributesHelper.setScanResult(item, "SUCCESS");
                 return projectVersionView;
             }
         } catch (final Exception ex) {
             logger.error("Error occurred during scan task", ex);
             attributesHelper.clearAttributes(item);
+            attributesHelper.setScanResult(item, ItemAttributesHelper.SCAN_STATUS_FAILED);
+            return null;
+        } finally {
+            attributesHelper.setScanTime(item, System.currentTimeMillis());
         }
-        return null;
     }
 
     private String getParameter(final String key) {

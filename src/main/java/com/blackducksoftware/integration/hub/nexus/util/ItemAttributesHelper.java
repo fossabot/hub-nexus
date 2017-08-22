@@ -39,6 +39,8 @@ import org.sonatype.sisu.goodies.common.Loggers;
 @Named
 @Singleton
 public class ItemAttributesHelper {
+    public static final String SCAN_STATUS_FAILED = "FAILED";
+    public static final String SCAN_STATUS_SUCCESS = "SUCCESS";
     public static final String BLACK_DUCK_SCAN_TIME_PROPERTY_NAME = "scanTime";
     public static final String BLACK_DUCK_SCAN_RESULT_PROPERTY_NAME = "scanResult";
     public static final String BLACK_DUCK_PROJECT_VERSION_URL_PROPERTY_NAME = "apiUrl";
@@ -66,8 +68,7 @@ public class ItemAttributesHelper {
         try {
             attributesHandler.storeAttributes(item);
         } catch (final IOException e) {
-            logger.error("AttributesHandler error when adding error");
-            e.printStackTrace();
+            logger.error("AttributesHandler error when adding error", e);
         }
     }
 
