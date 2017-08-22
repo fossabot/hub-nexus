@@ -30,8 +30,16 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.blackducksoftware.integration.exception.EncryptionException;
-import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
+import com.blackducksoftware.integration.exception.IntegrationException;
+import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDescription;
+import com.blackducksoftware.integration.hub.exception.HubTimeoutExceededException;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
+import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionDistributionEnum;
+import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionPhaseEnum;
+import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionSourceEnum;
+import com.blackducksoftware.integration.hub.model.view.ComplexLicenseView;
+import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
+import com.blackducksoftware.integration.hub.model.view.components.MetaView;
 import com.blackducksoftware.integration.hub.nexus.helpers.RestConnectionTestHelper;
 import com.blackducksoftware.integration.hub.nexus.helpers.TestingPropertyKey;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
@@ -45,12 +53,14 @@ public class HubServiceHelperTestIT {
     private final HubServicesFactory hubServicesFactory;
     private final HubServiceHelper hubServiceHelper;
     private final Map<String, String> params;
+    private final ProjectVersionView projectView;
     private final TestLogger logger = new TestLogger();
 
-    public HubServiceHelperTestIT() throws HubIntegrationException, EncryptionException {
+    public HubServiceHelperTestIT() throws Exception {
         params = generateParams();
         hubServicesFactory = restConnection.createHubServicesFactory();
         hubServiceHelper = new HubServiceHelper(logger, params);
+        projectView = createProjectVersionView();
     }
 
     private Map<String, String> generateParams() {
@@ -69,6 +79,22 @@ public class HubServiceHelperTestIT {
         return newParams;
     }
 
+    private ProjectVersionView createProjectVersionView() {
+        final ProjectVersionView versionView = new ProjectVersionView();
+        versionView.versionName = "test";
+        versionView.distribution = ProjectVersionDistributionEnum.INTERNAL;
+        versionView.phase = ProjectVersionPhaseEnum.DEVELOPMENT;
+        versionView.source = ProjectVersionSourceEnum.CUSTOM;
+
+        final ComplexLicenseView licenseView = new ComplexLicenseView();
+        final MetaView metaView = new MetaView();
+
+        versionView.meta = metaView;
+        versionView.license = licenseView;
+
+        return versionView;
+    }
+
     @Test
     public void createHubServerConfig() throws EncryptionException {
         final HubServerConfig actual = hubServiceHelper.createHubServerConfig(params);
@@ -79,20 +105,17 @@ public class HubServiceHelperTestIT {
         Assert.assertEquals(actual.getTimeout(), expected.getTimeout());
         Assert.assertEquals(actual.getProxyInfo(), expected.getProxyInfo());
         Assert.assertEquals(actual.isAutoImportHttpsCertificates(), expected.isAutoImportHttpsCertificates());
-
-        // Assert.assertEquals(actual.getHubUrl(), "1");
-        // Assert.assertEquals(actual.getGlobalCredentials().getUsername(), "2");
-        // Assert.assertEquals(actual.getGlobalCredentials().getDecryptedPassword(), "3");
-        // Assert.assertEquals(actual.getTimeout(), 4);
-        // Assert.assertEquals(actual.getProxyInfo().getHost(), "5");
-        // Assert.assertEquals(actual.getProxyInfo().getPort(), 6);
-        // Assert.assertEquals(actual.getProxyInfo().getUsername(), "5");
-        // Assert.assertEquals(actual.getProxyInfo().getDecryptedPassword(), "5");
-        // Assert.assertEquals(actual.isAutoImportHttpsCertificates(), true);
     }
 
-    // @Test
-    public void waitForHubResponseTest() {
+    @Test
+    public void waitForHubResponseTest() throws HubTimeoutExceededException, IntegrationException {
+        logger.resetAllOutput();
+        hubServiceHelper.waitForHubResponse(projectView, 5000);
+        Assert.assertTrue(logger.getOutputList().size() == 4);
+    }
 
+    @Test
+    public void checkPolicyStatusTest() throws IntegrationException {
+        final PolicyStatusDescription status = hubServiceHelper.checkPolicyStatus(projectView);
     }
 }

@@ -23,24 +23,55 @@
  */
 package com.blackducksoftware.integration.hub.nexus.util;
 
-public class ItemAttributesHelperTest /* extends AbstractAttributesHandlerTest */ {
+import java.io.IOException;
 
-    // @Override
-    // protected AttributesHandler createAttributesHandler() throws Exception {
-    // return lookup(AttributesHandler.class);
-    // }
-    //
-    // @Test
-    // public void containsTest() {
-    // final ResourceStoreRequest request = new ResourceStoreRequest(RepositoryItemUid.PATH_ROOT, true, false);
-    // final StorageItem item = new DefaultStorageFileItem(repository, request, true, true, null);
-    // final String key = "test";
-    // final String expected = "Expected";
-    //
-    // item.getRepositoryItemAttributes().put(key, expected);
-    //
-    // final ItemAttributesHelper attHelper = new ItemAttributesHelper(attributesHandler);
-    //
-    // Assert.assertTrue(attHelper.contains(key, item));
-    // }
+import org.junit.Assert;
+import org.junit.Test;
+import org.sonatype.nexus.proxy.ResourceStoreRequest;
+import org.sonatype.nexus.proxy.attributes.AbstractAttributesHandlerTest;
+import org.sonatype.nexus.proxy.attributes.AttributesHandler;
+import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
+import org.sonatype.nexus.proxy.item.FileContentLocator;
+import org.sonatype.nexus.proxy.item.RepositoryItemUid;
+import org.sonatype.nexus.proxy.item.StorageItem;
+
+public class ItemAttributesHelperTest extends AbstractAttributesHandlerTest {
+
+    @Override
+    protected AttributesHandler createAttributesHandler() throws Exception {
+        return lookup(AttributesHandler.class);
+    }
+
+    private StorageItem createItem() throws IOException {
+        final ResourceStoreRequest request = new ResourceStoreRequest(RepositoryItemUid.PATH_ROOT, true, false);
+        final StorageItem item = new DefaultStorageFileItem(repository, request, true, true, new FileContentLocator("application/zip"));
+
+        return item;
+    }
+
+    @Test
+    public void containsTest() throws IOException {
+        final String key = "blackduck-test";
+        final String expected = "Expected";
+
+        final StorageItem item = createItem();
+
+        item.getRepositoryItemAttributes().put(key, expected);
+
+        final ItemAttributesHelper attHelper = new ItemAttributesHelper(attributesHandler);
+
+        Assert.assertTrue(attHelper.contains(key, item));
+    }
+
+    @Test
+    public void addAttributeTest() throws IOException {
+        // final StorageItem item = createItem();
+        // final ItemAttributesHelper attHelper = new ItemAttributesHelper(attributesHandler);
+        // final String key = "key";
+        // final String value = "expected";
+        // attHelper.addAttribute(key, value, item);
+        //
+        // Assert.assertNotNull(item.getRepositoryItemAttributes().get("blackduck-key"));
+    }
+
 }
