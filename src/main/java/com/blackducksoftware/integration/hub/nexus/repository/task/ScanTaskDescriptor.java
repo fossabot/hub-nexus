@@ -46,7 +46,6 @@ import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionPha
 @Named
 @Singleton
 public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
-
     // This ID string must match the class name of the task that actually performs the opertaion
     public static final String ID = "ScanTask";
     public static final String PLUGIN_VERSION = "0.0.1-SNAPSHOT";
@@ -74,6 +73,7 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
     private static final String DESCRIPTION_SCAN_FILE_PATTERN_MATCH = "The file pattern match wildcard to filter the artifacts scanned.";
     private static final String DESCRIPTION_TASK_WORKING_DIRECTORY = "The parent directory where the blackduck directory will be created to contain temporary data for the scans";
     private static final String DESCRIPTION_SCAN_CUTOFF_DAYS = "Check artifacts that were added sooner than the number of days listed here";
+    private static final String DESCRIPTION_RESCAN_FAILURE = "Re-scan artifacts if the previous scan status was failed";
 
     private static final String LABEL_CONNECTION_TIMEOUT = "Connection Timeout";
     private static final String LABEL_DISTRIBUTION = "Distribution";
@@ -91,6 +91,7 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
     private static final String LABEL_SCAN_MEMORY_ALLOCATION = "Scan Memory Allocation";
     private static final String LABEL_WORKING_DIRECTORY = "Working Directory";
     private static final String LABEL_ARTIFACT_CUTOFF = "Scan number of days back";
+    private static final String LABEL_RESCAN_FAILURE = "Re-scan Failed Attempts";
 
     private final RepoOrGroupComboFormField repoField = new RepoOrGroupComboFormField(TaskField.REPOSITORY_FIELD_ID.getParameterKey(), RepoOrGroupComboFormField.DEFAULT_LABEL, DESCRIPTION_REPO_NAME, FormField.MANDATORY);
     private final StringTextFormField resourceStorePathField = new StringTextFormField(TaskField.REPOSITORY_PATH_FIELD_ID.getParameterKey(), LABEL_REPO_PATH, DESCRIPTION_REPO_PATH, FormField.OPTIONAL);
@@ -112,6 +113,8 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
             .withInitialValue(DEFAULT_FILE_PATTERNS);
     private final StringTextFormField scanMemoryField = new StringTextFormField(TaskField.HUB_SCAN_MEMORY.getParameterKey(), LABEL_SCAN_MEMORY_ALLOCATION, DESCRIPTION_HUB_SCAN_MEMORY, FormField.OPTIONAL)
             .withInitialValue(DEFAULT_SCAN_MEMORY);
+
+    private final CheckboxFormField rescanFailures = new CheckboxFormField(TaskField.RESCAN_FAILURES.getParameterKey(), LABEL_RESCAN_FAILURE, DESCRIPTION_RESCAN_FAILURE, FormField.OPTIONAL);
 
     private final ApplicationDirectories appDirectories;
 
@@ -146,6 +149,7 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
         fields.add(distributionFormField);
         fields.add(phaseFormField);
         fields.add(scanMemoryField);
+        fields.add(rescanFailures);
         fields.add(filePatternField);
         fields.add(workingDirectoryField);
         fields.add(artifactCutoffField);

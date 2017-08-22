@@ -68,11 +68,11 @@ public class ArtifactScanner {
         final StorageItem item = event.getItem();
         try {
             logger.info("Beginning scan of artifact");
-            if (event.isProcessed()) {
-                logger.info("Scan event already processed");
-            }
             if (hubServiceHelper == null) {
                 logger.error("Hub Service Helper not initialized.  Unable to communicate with the configured hub server");
+                attributesHelper.clearAttributes(item);
+                attributesHelper.setScanResult(item, ItemAttributesHelper.SCAN_STATUS_FAILED);
+                return null;
             } else {
                 final String scanMemoryValue = getParameter(TaskField.HUB_SCAN_MEMORY.getParameterKey());
                 final HubServerConfig hubServerConfig = hubServiceHelper.getHubServerConfig();
@@ -83,32 +83,31 @@ public class ArtifactScanner {
                 final String phase = getParameter(TaskField.PHASE.getParameterKey());
                 final ProjectRequest projectRequest = hubServiceHelper.createProjectRequest(distribution, phase, event.getItem());
                 final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, projectRequest, true, phoneHomeInfo);
-                if (!event.isProcessed()) {
-                    attributesHelper.setScanTime(item, System.currentTimeMillis());
-                    logger.info("Checking scan results...");
-                    final long timeoutInMilliseconds = hubServerConfig.getTimeout() * 1000;
-                    hubServiceHelper.waitForHubResponse(projectVersionView, timeoutInMilliseconds);
-                    final String apiUrl = hubServiceHelper.retrieveApiUrl(projectVersionView);
-                    final String uiUrl = hubServiceHelper.retrieveUIUrl(projectVersionView);
+                logger.info("Checking scan results...");
+                final long timeoutInMilliseconds = hubServerConfig.getTimeout() * 1000;
+                hubServiceHelper.waitForHubResponse(projectVersionView, timeoutInMilliseconds);
+                final String apiUrl = hubServiceHelper.retrieveApiUrl(projectVersionView);
+                final String uiUrl = hubServiceHelper.retrieveUIUrl(projectVersionView);
 
-                    if (StringUtils.isNotBlank(apiUrl)) {
-                        attributesHelper.setApiUrl(item, apiUrl);
-                    }
-
-                    if (StringUtils.isNotBlank(uiUrl)) {
-                        attributesHelper.setUiUrl(item, uiUrl);
-                    }
-                    attributesHelper.setScanResult(item, "SUCCESS");
+                if (StringUtils.isNotBlank(apiUrl)) {
+                    attributesHelper.setApiUrl(item, apiUrl);
                 }
+
+                if (StringUtils.isNotBlank(uiUrl)) {
+                    attributesHelper.setUiUrl(item, uiUrl);
+                }
+                attributesHelper.setScanResult(item, ItemAttributesHelper.SCAN_STATUS_SUCCESS);
 
                 return projectVersionView;
             }
         } catch (final Exception ex) {
             logger.error("Error occurred during scan task", ex);
             attributesHelper.clearAttributes(item);
-            attributesHelper.setScanResult(item, "FAILURE");
+            attributesHelper.setScanResult(item, ItemAttributesHelper.SCAN_STATUS_FAILED);
+            return null;
+        } finally {
+            attributesHelper.setScanTime(item, System.currentTimeMillis());
         }
-        return null;
     }
 
     private String getParameter(final String key) {

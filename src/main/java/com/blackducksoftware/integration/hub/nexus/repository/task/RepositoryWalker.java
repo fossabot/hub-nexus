@@ -102,11 +102,19 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
                 logger.debug("Last modified " + lastModified + " ms ago");
                 if (scanTime > lastModified) {
                     final String scanResult = attributesHelper.getScanResult(item);
-                    if (StringUtils.isNotBlank(scanResult) && scanResult.equals("FAILURE")) {
-                        logger.info("{} already scanned but re-scan failed option selected.", item.getName());
-                        return true;
+                    logger.debug("Previous scan result {}", scanResult);
+                    if (StringUtils.isNotBlank(scanResult) && scanResult.equals(ItemAttributesHelper.SCAN_STATUS_FAILED)) {
+                        final String rescanFailure = taskParameters.get(TaskField.RESCAN_FAILURES.getParameterKey());
+                        final boolean performRescan = Boolean.parseBoolean(rescanFailure);
+                        if (performRescan) {
+                            logger.info("{} already scanned but re-scan failed option selected.", item.getName());
+                            return true;
+                        } else {
+                            logger.info("{} already scanned, but failed.  Configure the re-scan option on the task to scan again.", item.getName());
+                            return false;
+                        }
                     } else {
-                        logger.info("{} already successfully scanned", item.getName());
+                        logger.info("{} already scanned successfully", item.getName());
                         return false;
                     }
                 } else {
