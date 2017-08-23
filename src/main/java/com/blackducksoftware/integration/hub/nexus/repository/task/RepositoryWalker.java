@@ -73,6 +73,7 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
             }
 
             if (shouldScan(item)) {
+                logger.info("Item pending scan {}", item);
                 final String distribution = taskParameters.get(TaskField.DISTRIBUTION.getParameterKey());
                 final String phase = taskParameters.get(TaskField.PHASE.getParameterKey());
                 final HubServiceHelper hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), taskParameters);
@@ -107,14 +108,14 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
                         final String rescanFailure = taskParameters.get(TaskField.RESCAN_FAILURES.getParameterKey());
                         final boolean performRescan = Boolean.parseBoolean(rescanFailure);
                         if (performRescan) {
-                            logger.info("{} already scanned but re-scan failed option selected.", item.getName());
+                            logger.debug("{} already scanned but re-scan failed option selected.", item.getName());
                             return true;
                         } else {
-                            logger.info("{} already scanned, but failed.  Configure the re-scan option on the task to scan again.", item.getName());
+                            logger.debug("{} already scanned, but failed.  Configure the re-scan option on the task to scan again.", item.getName());
                             return false;
                         }
                     } else {
-                        logger.info("{} already scanned successfully", item.getName());
+                        logger.debug("{} already scanned successfully", item.getName());
                         return false;
                     }
                 } else {
