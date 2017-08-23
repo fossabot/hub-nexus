@@ -129,6 +129,11 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
 
     private boolean isArtifactTooOld(final StorageItem item) {
         final String cutoffDate = taskParameters.get(TaskField.OLD_ARTIFACT_CUTOFF.getParameterKey());
+
+        if (cutoffDate == null) {
+            return false;
+        }
+
         final long cutoffTime = getTimeFromString(cutoffDate);
         final long createdTime = item.getCreated();
 

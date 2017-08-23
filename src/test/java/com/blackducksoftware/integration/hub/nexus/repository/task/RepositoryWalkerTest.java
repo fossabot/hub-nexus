@@ -23,13 +23,33 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.sonatype.nexus.proxy.attributes.Attributes;
+import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.item.StorageItem;
+import org.sonatype.nexus.proxy.item.uid.IsHiddenAttribute;
 import org.sonatype.nexus.proxy.walker.WalkerContext;
 
+import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.ScanEventManager;
+import com.blackducksoftware.integration.hub.nexus.event.ScanItemMetaData;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(RepositoryWalker.class)
 public class RepositoryWalkerTest {
 
     @Mock
@@ -44,25 +64,43 @@ public class RepositoryWalkerTest {
     @Mock
     WalkerContext walkerContext;
 
-    // @Test
-    // public void processItemsTest() throws Exception {
-    // when(item.getRepositoryItemUid().getBooleanAttributeValue(IsHiddenAttribute.class)).thenReturn(false);
-    // when(item.getRemoteUrl()).thenReturn("NotEmpty");
-    //
-    // when(itemAttributesHelper.getScanTime(item)).thenReturn(10l);
-    // when(itemAttributesHelper.getScanResult(item)).thenReturn(ItemAttributesHelper.SCAN_STATUS_SUCCESS);
-    //
-    // doNothing().when(scanEventManager);
-    //
-    // when(walkerContext.getResourceStoreRequest()).thenReturn(null);
-    //
-    // final Map<String, String> taskParams = new HashMap<>();
-    // taskParams.put(TaskField.DISTRIBUTION.getParameterKey(), "distribution");
-    // taskParams.put(TaskField.PHASE.getParameterKey(), "phase");
-    // taskParams.put(TaskField.OLD_ARTIFACT_CUTOFF.getParameterKey(), "2016-01-01T00:00:00.000");
-    // taskParams.put(TaskField.RESCAN_FAILURES.getParameterKey(), "false");
-    //
-    // final RepositoryWalker walker = new RepositoryWalker("", itemAttributesHelper, taskParams, scanEventManager);
-    // walker.processItem(walkerContext, item);
-    // }
+    @Mock
+    RepositoryItemUid repositoryItemUid;
+
+    @Mock
+    Attributes attributes;
+
+    @Mock
+    HubServiceHelper hubServiceHelper;
+
+    @Mock
+    ScanItemMetaData scanItemMetaData;
+
+    @Test
+    public void processItemsTest() throws Exception {
+        final Map<String, String> taskParams = new HashMap<>();
+
+        when(repositoryItemUid.getBooleanAttributeValue(IsHiddenAttribute.class)).thenReturn(false);
+
+        when(attributes.getModified()).thenReturn(10l);
+
+        when(item.getRepositoryItemUid()).thenReturn(repositoryItemUid);
+        when(item.getRemoteUrl()).thenReturn("");
+        when(item.getPath()).thenReturn("test");
+        when(item.getRepositoryItemAttributes()).thenReturn(attributes);
+
+        when(itemAttributesHelper.getScanTime(item)).thenReturn(10l);
+        when(itemAttributesHelper.getScanResult(item)).thenReturn(ItemAttributesHelper.SCAN_STATUS_SUCCESS);
+
+        PowerMockito.whenNew(HubServiceHelper.class).withAnyArguments().thenReturn(hubServiceHelper);
+        doNothing().when(hubServiceHelper).createProjectAndVersion(null);
+
+        when(walkerContext.getResourceStoreRequest()).thenReturn(null);
+
+        final RepositoryWalker walker = new RepositoryWalker("test", itemAttributesHelper, taskParams, scanEventManager);
+        walker.processItem(walkerContext, item);
+
+        doNothing().when(scanEventManager).processItem(scanItemMetaData);
+        verify(scanEventManager).processItem(any(ScanItemMetaData.class));
+    }
 }
