@@ -26,6 +26,7 @@ package com.blackducksoftware.integration.hub.nexus.scan;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.StorageItem;
@@ -38,11 +39,11 @@ import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
+import com.blackducksoftware.integration.hub.nexus.application.IntegrationInfo;
 import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
-import com.blackducksoftware.integration.hub.phonehome.IntegrationInfo;
 import com.blackducksoftware.integration.hub.scan.HubScanConfig;
 
 public class ArtifactScanner {
@@ -66,6 +67,7 @@ public class ArtifactScanner {
 
     public ProjectVersionView scan() {
         final StorageItem item = event.getItem();
+        final File workingDirectory = new File(scanInstallDirectory, event.getEventId().toString());
         try {
             logger.info("Beginning scan of artifact");
             if (hubServiceHelper == null) {
@@ -76,16 +78,15 @@ public class ArtifactScanner {
             } else {
                 final String scanMemoryValue = getParameter(TaskField.HUB_SCAN_MEMORY.getParameterKey());
                 final HubServerConfig hubServerConfig = hubServiceHelper.getHubServerConfig();
-                final HubScanConfig scanConfig = createScanConfig(Integer.parseInt(scanMemoryValue));
+                final HubScanConfig scanConfig = createScanConfig(Integer.parseInt(scanMemoryValue), workingDirectory);
                 logger.info(String.format("Scan Path %s", scanConfig.getScanTargetPaths()));
                 final CLIDataService cliDataService = hubServiceHelper.createCLIDataService();
                 final String distribution = getParameter(TaskField.DISTRIBUTION.getParameterKey());
                 final String phase = getParameter(TaskField.PHASE.getParameterKey());
                 final ProjectRequest projectRequest = hubServiceHelper.createProjectRequest(distribution, phase, event.getItem());
-                final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, projectRequest, true, phoneHomeInfo);
+                final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, projectRequest, true, phoneHomeInfo.getThirdPartyName(), phoneHomeInfo.getThirdPartyVersion(),
+                        phoneHomeInfo.getPluginVersion());
                 logger.info("Checking scan results...");
-                final long timeoutInMilliseconds = hubServerConfig.getTimeout() * 1000;
-                hubServiceHelper.waitForHubResponse(projectVersionView, timeoutInMilliseconds);
                 final String apiUrl = hubServiceHelper.retrieveApiUrl(projectVersionView);
                 final String uiUrl = hubServiceHelper.retrieveUIUrl(projectVersionView);
 
@@ -107,6 +108,7 @@ public class ArtifactScanner {
             return null;
         } finally {
             attributesHelper.setScanTime(item, System.currentTimeMillis());
+            FileUtils.deleteQuietly(workingDirectory);
         }
     }
 
@@ -114,13 +116,13 @@ public class ArtifactScanner {
         return event.getTaskParameters().get(key);
     }
 
-    private HubScanConfig createScanConfig(final int scanMemory) throws IOException {
+    private HubScanConfig createScanConfig(final int scanMemory, final File workingDirectory) throws IOException {
         final HubScanConfigBuilder hubScanConfigBuilder = new HubScanConfigBuilder();
         hubScanConfigBuilder.setScanMemory(scanMemory);
         hubScanConfigBuilder.setDryRun(HUB_SCAN_DRY_RUN);
         final File cliInstallDirectory = new File(scanInstallDirectory, "tools");
         hubScanConfigBuilder.setToolsDir(cliInstallDirectory);
-        hubScanConfigBuilder.setWorkingDirectory(this.scanInstallDirectory);
+        hubScanConfigBuilder.setWorkingDirectory(workingDirectory);
         hubScanConfigBuilder.disableScanTargetPathExistenceCheck();
 
         final Repository repository = event.getRepository();
