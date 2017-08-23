@@ -34,7 +34,6 @@ import javax.inject.Singleton;
 import org.sonatype.nexus.configuration.application.ApplicationDirectories;
 import org.sonatype.nexus.formfields.CheckboxFormField;
 import org.sonatype.nexus.formfields.FormField;
-import org.sonatype.nexus.formfields.NumberTextFormField;
 import org.sonatype.nexus.formfields.PasswordFormField;
 import org.sonatype.nexus.formfields.RepoOrGroupComboFormField;
 import org.sonatype.nexus.formfields.StringTextFormField;
@@ -72,7 +71,8 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
     private static final String DESCRIPTION_REPO_PATH = "Enter a repository path to run the task in recursively (ie. \"/\" for root or \"/org/apache\").";
     private static final String DESCRIPTION_SCAN_FILE_PATTERN_MATCH = "The file pattern match wildcard to filter the artifacts scanned.";
     private static final String DESCRIPTION_TASK_WORKING_DIRECTORY = "The parent directory where the blackduck directory will be created to contain temporary data for the scans";
-    private static final String DESCRIPTION_SCAN_CUTOFF_DAYS = "Check artifacts that were added sooner than the number of days listed here";
+    private static final String DESCRIPTION_SCAN_CUTOFF_DAYS = "If this is set, only artifacts with a created date later than this will be scanned. To scan only artifacts newer than January 01, 2016 you would use "
+            + "the cutoff format of \"2016-01-01T00:00:00.000\"";
     private static final String DESCRIPTION_RESCAN_FAILURE = "Re-scan artifacts if the previous scan status was failed";
 
     private static final String LABEL_CONNECTION_TIMEOUT = "Connection Timeout";
@@ -90,7 +90,7 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
     private static final String LABEL_REPO_PATH = "Repository Path";
     private static final String LABEL_SCAN_MEMORY_ALLOCATION = "Scan Memory Allocation";
     private static final String LABEL_WORKING_DIRECTORY = "Working Directory";
-    private static final String LABEL_ARTIFACT_CUTOFF = "Scan number of days back";
+    private static final String LABEL_ARTIFACT_CUTOFF = "Artifact cutoff date";
     private static final String LABEL_RESCAN_FAILURE = "Re-scan Failed Attempts";
 
     private final RepoOrGroupComboFormField repoField = new RepoOrGroupComboFormField(TaskField.REPOSITORY_FIELD_ID.getParameterKey(), RepoOrGroupComboFormField.DEFAULT_LABEL, DESCRIPTION_REPO_NAME, FormField.MANDATORY);
@@ -100,7 +100,8 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
     private final PasswordFormField passwordField = new PasswordFormField(TaskField.HUB_PASSWORD.getParameterKey(), LABEL_HUB_PASSWORD, DESCRIPTION_HUB_PASSWORD, FormField.MANDATORY);
     private final StringTextFormField timeoutField = new StringTextFormField(TaskField.HUB_TIMEOUT.getParameterKey(), LABEL_CONNECTION_TIMEOUT, DESCRIPTION_HUB_TIMEOUT, FormField.OPTIONAL).withInitialValue(DEFAULT_HUB_TIMEOUT);
     private final CheckboxFormField autoImportCert = new CheckboxFormField(TaskField.HUB_AUTO_IMPORT_CERT.getParameterKey(), LABEL_IMPORT_HUB_SSL_CERTIFICATE, DESCRIPTION_HUB_IMPORT_CERT, FormField.OPTIONAL);
-    private final NumberTextFormField artifactCutoffField = new NumberTextFormField(TaskField.OLD_ARTIFACT_CUTOFF.getParameterKey(), LABEL_ARTIFACT_CUTOFF, DESCRIPTION_SCAN_CUTOFF_DAYS, FormField.OPTIONAL).withInitialValue(365);
+    private final StringTextFormField artifactCutoffField = new StringTextFormField(TaskField.OLD_ARTIFACT_CUTOFF.getParameterKey(), LABEL_ARTIFACT_CUTOFF, DESCRIPTION_SCAN_CUTOFF_DAYS, FormField.OPTIONAL)
+            .withInitialValue("2016-01-01T00:00:00.000");
 
     private final StringTextFormField proxyHostField = new StringTextFormField(TaskField.HUB_PROXY_HOST.getParameterKey(), LABEL_PROXY_HOST, DESCRIPTION_PROXY_HOST, FormField.OPTIONAL);
     private final StringTextFormField proxyPortField = new StringTextFormField(TaskField.HUB_PROXY_PORT.getParameterKey(), LABEL_PROXY_PORT, DESCRIPTION_PROXY_PORT, FormField.OPTIONAL);
