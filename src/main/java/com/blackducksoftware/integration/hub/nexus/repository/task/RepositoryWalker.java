@@ -135,9 +135,9 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
         }
 
         final long cutoffTime = getTimeFromString(cutoffDate);
-        final long createdTime = item.getCreated();
+        final long modifiedTime = item.getModified();
 
-        return createdTime < cutoffTime;
+        return modifiedTime < cutoffTime;
     }
 
     private long getTimeFromString(final String dateTimeString) {

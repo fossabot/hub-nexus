@@ -71,7 +71,7 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
     private static final String DESCRIPTION_REPO_PATH = "Enter a repository path to run the task in recursively (ie. \"/\" for root or \"/org/apache\").";
     private static final String DESCRIPTION_SCAN_FILE_PATTERN_MATCH = "The file pattern match wildcard to filter the artifacts scanned.";
     private static final String DESCRIPTION_TASK_WORKING_DIRECTORY = "The parent directory where the blackduck directory will be created to contain temporary data for the scans";
-    private static final String DESCRIPTION_SCAN_CUTOFF_DAYS = "If this is set, only artifacts with a created date later than this will be scanned. To scan only artifacts newer than January 01, 2016 you would use "
+    private static final String DESCRIPTION_SCAN_CUTOFF_DATE = "If this is set, only artifacts with a modified date later than this will be scanned. To scan only artifacts newer than January 01, 2016 you would use "
             + "the cutoff format of \"2016-01-01T00:00:00.000\"";
     private static final String DESCRIPTION_RESCAN_FAILURE = "Re-scan artifacts if the previous scan status was failed";
 
@@ -100,7 +100,7 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
     private final PasswordFormField passwordField = new PasswordFormField(TaskField.HUB_PASSWORD.getParameterKey(), LABEL_HUB_PASSWORD, DESCRIPTION_HUB_PASSWORD, FormField.MANDATORY);
     private final StringTextFormField timeoutField = new StringTextFormField(TaskField.HUB_TIMEOUT.getParameterKey(), LABEL_CONNECTION_TIMEOUT, DESCRIPTION_HUB_TIMEOUT, FormField.OPTIONAL).withInitialValue(DEFAULT_HUB_TIMEOUT);
     private final CheckboxFormField autoImportCert = new CheckboxFormField(TaskField.HUB_AUTO_IMPORT_CERT.getParameterKey(), LABEL_IMPORT_HUB_SSL_CERTIFICATE, DESCRIPTION_HUB_IMPORT_CERT, FormField.OPTIONAL);
-    private final StringTextFormField artifactCutoffField = new StringTextFormField(TaskField.OLD_ARTIFACT_CUTOFF.getParameterKey(), LABEL_ARTIFACT_CUTOFF, DESCRIPTION_SCAN_CUTOFF_DAYS, FormField.OPTIONAL)
+    private final StringTextFormField artifactCutoffField = new StringTextFormField(TaskField.OLD_ARTIFACT_CUTOFF.getParameterKey(), LABEL_ARTIFACT_CUTOFF, DESCRIPTION_SCAN_CUTOFF_DATE, FormField.OPTIONAL)
             .withInitialValue("2016-01-01T00:00:00.000");
 
     private final StringTextFormField proxyHostField = new StringTextFormField(TaskField.HUB_PROXY_HOST.getParameterKey(), LABEL_PROXY_HOST, DESCRIPTION_PROXY_HOST, FormField.OPTIONAL);
