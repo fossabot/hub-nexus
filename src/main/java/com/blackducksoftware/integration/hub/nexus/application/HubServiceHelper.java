@@ -24,8 +24,6 @@
 package com.blackducksoftware.integration.hub.nexus.application;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import org.sonatype.nexus.proxy.item.StorageItem;
@@ -43,13 +41,10 @@ import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStat
 import com.blackducksoftware.integration.hub.dataservice.report.RiskReportDataService;
 import com.blackducksoftware.integration.hub.exception.DoesNotExistException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
-import com.blackducksoftware.integration.hub.exception.HubTimeoutExceededException;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
-import com.blackducksoftware.integration.hub.model.view.CodeLocationView;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.model.view.ProjectView;
-import com.blackducksoftware.integration.hub.model.view.ScanSummaryView;
 import com.blackducksoftware.integration.hub.model.view.VersionBomPolicyStatusView;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.scan.NameVersionNode;
@@ -106,22 +101,6 @@ public class HubServiceHelper {
         hubServerConfigBuilder.setAutoImportHttpsCertificates(Boolean.parseBoolean(autoImport));
 
         return hubServerConfigBuilder.build();
-    }
-
-    public void waitForHubResponse(final ProjectVersionView version, final long timeout) throws HubTimeoutExceededException, IntegrationException {
-        intLogger.info("Waiting for hub response");
-        final List<CodeLocationView> allCodeLocations = hubServicesFactory.createCodeLocationRequestService(intLogger).getAllCodeLocationsForProjectVersion(version);
-        intLogger.info("Waiting for + " + allCodeLocations.size() + " code location's");
-        final List<ScanSummaryView> scanSummaryViews = new ArrayList<>();
-        for (final CodeLocationView codeLocationView : allCodeLocations) {
-            final String scansLink = hubServicesFactory.createMetaService(intLogger).getFirstLinkSafely(codeLocationView, MetaService.SCANS_LINK);
-            final List<ScanSummaryView> codeLocationScanSummaryViews = hubServicesFactory.createScanSummaryRequestService().getAllScanSummaryItems(scansLink);
-            scanSummaryViews.addAll(codeLocationScanSummaryViews);
-        }
-        intLogger.info("Checking scan finished");
-        hubServicesFactory.createScanStatusDataService(intLogger, timeout).assertScansFinished(scanSummaryViews);
-        intLogger.info("Scan finished ");
-
     }
 
     public PolicyStatusDescription checkPolicyStatus(final ProjectVersionView version) throws IntegrationException {

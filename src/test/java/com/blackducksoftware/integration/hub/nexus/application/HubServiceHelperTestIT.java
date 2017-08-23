@@ -32,7 +32,6 @@ import org.junit.Test;
 import com.blackducksoftware.integration.exception.EncryptionException;
 import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDescription;
-import com.blackducksoftware.integration.hub.exception.HubTimeoutExceededException;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionDistributionEnum;
 import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionPhaseEnum;
@@ -105,13 +104,6 @@ public class HubServiceHelperTestIT {
         Assert.assertEquals(actual.getTimeout(), expected.getTimeout());
         Assert.assertEquals(actual.getProxyInfo(), expected.getProxyInfo());
         Assert.assertEquals(actual.isAutoImportHttpsCertificates(), expected.isAutoImportHttpsCertificates());
-    }
-
-    @Test
-    public void waitForHubResponseTest() throws HubTimeoutExceededException, IntegrationException {
-        logger.resetAllOutput();
-        hubServiceHelper.waitForHubResponse(projectView, 5000);
-        Assert.assertTrue(logger.getOutputList().size() == 4);
     }
 
     @Test
