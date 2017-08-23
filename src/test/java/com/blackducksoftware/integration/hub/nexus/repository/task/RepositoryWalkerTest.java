@@ -23,20 +23,46 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
+import org.mockito.Mock;
+import org.sonatype.nexus.proxy.item.StorageItem;
+import org.sonatype.nexus.proxy.walker.WalkerContext;
+
+import com.blackducksoftware.integration.hub.nexus.event.ScanEventManager;
+import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
+
 public class RepositoryWalkerTest {
+
+    @Mock
+    ItemAttributesHelper itemAttributesHelper;
+
+    @Mock
+    StorageItem item;
+
+    @Mock
+    ScanEventManager scanEventManager;
+
+    @Mock
+    WalkerContext walkerContext;
 
     // @Test
     // public void processItemsTest() throws Exception {
-    // final StorageItem item = mock(StorageItem.class);
     // when(item.getRepositoryItemUid().getBooleanAttributeValue(IsHiddenAttribute.class)).thenReturn(false);
     // when(item.getRemoteUrl()).thenReturn("NotEmpty");
+    //
+    // when(itemAttributesHelper.getScanTime(item)).thenReturn(10l);
+    // when(itemAttributesHelper.getScanResult(item)).thenReturn(ItemAttributesHelper.SCAN_STATUS_SUCCESS);
+    //
+    // doNothing().when(scanEventManager);
+    //
+    // when(walkerContext.getResourceStoreRequest()).thenReturn(null);
     //
     // final Map<String, String> taskParams = new HashMap<>();
     // taskParams.put(TaskField.DISTRIBUTION.getParameterKey(), "distribution");
     // taskParams.put(TaskField.PHASE.getParameterKey(), "phase");
-    // taskParams.put(TaskField.OLD_ARTIFACT_CUTOFF.getParameterKey(), "100");
+    // taskParams.put(TaskField.OLD_ARTIFACT_CUTOFF.getParameterKey(), "2016-01-01T00:00:00.000");
+    // taskParams.put(TaskField.RESCAN_FAILURES.getParameterKey(), "false");
     //
-    // final RepositoryWalker walker = new RepositoryWalker("", null, taskParams, null);
-    // walker.processItem(null, item);
+    // final RepositoryWalker walker = new RepositoryWalker("", itemAttributesHelper, taskParams, scanEventManager);
+    // walker.processItem(walkerContext, item);
     // }
 }

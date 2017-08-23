@@ -26,45 +26,74 @@ package com.blackducksoftware.integration.hub.nexus.util;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import org.sonatype.nexus.proxy.attributes.Attributes;
+import java.io.IOException;
+
+import org.junit.Assert;
+import org.junit.Test;
 import org.sonatype.nexus.proxy.attributes.AttributesHandler;
 import org.sonatype.nexus.proxy.item.StorageItem;
+
+import com.blackducksoftware.integration.hub.nexus.helpers.MockAttributes;
 
 public class ItemAttributesHelperTest {
 
     private final AttributesHandler attributesHandler;
     private final StorageItem item;
-    private final Attributes mockedAttributes;
+    private final MockAttributes mockAttributes;
 
     public ItemAttributesHelperTest() {
+        mockAttributes = new MockAttributes();
+
         attributesHandler = mock(AttributesHandler.class);
 
-        mockedAttributes = mock(Attributes.class);
-
         item = mock(StorageItem.class);
-        when(item.getRepositoryItemAttributes()).thenReturn(mockedAttributes);
+        when(item.getRepositoryItemAttributes()).thenReturn(mockAttributes);
     }
 
-    // @Test
-    // public void containsTest() throws IOException {
-    // final String key = "blackduck-test";
-    // final String expected = "Expected";
-    //
-    // item.getRepositoryItemAttributes().put(key, expected);
-    //
-    // final ItemAttributesHelper attHelper = new ItemAttributesHelper(attributesHandler);
-    //
-    // Assert.assertTrue(attHelper.contains(key, item));
-    // }
-    //
-    // @Test
-    // public void addAttributeTest() throws IOException {
-    // final ItemAttributesHelper attHelper = new ItemAttributesHelper(attributesHandler);
-    // final String key = "key";
-    // final String value = "expected";
-    // attHelper.addAttribute(key, value, item);
-    //
-    // Assert.assertNotNull(item.getRepositoryItemAttributes().get("blackduck-key"));
-    // }
+    @Test
+    public void containsTest() throws IOException {
+        final String key = "blackduck-test";
+        final String expected = "Expected";
 
+        item.getRepositoryItemAttributes().put(key, expected);
+
+        final ItemAttributesHelper attHelper = new ItemAttributesHelper(attributesHandler);
+
+        Assert.assertTrue(attHelper.contains(key, item));
+    }
+
+    @Test
+    public void addAttributeTest() throws IOException {
+        final ItemAttributesHelper attHelper = new ItemAttributesHelper(attributesHandler);
+        final String key = "key";
+        final String value = "expected";
+        attHelper.addAttribute(key, value, item);
+
+        Assert.assertNotNull(item.getRepositoryItemAttributes().get("blackduck-key"));
+    }
+
+    @Test
+    public void clearAttributes() {
+        final ItemAttributesHelper itemAttributesHelper = new ItemAttributesHelper(attributesHandler);
+        itemAttributesHelper.setApiUrl(item, "google");
+        itemAttributesHelper.clearAttributes(item);
+
+        Assert.assertTrue(mockAttributes.asMap().isEmpty());
+    }
+
+    @Test
+    public void getLongTest() {
+        final ItemAttributesHelper itemAttributesHelper = new ItemAttributesHelper(attributesHandler);
+        mockAttributes.put("blackduck-scanTime", "100");
+
+        Assert.assertTrue(itemAttributesHelper.getScanTime(item) == 100);
+    }
+
+    @Test
+    public void getStringTest() {
+        final ItemAttributesHelper itemAttributesHelper = new ItemAttributesHelper(attributesHandler);
+        mockAttributes.put("blackduck-scanResult", "result");
+
+        Assert.assertTrue(itemAttributesHelper.getScanResult(item).equals("result"));
+    }
 }

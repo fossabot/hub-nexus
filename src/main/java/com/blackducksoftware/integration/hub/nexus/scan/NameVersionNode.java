@@ -28,7 +28,6 @@ public class NameVersionNode {
     private String version;
 
     public NameVersionNode() {
-
     }
 
     public NameVersionNode(final String name, final String version) {
