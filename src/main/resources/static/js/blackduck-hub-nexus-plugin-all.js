@@ -113,7 +113,7 @@ Ext.extend(Sonatype.repoServer.HubTab, Ext.Panel, {
 						if (infoResp.scanTime == '0') {
 							artifactContainer.hideTab(this);
 						} else {
-							var dateTime = Date(parseInt(infoResp.scanTime));
+							var dateTime = new Date(parseInt(infoResp.scanTime));
 							dateTime = dateTime.toLocaleString();
 							
 							var uiUrl = '<a href="' + infoResp.uiUrl + '" target="_blank">' + infoResp.uiUrl + '</a>';
@@ -121,7 +121,7 @@ Ext.extend(Sonatype.repoServer.HubTab, Ext.Panel, {
 							this.find('name', 'uiUrl')[0].setRawValue(uiUrl);
 							this.find('name', 'overallPolicyStatus')[0].setRawValue(infoResp.policyOverallStatus);
 							this.find('name', 'policyStatus')[0].setRawValue(infoResp.policyStatus);
-							this.find('name', 'scanTime')[0].setRawValue(dateTime);
+							this.find('name', 'scanTime')[0].setRawValue(infoResp.scanTime + 'Date: ' + dateTime);
 							this.find('name', 'scanResult')[0].setRawValue(infoResp.scanStatus);
 
 							artifactContainer.showTab(this);
