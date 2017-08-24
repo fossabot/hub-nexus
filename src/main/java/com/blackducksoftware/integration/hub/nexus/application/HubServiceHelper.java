@@ -67,8 +67,7 @@ public class HubServiceHelper {
     public HubServiceHelper(final IntLogger logger, final Map<String, String> taskParameters) throws EncryptionException {
         this.hubServerConfig = createHubServerConfig(taskParameters);
         this.intLogger = logger;
-        CredentialsRestConnection credentialsRestConnection;
-        credentialsRestConnection = hubServerConfig.createCredentialsRestConnection(intLogger);
+        final CredentialsRestConnection credentialsRestConnection = hubServerConfig.createCredentialsRestConnection(intLogger);
         hubServicesFactory = new HubServicesFactory(credentialsRestConnection);
         metaService = hubServicesFactory.createMetaService(intLogger);
     }
