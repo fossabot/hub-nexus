@@ -27,7 +27,7 @@ import java.util.Map;
 
 import org.sonatype.nexus.events.Asynchronous;
 import org.sonatype.nexus.events.EventSubscriber;
-import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
+import org.sonatype.nexus.proxy.attributes.AttributesHandler;
 import org.sonatype.sisu.goodies.common.ComponentSupport;
 
 import com.blackducksoftware.integration.exception.EncryptionException;
@@ -38,7 +38,7 @@ import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 public class HubEventHandler extends ComponentSupport implements EventSubscriber, Asynchronous {
     private final ItemAttributesHelper attributeHelper;
 
-    public HubEventHandler(final DefaultAttributesHandler attributesHandler) {
+    public HubEventHandler(final AttributesHandler attributesHandler) {
         this.attributeHelper = new ItemAttributesHelper(attributesHandler);
     }
 
