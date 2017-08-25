@@ -31,6 +31,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.StringUtils;
 import org.sonatype.nexus.configuration.application.ApplicationDirectories;
 import org.sonatype.nexus.formfields.CheckboxFormField;
 import org.sonatype.nexus.formfields.FormField;
@@ -57,8 +58,8 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
 
     private static final String DESCRIPTION_HUB_IMPORT_CERT = "Import the SSL Certificates from the specified HTTPS Hub Server. Note: For this to work, the keystore must be writable by the nexus user";
     private static final String DESCRIPTION_HUB_PASSWORD = "Provide the password to authenticate with your Hub server";
-    private static final String DESCRIPTION_HUB_PROJECT_DISTRIBUTION = "The default distribution setting applied to the project verion if the project version is created";
-    private static final String DESCRIPTION_HUB_PROJECT_PHASE = "The default phase setting applied to the project verion if the project version is created";
+    private static final String DESCRIPTION_HUB_PROJECT_DISTRIBUTION = "The default distribution setting applied to the project verion if the project version is created. Possible Values: ";
+    private static final String DESCRIPTION_HUB_PROJECT_PHASE = "The default phase setting applied to the project verion if the project version is created.  Possible Values: ";
     private static final String DESCRIPTION_HUB_SCAN_MEMORY = "Specify the memory, in megabytes, you would like to allocate for the BlackDuck Scan. Default: 4096";
     private static final String DESCRIPTION_HUB_TIMEOUT = "The timeout in seconds for a request to the Blackduck Hub server";
     private static final String DESCRIPTION_HUB_URL = "Provide the URL that lets you access your Hub server. For example \"https://hub.example.com/\"";
@@ -107,9 +108,6 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
     private final StringTextFormField proxyPortField = new StringTextFormField(TaskField.HUB_PROXY_PORT.getParameterKey(), LABEL_PROXY_PORT, DESCRIPTION_PROXY_PORT, FormField.OPTIONAL);
     private final StringTextFormField proxyUsernameField = new StringTextFormField(TaskField.HUB_PROXY_USERNAME.getParameterKey(), LABEL_PROXY_USERNAME, DESCRIPTION_PROXY_USERNAME, FormField.OPTIONAL);
     private final PasswordFormField proxyPasswordField = new PasswordFormField(TaskField.HUB_PROXY_PASSWORD.getParameterKey(), LABEL_PROXY_PASSWORD, DESCRIPTION_PROXY_PASSWORD, FormField.OPTIONAL);
-    private final StringTextFormField distributionFormField = new StringTextFormField(TaskField.DISTRIBUTION.getParameterKey(), LABEL_DISTRIBUTION, DESCRIPTION_HUB_PROJECT_DISTRIBUTION, FormField.OPTIONAL)
-            .withInitialValue(ProjectVersionDistributionEnum.EXTERNAL.name());
-    private final StringTextFormField phaseFormField = new StringTextFormField(TaskField.PHASE.getParameterKey(), LABEL_PHASE, DESCRIPTION_HUB_PROJECT_PHASE, FormField.OPTIONAL).withInitialValue(ProjectVersionPhaseEnum.DEVELOPMENT.name());
     private final StringTextFormField filePatternField = new StringTextFormField(TaskField.FILE_PATTERNS.getParameterKey(), LABEL_FILE_PATTERN_MATCHES, DESCRIPTION_SCAN_FILE_PATTERN_MATCH, FormField.MANDATORY)
             .withInitialValue(DEFAULT_FILE_PATTERNS);
     private final StringTextFormField scanMemoryField = new StringTextFormField(TaskField.HUB_SCAN_MEMORY.getParameterKey(), LABEL_SCAN_MEMORY_ALLOCATION, DESCRIPTION_HUB_SCAN_MEMORY, FormField.OPTIONAL)
@@ -124,18 +122,13 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
         this.appDirectories = appDirectories;
     }
 
-    // TODO Change field from days back to a specific date (Have them enter a string and parse it)
     @Override
     public List<FormField> formFields() {
         final List<FormField> fields = new ArrayList<>();
 
-        StringTextFormField workingDirectoryField;
-        try {
-            workingDirectoryField = new StringTextFormField(TaskField.WORKING_DIRECTORY.getParameterKey(), LABEL_WORKING_DIRECTORY, DESCRIPTION_TASK_WORKING_DIRECTORY, FormField.MANDATORY)
-                    .withInitialValue(appDirectories.getWorkDirectory().getCanonicalPath());
-        } catch (final IOException | NullPointerException e) {
-            workingDirectoryField = new StringTextFormField(TaskField.WORKING_DIRECTORY.getParameterKey(), LABEL_WORKING_DIRECTORY, DESCRIPTION_TASK_WORKING_DIRECTORY, FormField.MANDATORY).withInitialValue(DEFAULT_WORKING_DIRECTORY);
-        }
+        final StringTextFormField workingDirectoryField = createWorkingDirectoryField();
+        final StringTextFormField distributionFormField = createDistributionField();
+        final StringTextFormField phaseFormField = createPhaseField();
 
         fields.add(repoField);
         fields.add(resourceStorePathField);
@@ -157,6 +150,33 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
         fields.add(artifactCutoffField);
 
         return fields;
+    }
+
+    private StringTextFormField createWorkingDirectoryField() {
+        StringTextFormField workingDirectoryField;
+        try {
+            workingDirectoryField = new StringTextFormField(TaskField.WORKING_DIRECTORY.getParameterKey(), LABEL_WORKING_DIRECTORY, DESCRIPTION_TASK_WORKING_DIRECTORY, FormField.MANDATORY)
+                    .withInitialValue(appDirectories.getWorkDirectory().getCanonicalPath());
+        } catch (final IOException | NullPointerException e) {
+            workingDirectoryField = new StringTextFormField(TaskField.WORKING_DIRECTORY.getParameterKey(), LABEL_WORKING_DIRECTORY, DESCRIPTION_TASK_WORKING_DIRECTORY, FormField.MANDATORY).withInitialValue(DEFAULT_WORKING_DIRECTORY);
+        }
+
+        return workingDirectoryField;
+    }
+
+    private StringTextFormField createDistributionField() {
+        final String possibleValues = StringUtils.join(ProjectVersionDistributionEnum.values(), ",");
+        final String description = DESCRIPTION_HUB_PROJECT_DISTRIBUTION.concat(possibleValues);
+        final StringTextFormField distributionFormField = new StringTextFormField(TaskField.DISTRIBUTION.getParameterKey(), LABEL_DISTRIBUTION, description, FormField.OPTIONAL)
+                .withInitialValue(ProjectVersionDistributionEnum.EXTERNAL.name());
+        return distributionFormField;
+    }
+
+    private StringTextFormField createPhaseField() {
+        final String possibleValues = StringUtils.join(ProjectVersionPhaseEnum.values(), ",");
+        final String description = DESCRIPTION_HUB_PROJECT_PHASE.concat(possibleValues);
+        final StringTextFormField phaseFormField = new StringTextFormField(TaskField.PHASE.getParameterKey(), LABEL_PHASE, description, FormField.OPTIONAL).withInitialValue(ProjectVersionPhaseEnum.DEVELOPMENT.name());
+        return phaseFormField;
     }
 
     @Override

@@ -30,7 +30,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.slf4j.LoggerFactory;
-import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
+import org.sonatype.nexus.proxy.attributes.AttributesHandler;
 import org.sonatype.nexus.proxy.item.StorageItem;
 
 import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDescription;
@@ -46,7 +46,7 @@ import com.google.common.eventbus.Subscribe;
 public class HubPolicyCheckEventHandler extends HubEventHandler {
 
     @Inject
-    public HubPolicyCheckEventHandler(final DefaultAttributesHandler attributesHandler) {
+    public HubPolicyCheckEventHandler(final AttributesHandler attributesHandler) {
         super(attributesHandler);
     }
 

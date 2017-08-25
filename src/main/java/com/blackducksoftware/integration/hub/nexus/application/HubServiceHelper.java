@@ -145,8 +145,8 @@ public class HubServiceHelper {
         builder.setProjectName(nameVersion.getName());
         builder.setVersionName(nameVersion.getVersion());
         builder.setProjectLevelAdjustments(true);
-        builder.setPhase(phase);
-        builder.setDistribution(distribution);
+        builder.setPhase(phase.toUpperCase());
+        builder.setDistribution(distribution.toUpperCase());
         return builder.build();
     }
 
