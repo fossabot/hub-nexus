@@ -30,6 +30,10 @@ import com.blackducksoftware.integration.test.TestLogger;
 
 public class TestEventLogger extends TestLogger implements Logger {
 
+    public String getLastInfoLog() {
+        return getOutputList().get(getOutputList().size() - 1);
+    }
+
     @Override
     public String getName() {
         return "TestEventLogger";

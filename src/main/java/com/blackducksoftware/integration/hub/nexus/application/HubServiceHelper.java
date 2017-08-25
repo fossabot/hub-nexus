@@ -141,9 +141,9 @@ public class HubServiceHelper {
 
     public ProjectRequest createProjectRequest(final String distribution, final String phase, final StorageItem item) {
         final ProjectRequestBuilder builder = new ProjectRequestBuilder();
-        final NameVersionNode nameVersionGuess = generateProjectNameVersion(item);
-        builder.setProjectName(nameVersionGuess.getName());
-        builder.setVersionName(nameVersionGuess.getVersion());
+        final NameVersionNode nameVersion = generateProjectNameVersion(item);
+        builder.setProjectName(nameVersion.getName());
+        builder.setVersionName(nameVersion.getVersion());
         builder.setProjectLevelAdjustments(true);
         builder.setPhase(phase);
         builder.setDistribution(distribution);
