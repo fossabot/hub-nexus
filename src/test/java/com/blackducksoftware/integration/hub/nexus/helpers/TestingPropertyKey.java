@@ -26,6 +26,9 @@ package com.blackducksoftware.integration.hub.nexus.helpers;
 public enum TestingPropertyKey {
     TEST_HUB_SERVER_URL,
     TEST_HTTPS_HUB_SERVER_URL,
+    TEST_NEXUS_SERVER_URL,
+    TEST_NEXUS_USERNAME,
+    TEST_NEXUS_PASSWORD,
     TEST_USERNAME,
     TEST_PASSWORD,
     TEST_AUTO_IMPORT_HTTPS_CERT,

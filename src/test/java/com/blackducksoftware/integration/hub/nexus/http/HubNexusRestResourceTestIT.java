@@ -46,28 +46,37 @@
  */
 package com.blackducksoftware.integration.hub.nexus.http;
 
+import java.io.IOException;
+
+import org.junit.Assert;
+import org.junit.Test;
 import org.sonatype.nexus.proxy.AbstractNexusTestEnvironment;
 
-public class HubNexusRestResourceTestIT extends AbstractNexusTestEnvironment {
+import com.blackducksoftware.integration.hub.nexus.helpers.RestConnectionTestHelper;
+import com.blackducksoftware.integration.hub.nexus.helpers.RestNexusModifier;
 
-    // private static final String BASE_URL = "http://localhost:8081/nexus/service/siesta/blackduck/info?repoId=releases&itemPath=fakepath/aura.sql/3.x/aura.sql-3.x.zip";
-    //
-    // private final RepositoryRegistry repoReg;
-    // private final DefaultAttributesHandler attHandler;
-    //
-    // public HubNexusRestResourceTest() throws Exception {
-    // repoReg = lookup(RepositoryRegistry.class);
-    // attHandler = lookup(DefaultAttributesHandler.class);
-    // }
-    //
-    // @Test
-    // public void getTest() {
-    // final HubNexusRestResource restResource = new HubNexusRestResource(repoReg, attHandler);
-    // final HubMetaData data = restResource.get("releases", "fakepath/aura.sql/3.x/aura.sql-3.x.zip");
-    //
-    // Assert.assertEquals(data.getUiUrl(), "\n" + "http://int-hub02.dc1.lan:8080/api/projects/f268cc6f-5169-4e43-91a5-73ad2f3433bf/versions/05cdd7f7-43f5-46aa-81b6-dc20f936b1bf/components");
-    // Assert.assertEquals(data.getPolicyOverallStatus(), "NOT_IN_VIOLATION");
-    // Assert.assertEquals(data.getPolicyStatus(), "The Hub found: 0 components in violation, 0 components in violation, but overridden, and 1 components not in violation.");
-    // Assert.assertEquals(data.getScanStatus(), "SUCCESS");
-    // }
+public class HubNexusRestResourceTestIT extends AbstractNexusTestEnvironment {
+    private final RestConnectionTestHelper restConnection = new RestConnectionTestHelper();
+
+    @Test
+    public void getTest() throws IOException {
+        final RestNexusModifier restNexusModifier = new RestNexusModifier(restConnection);
+        // final Gson gson = new Gson();
+        // final String restGetUrl = "service/siesta/blackduck/info?repoId=releases&itemPath=fakepath/aura.sql/3.x/aura.sql-3.x.zip";
+        // final OkHttpClient client = new OkHttpClient();
+        // final Request request = new Request.Builder().url(restGetUrl).build();
+        //
+        // final Response response = client.newCall(request).execute();
+        // final String responseBody = response.body().string();
+        // final TestJson testJson = gson.fromJson(responseBody, TestJson.class);
+        Assert.assertTrue(true);
+    }
+
+    class TestJson {
+        String scanStatus;
+        String policyStatus;
+        String scanTime;
+        String policyOverallStatus;
+        String uiUrl;
+    }
 }

@@ -28,16 +28,13 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-import org.slf4j.Logger;
-import org.sonatype.sisu.goodies.common.Loggers;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @XmlRootElement(name = "blackduck")
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "blackduck")
 public class HubMetaData {
-    final Logger logger = Loggers.getLogger(HubMetaData.class);
+    // final Logger logger = Loggers.getLogger(HubMetaData.class);
 
     @JsonProperty("apiUrl")
     private String apiUrl;
