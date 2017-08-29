@@ -25,43 +25,18 @@ package com.blackducksoftware.integration.hub.nexus.repository.task;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
-import org.sonatype.nexus.proxy.registry.RepositoryRegistry;
-import org.sonatype.nexus.proxy.repository.Repository;
-import org.sonatype.nexus.proxy.walker.Walker;
-import org.sonatype.nexus.proxy.walker.WalkerContext;
 
-import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
-import com.blackducksoftware.integration.hub.nexus.event.ScanEventManager;
-
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(ScanTask.class)
 public class ScanTaskTestIT {
-
-    @Mock
-    Walker walker;
-
-    @Mock
-    DefaultAttributesHandler defaultAttributesHandler;
-
-    @Mock
-    ScanEventManager scanEventManager;
-
-    @Mock
-    HubServiceHelper hubServiceHelper;
-
-    @Mock
-    Repository repository;
-
-    @Mock
-    RepositoryRegistry repositoryRegistry;
-
-    @Mock
-    WalkerContext walkerContext;
+    // private final Walker walker;
+    // private final DefaultAttributesHandler defaultAttributesHandler;
+    // private final ScanEventManager scanEventManager;
+    //
+    // @Inject
+    // public ScanTaskTestIT(final Walker walker, final DefaultAttributesHandler defaultAttributesHandler, final ScanEventManager scanEventManager) {
+    // this.walker = walker;
+    // this.defaultAttributesHandler = defaultAttributesHandler;
+    // this.scanEventManager = scanEventManager;
+    // }
 
     @Test
     public void getActionTest() {
@@ -73,6 +48,13 @@ public class ScanTaskTestIT {
     public void getMessageTest() {
         final ScanTask scanTask = new ScanTask(null, null, null);
         Assert.assertEquals("Searching to scan artifacts in the repository", scanTask.getMessage());
+    }
+
+    @Test
+    public void doRunTest() throws Exception {
+        final ScanTask scanTask = new ScanTask(null, null, null);
+        final Object nothing = scanTask.doRun();
+        Assert.assertNull(nothing);
     }
 
 }

@@ -53,23 +53,27 @@ import org.junit.Test;
 import org.sonatype.nexus.proxy.AbstractNexusTestEnvironment;
 
 import com.blackducksoftware.integration.hub.nexus.helpers.RestConnectionTestHelper;
-import com.blackducksoftware.integration.hub.nexus.helpers.RestNexusModifier;
+import com.blackducksoftware.integration.hub.nexus.helpers.TestingPropertyKey;
+import com.google.gson.Gson;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class HubNexusRestResourceTestIT extends AbstractNexusTestEnvironment {
     private final RestConnectionTestHelper restConnection = new RestConnectionTestHelper();
 
     @Test
     public void getTest() throws IOException {
-        final RestNexusModifier restNexusModifier = new RestNexusModifier(restConnection);
-        // final Gson gson = new Gson();
-        // final String restGetUrl = "service/siesta/blackduck/info?repoId=releases&itemPath=fakepath/aura.sql/3.x/aura.sql-3.x.zip";
-        // final OkHttpClient client = new OkHttpClient();
-        // final Request request = new Request.Builder().url(restGetUrl).build();
-        //
-        // final Response response = client.newCall(request).execute();
-        // final String responseBody = response.body().string();
-        // final TestJson testJson = gson.fromJson(responseBody, TestJson.class);
-        Assert.assertTrue(true);
+        final Gson gson = new Gson();
+        final String restGetUrl = restConnection.getProperty(TestingPropertyKey.TEST_NEXUS_SERVER_URL) + "service/siesta/blackduck/info?repoId=releases&itemPath=fakepath/aura.sql/3.x/aura.sql-3.x.zip";
+        final OkHttpClient client = new OkHttpClient();
+        final Request request = new Request.Builder().url(restGetUrl).build();
+
+        final Response response = client.newCall(request).execute();
+        final String responseBody = response.body().string();
+        final TestJson testJson = gson.fromJson(responseBody, TestJson.class);
+        Assert.assertTrue(testJson.scanStatus.equals("SUCCESS"));
     }
 
     class TestJson {
