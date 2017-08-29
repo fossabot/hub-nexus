@@ -30,7 +30,6 @@ import org.sonatype.nexus.events.EventSubscriber;
 import org.sonatype.nexus.proxy.attributes.AttributesHandler;
 import org.sonatype.sisu.goodies.common.ComponentSupport;
 
-import com.blackducksoftware.integration.exception.EncryptionException;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
@@ -47,10 +46,6 @@ public class HubEventHandler extends ComponentSupport implements EventSubscriber
     }
 
     public HubServiceHelper createServiceHelper(final HubEventLogger logger, final Map<String, String> taskParameters) {
-        try {
-            return new HubServiceHelper(logger, taskParameters);
-        } catch (final EncryptionException ex) {
-            return null;
-        }
+        return new HubServiceHelper(logger, taskParameters);
     }
 }

@@ -80,7 +80,7 @@ public class ArtifactScanner {
                 final HubServerConfig hubServerConfig = hubServiceHelper.getHubServerConfig();
                 final HubScanConfig scanConfig = createScanConfig(Integer.parseInt(scanMemoryValue), workingDirectory);
                 logger.info(String.format("Scan Path %s", scanConfig.getScanTargetPaths()));
-                final CLIDataService cliDataService = hubServiceHelper.createCLIDataService();
+                final CLIDataService cliDataService = hubServiceHelper.getCliDataService();
                 final String distribution = getParameter(TaskField.DISTRIBUTION.getParameterKey());
                 final String phase = getParameter(TaskField.PHASE.getParameterKey());
                 final ProjectRequest projectRequest = hubServiceHelper.createProjectRequest(distribution, phase, event.getItem());

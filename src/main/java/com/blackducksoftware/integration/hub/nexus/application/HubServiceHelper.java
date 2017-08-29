@@ -37,6 +37,7 @@ import com.blackducksoftware.integration.hub.api.project.version.ProjectVersionR
 import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
 import com.blackducksoftware.integration.hub.cli.CLIDownloadService;
 import com.blackducksoftware.integration.hub.dataservice.cli.CLIDataService;
+import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDataService;
 import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDescription;
 import com.blackducksoftware.integration.hub.dataservice.report.RiskReportDataService;
 import com.blackducksoftware.integration.hub.exception.DoesNotExistException;
@@ -59,21 +60,24 @@ import com.blackducksoftware.integration.util.CIEnvironmentVariables;
 
 public class HubServiceHelper {
     private final IntLogger intLogger;
+    private HubServerConfig hubServerConfig;
+    private final Map<String, String> taskParameters;
 
-    private final HubServicesFactory hubServicesFactory;
-    private final MetaService metaService;
-    private final HubServerConfig hubServerConfig;
+    private HubServicesFactory hubServicesFactory;
 
-    public HubServiceHelper(final IntLogger logger, final Map<String, String> taskParameters) throws EncryptionException {
-        this.hubServerConfig = createHubServerConfig(taskParameters);
+    private PolicyStatusDataService policyStatusDataService;
+    private MetaService metaService;
+    private RiskReportDataService riskReportDataService;
+    private CLIDataService cliDataService;
+    private ProjectRequestService projectRequestService;
+    private HubResponseService hubResponseService;
+    private ProjectVersionRequestService projectVersionRequestService;
+    private CLIDownloadService cliDownloadService;
+    private HubVersionRequestService hubVersionRequestService;
+
+    public HubServiceHelper(final IntLogger logger, final Map<String, String> taskParameters) {
         this.intLogger = logger;
-        final CredentialsRestConnection credentialsRestConnection = hubServerConfig.createCredentialsRestConnection(intLogger);
-        hubServicesFactory = new HubServicesFactory(credentialsRestConnection);
-        metaService = hubServicesFactory.createMetaService(intLogger);
-    }
-
-    public HubServerConfig getHubServerConfig() {
-        return hubServerConfig;
+        this.taskParameters = taskParameters;
     }
 
     public HubServerConfig createHubServerConfig(final Map<String, String> taskParameters) {
@@ -102,38 +106,139 @@ public class HubServiceHelper {
         return hubServerConfigBuilder.build();
     }
 
+    public HubServerConfig getHubServerConfig() {
+        if (hubServerConfig == null) {
+            hubServerConfig = createHubServerConfig(taskParameters);
+        }
+
+        return hubServerConfig;
+    }
+
+    public HubServicesFactory getHubServicesFactory() {
+        if (hubServicesFactory == null) {
+            CredentialsRestConnection credentialsRestConnection = null;
+
+            try {
+                credentialsRestConnection = createHubServerConfig(taskParameters).createCredentialsRestConnection(intLogger);
+            } catch (final EncryptionException e) {
+                e.printStackTrace();
+                intLogger.error("Encryption error when creating REST connection");
+            }
+            hubServicesFactory = new HubServicesFactory(credentialsRestConnection);
+        }
+
+        return hubServicesFactory;
+    }
+
+    public PolicyStatusDataService getPolicyStatusDataService() {
+        if (policyStatusDataService == null) {
+            policyStatusDataService = getHubServicesFactory().createPolicyStatusDataService(intLogger);
+        }
+
+        return policyStatusDataService;
+    }
+
+    public MetaService getMetaService() {
+        if (metaService == null) {
+            metaService = getHubServicesFactory().createMetaService(intLogger);
+        }
+
+        return metaService;
+    }
+
+    public RiskReportDataService getRiskReportDataService(final long timeout) {
+        if (riskReportDataService == null) {
+            try {
+                riskReportDataService = getHubServicesFactory().createRiskReportDataService(intLogger, timeout);
+            } catch (final IntegrationException e) {
+                e.printStackTrace();
+                intLogger.error("Error retrieving risk report service");
+            }
+        }
+
+        return riskReportDataService;
+    }
+
+    public RiskReportDataService getRiskReportDataService() {
+        return getRiskReportDataService(getHubServerConfig().getTimeout());
+    }
+
+    public CLIDataService getCliDataService() {
+        if (cliDataService == null) {
+            cliDataService = getHubServicesFactory().createCLIDataService(intLogger);
+        }
+
+        return cliDataService;
+    }
+
+    public ProjectRequestService getProjectRequestService() {
+        if (projectRequestService == null) {
+            projectRequestService = getHubServicesFactory().createProjectRequestService(intLogger);
+        }
+
+        return projectRequestService;
+    }
+
+    public HubResponseService getHubResponseService() {
+        if (hubResponseService == null) {
+            hubResponseService = getHubServicesFactory().createHubResponseService();
+        }
+
+        return hubResponseService;
+    }
+
+    public ProjectVersionRequestService getProjectVersionRequestService() {
+        if (projectVersionRequestService == null) {
+            projectVersionRequestService = getHubServicesFactory().createProjectVersionRequestService(intLogger);
+        }
+
+        return projectVersionRequestService;
+    }
+
+    public CLIDownloadService getCliDownloadService() {
+        if (cliDownloadService == null) {
+            cliDownloadService = getHubServicesFactory().createCliDownloadService(intLogger);
+        }
+
+        return cliDownloadService;
+    }
+
+    public HubVersionRequestService getHubVersionRequestService() {
+        if (hubVersionRequestService == null) {
+            hubVersionRequestService = getHubServicesFactory().createHubVersionRequestService();
+        }
+
+        return hubVersionRequestService;
+    }
+
     public PolicyStatusDescription checkPolicyStatus(final ProjectVersionView version) throws IntegrationException {
-        final VersionBomPolicyStatusView versionBomPolicyStatusView = hubServicesFactory.createPolicyStatusDataService(intLogger).getPolicyStatusForVersion(version);
+        final VersionBomPolicyStatusView versionBomPolicyStatusView = getPolicyStatusDataService().getPolicyStatusForVersion(version);
         final PolicyStatusDescription policyStatusDescription = new PolicyStatusDescription(versionBomPolicyStatusView);
         return policyStatusDescription;
     }
 
     public String retrieveApiUrl(final ProjectVersionView project) throws HubIntegrationException {
-        return metaService.getHref(project);
+        return getMetaService().getHref(project);
     }
 
     public String retrieveUIUrl(final ProjectVersionView project) throws HubIntegrationException {
-        return metaService.getFirstLink(project, "components");
+        return getMetaService().getFirstLink(project, "components");
     }
 
     public ReportData retrieveRiskReport(final long timeout, final ProjectVersionView version, final ProjectView project) throws IntegrationException {
         intLogger.info("Generating risk report");
-        final RiskReportDataService riskReport = hubServicesFactory.createRiskReportDataService(intLogger, timeout);
+        final RiskReportDataService riskReport = getRiskReportDataService(timeout);
         return riskReport.getRiskReportData(project, version);
     }
 
-    public CLIDataService createCLIDataService() {
-        return hubServicesFactory.createCLIDataService(intLogger);
-    }
-
     public ProjectView getProjectView(final String projectName) throws IntegrationException {
-        final ProjectRequestService requestService = hubServicesFactory.createProjectRequestService(intLogger);
+        final ProjectRequestService requestService = getProjectRequestService();
         return requestService.getProjectByName(projectName);
     }
 
     public VersionBomPolicyStatusView getOverallPolicyStatus(final ProjectVersionView projectVersionView) throws IntegrationException {
-        final String policyStatusUrl = metaService.getFirstLink(projectVersionView, MetaService.POLICY_STATUS_LINK);
-        final HubResponseService hubResponseService = hubServicesFactory.createHubResponseService();
+        final String policyStatusUrl = getMetaService().getFirstLink(projectVersionView, MetaService.POLICY_STATUS_LINK);
+        final HubResponseService hubResponseService = getHubResponseService();
         final VersionBomPolicyStatusView versionBomPolicyStatusView = hubResponseService.getItem(policyStatusUrl, VersionBomPolicyStatusView.class);
 
         return versionBomPolicyStatusView;
@@ -164,15 +269,15 @@ public class HubServiceHelper {
     }
 
     public String createCLIInstallDirectoryName() {
-        final String hubCLIInstallDirectoryName = String.format("hub%s", String.valueOf(hubServerConfig.getHubUrl().getHost().hashCode()));
-        intLogger.info(String.format("CLI Installation Root Directory for %s: %s", hubServerConfig.getHubUrl().toString(), hubCLIInstallDirectoryName));
+        final String hubCLIInstallDirectoryName = String.format("hub%s", String.valueOf(getHubServerConfig().getHubUrl().getHost().hashCode()));
+        intLogger.info(String.format("CLI Installation Root Directory for %s: %s", getHubServerConfig().getHubUrl().toString(), hubCLIInstallDirectoryName));
         return hubCLIInstallDirectoryName;
     }
 
     public void createProjectAndVersion(final ProjectRequest projectRequest) throws IntegrationException {
         ProjectView project = null;
-        final ProjectRequestService projectRequestService = hubServicesFactory.createProjectRequestService(intLogger);
-        final ProjectVersionRequestService projectVersionRequestService = hubServicesFactory.createProjectVersionRequestService(intLogger);
+        final ProjectRequestService projectRequestService = getProjectRequestService();
+        final ProjectVersionRequestService projectVersionRequestService = getProjectVersionRequestService();
         try {
             project = projectRequestService.getProjectByName(projectRequest.getName());
         } catch (final DoesNotExistException e) {
@@ -192,9 +297,9 @@ public class HubServiceHelper {
         intLogger.info("Installing CLI to the following location: " + localHostName + ": " + installDirectory);
         final CIEnvironmentVariables ciEnvironmentVariables = new CIEnvironmentVariables();
         ciEnvironmentVariables.putAll(System.getenv());
-        final HubVersionRequestService hubVersionRequestService = hubServicesFactory.createHubVersionRequestService();
-        final CLIDownloadService cliDownloadService = hubServicesFactory.createCliDownloadService(intLogger);
+        final HubVersionRequestService hubVersionRequestService = getHubVersionRequestService();
+        final CLIDownloadService cliDownloadService = getCliDownloadService();
         final String hubVersion = hubVersionRequestService.getHubVersion();
-        cliDownloadService.performInstallation(installDirectory, ciEnvironmentVariables, hubServerConfig.getHubUrl().toString(), hubVersion, localHostName);
+        cliDownloadService.performInstallation(installDirectory, ciEnvironmentVariables, getHubServerConfig().getHubUrl().toString(), hubVersion, localHostName);
     }
 }

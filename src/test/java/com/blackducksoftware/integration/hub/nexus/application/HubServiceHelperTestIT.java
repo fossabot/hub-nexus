@@ -33,7 +33,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.StringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -41,9 +40,7 @@ import org.sonatype.nexus.proxy.item.StorageItem;
 
 import com.blackducksoftware.integration.exception.EncryptionException;
 import com.blackducksoftware.integration.exception.IntegrationException;
-import com.blackducksoftware.integration.hub.dataservice.cli.CLIDataService;
 import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDescription;
-import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionDistributionEnum;
 import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionPhaseEnum;
@@ -120,32 +117,12 @@ public class HubServiceHelperTestIT {
     }
 
     @Test
-    public void retrieveApiUrlTest() throws HubIntegrationException {
-        final String apiUrl = hubServiceHelper.retrieveApiUrl(projectVersionView);
-        final int actual = StringUtils.countMatches(apiUrl, "/");
-        Assert.assertTrue(actual == 7);
-    }
-
-    @Test
-    public void retrieveUIUrlTest() throws HubIntegrationException {
-        final String UIUrl = hubServiceHelper.retrieveUIUrl(projectVersionView);
-        final int actual = StringUtils.countMatches(UIUrl, "/");
-        Assert.assertTrue(actual == 8);
-    }
-
-    @Test
     public void retrieveRiskReport() throws IntegrationException {
         final ReportData reportData = hubServiceHelper.retrieveRiskReport(5000, projectVersionView, projectView);
         final String distribution = reportData.getDistribution();
         final String phase = reportData.getPhase();
         Assert.assertEquals(ProjectVersionDistributionEnum.EXTERNAL.toString(), distribution);
         Assert.assertEquals(ProjectVersionPhaseEnum.DEVELOPMENT.toString(), phase);
-    }
-
-    @Test
-    public void createCLIDataService() {
-        final CLIDataService cliDataService = hubServiceHelper.createCLIDataService();
-        Assert.assertNotNull(cliDataService);
     }
 
     @Test
@@ -170,13 +147,6 @@ public class HubServiceHelperTestIT {
 
         final ProjectRequest testProjectRequest = hubServiceHelper.createProjectRequest(ProjectVersionDistributionEnum.EXTERNAL.toString(), ProjectVersionPhaseEnum.DEVELOPMENT.toString(), item);
         Assert.assertEquals("NexusTest", testProjectRequest.getName());
-    }
-
-    @Test
-    public void createCLIInstallDirectoryNameTest() {
-        final String directoryName = hubServiceHelper.createCLIInstallDirectoryName();
-
-        Assert.assertTrue(logger.getLastInfoLog().contains(directoryName));
     }
 
     @Test
