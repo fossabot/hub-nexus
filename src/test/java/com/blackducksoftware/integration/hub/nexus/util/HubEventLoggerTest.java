@@ -54,36 +54,36 @@ public class HubEventLoggerTest {
     @Test
     public void logDebugTest() {
         hubLogger.debug("expected");
-        Assert.assertEquals(EXPECTED, logger.getOutputList().get(logger.getOutputList().size() - 1));
+        Assert.assertEquals(EXPECTED, logger.getLastInfoLog());
     }
 
     @Test
     public void logInfoTest() {
         hubLogger.info("expected");
-        Assert.assertEquals(EXPECTED, logger.getOutputList().get(logger.getOutputList().size() - 1));
+        Assert.assertEquals(EXPECTED, logger.getLastInfoLog());
     }
 
     @Test
     public void logErrorTest() {
         hubLogger.error("expected");
-        Assert.assertEquals(EXPECTED, logger.getOutputList().get(logger.getOutputList().size() - 1));
+        Assert.assertEquals(EXPECTED, logger.getLastInfoLog());
     }
 
     @Test
     public void logWarnTest() {
         hubLogger.warn("expected");
-        Assert.assertEquals(EXPECTED, logger.getOutputList().get(logger.getOutputList().size() - 1));
+        Assert.assertEquals(EXPECTED, logger.getLastInfoLog());
     }
 
     @Test
     public void logTraceTest() {
         hubLogger.trace("expected");
-        Assert.assertEquals(EXPECTED, logger.getOutputList().get(logger.getOutputList().size() - 1));
+        Assert.assertEquals(EXPECTED, logger.getLastInfoLog());
     }
 
     @Test
     public void alwaysLogTest() {
         hubLogger.alwaysLog("expected");
-        Assert.assertEquals(EXPECTED, logger.getOutputList().get(logger.getOutputList().size() - 1));
+        Assert.assertEquals(EXPECTED, logger.getLastInfoLog());
     }
 }
