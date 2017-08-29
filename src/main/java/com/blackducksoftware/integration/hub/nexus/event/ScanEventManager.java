@@ -75,7 +75,7 @@ public class ScanEventManager extends ComponentSupport {
     }
 
     public void processItem(final ScanItemMetaData data) throws InterruptedException {
-        final HubScanEvent event = new HubScanEvent(data.getItem().getRepositoryItemUid().getRepository(), data.getItem(), data.getTaskParameters(), data.getRequest());
+        final HubScanEvent event = new HubScanEvent(data.getItem().getRepositoryItemUid().getRepository(), data.getItem(), data.getTaskParameters(), data.getRequest(), data.getProjectRequest());
         logger.debug("Posting event {} onto the event bus", event.getEventId());
         addNewEvent(event);
         eventBus.post(event);

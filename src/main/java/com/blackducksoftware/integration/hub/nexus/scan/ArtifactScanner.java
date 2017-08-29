@@ -36,7 +36,6 @@ import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage
 import com.blackducksoftware.integration.hub.builder.HubScanConfigBuilder;
 import com.blackducksoftware.integration.hub.dataservice.cli.CLIDataService;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
-import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.application.IntegrationInfo;
@@ -81,14 +80,11 @@ public class ArtifactScanner {
                 final HubScanConfig scanConfig = createScanConfig(Integer.parseInt(scanMemoryValue), workingDirectory);
                 logger.info(String.format("Scan Path %s", scanConfig.getScanTargetPaths()));
                 final CLIDataService cliDataService = hubServiceHelper.getCliDataService();
-                final String distribution = getParameter(TaskField.DISTRIBUTION.getParameterKey());
-                final String phase = getParameter(TaskField.PHASE.getParameterKey());
-                final ProjectRequest projectRequest = hubServiceHelper.createProjectRequest(distribution, phase, event.getItem());
-                final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, projectRequest, true, phoneHomeInfo.getThirdPartyName(), phoneHomeInfo.getThirdPartyVersion(),
+                final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, event.getProjectRequest(), true, phoneHomeInfo.getThirdPartyName(), phoneHomeInfo.getThirdPartyVersion(),
                         phoneHomeInfo.getPluginVersion());
                 logger.info("Checking scan results...");
-                final String apiUrl = hubServiceHelper.retrieveApiUrl(projectVersionView);
-                final String uiUrl = hubServiceHelper.retrieveUIUrl(projectVersionView);
+                final String apiUrl = hubServiceHelper.getMetaService().getHref(projectVersionView);
+                final String uiUrl = hubServiceHelper.getMetaService().getFirstLink(projectVersionView, "components");
 
                 if (StringUtils.isNotBlank(apiUrl)) {
                     attributesHelper.setApiUrl(item, apiUrl);

@@ -23,10 +23,7 @@
  */
 package com.blackducksoftware.integration.hub.nexus.application;
 
-import java.io.File;
 import java.util.Map;
-
-import org.sonatype.nexus.proxy.item.StorageItem;
 
 import com.blackducksoftware.integration.exception.EncryptionException;
 import com.blackducksoftware.integration.exception.IntegrationException;
@@ -38,25 +35,13 @@ import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
 import com.blackducksoftware.integration.hub.cli.CLIDownloadService;
 import com.blackducksoftware.integration.hub.dataservice.cli.CLIDataService;
 import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDataService;
-import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDescription;
 import com.blackducksoftware.integration.hub.dataservice.report.RiskReportDataService;
-import com.blackducksoftware.integration.hub.exception.DoesNotExistException;
-import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
-import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
-import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
-import com.blackducksoftware.integration.hub.model.view.ProjectView;
-import com.blackducksoftware.integration.hub.model.view.VersionBomPolicyStatusView;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
-import com.blackducksoftware.integration.hub.nexus.scan.NameVersionNode;
-import com.blackducksoftware.integration.hub.report.api.ReportData;
-import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder;
 import com.blackducksoftware.integration.hub.rest.CredentialsRestConnection;
 import com.blackducksoftware.integration.hub.service.HubResponseService;
 import com.blackducksoftware.integration.hub.service.HubServicesFactory;
-import com.blackducksoftware.integration.hub.util.HostnameHelper;
 import com.blackducksoftware.integration.log.IntLogger;
-import com.blackducksoftware.integration.util.CIEnvironmentVariables;
 
 public class HubServiceHelper {
     private final IntLogger intLogger;
@@ -211,95 +196,47 @@ public class HubServiceHelper {
         return hubVersionRequestService;
     }
 
-    public PolicyStatusDescription checkPolicyStatus(final ProjectVersionView version) throws IntegrationException {
-        final VersionBomPolicyStatusView versionBomPolicyStatusView = getPolicyStatusDataService().getPolicyStatusForVersion(version);
-        final PolicyStatusDescription policyStatusDescription = new PolicyStatusDescription(versionBomPolicyStatusView);
-        return policyStatusDescription;
+    public void setHubServerConfig(final HubServerConfig hubServerConfig) {
+        this.hubServerConfig = hubServerConfig;
     }
 
-    public String retrieveApiUrl(final ProjectVersionView project) throws HubIntegrationException {
-        return getMetaService().getHref(project);
+    public void setHubServicesFactory(final HubServicesFactory hubServicesFactory) {
+        this.hubServicesFactory = hubServicesFactory;
     }
 
-    public String retrieveUIUrl(final ProjectVersionView project) throws HubIntegrationException {
-        return getMetaService().getFirstLink(project, "components");
+    public void setPolicyStatusDataService(final PolicyStatusDataService policyStatusDataService) {
+        this.policyStatusDataService = policyStatusDataService;
     }
 
-    public ReportData retrieveRiskReport(final long timeout, final ProjectVersionView version, final ProjectView project) throws IntegrationException {
-        intLogger.info("Generating risk report");
-        final RiskReportDataService riskReport = getRiskReportDataService(timeout);
-        return riskReport.getRiskReportData(project, version);
+    public void setMetaService(final MetaService metaService) {
+        this.metaService = metaService;
     }
 
-    public ProjectView getProjectView(final String projectName) throws IntegrationException {
-        final ProjectRequestService requestService = getProjectRequestService();
-        return requestService.getProjectByName(projectName);
+    public void setRiskReportDataService(final RiskReportDataService riskReportDataService) {
+        this.riskReportDataService = riskReportDataService;
     }
 
-    public VersionBomPolicyStatusView getOverallPolicyStatus(final ProjectVersionView projectVersionView) throws IntegrationException {
-        final String policyStatusUrl = getMetaService().getFirstLink(projectVersionView, MetaService.POLICY_STATUS_LINK);
-        final HubResponseService hubResponseService = getHubResponseService();
-        final VersionBomPolicyStatusView versionBomPolicyStatusView = hubResponseService.getItem(policyStatusUrl, VersionBomPolicyStatusView.class);
-
-        return versionBomPolicyStatusView;
+    public void setCliDataService(final CLIDataService cliDataService) {
+        this.cliDataService = cliDataService;
     }
 
-    public ProjectRequest createProjectRequest(final String distribution, final String phase, final StorageItem item) {
-        final ProjectRequestBuilder builder = new ProjectRequestBuilder();
-        final NameVersionNode nameVersion = generateProjectNameVersion(item);
-        builder.setProjectName(nameVersion.getName());
-        builder.setVersionName(nameVersion.getVersion());
-        builder.setProjectLevelAdjustments(true);
-        builder.setPhase(phase.toUpperCase());
-        builder.setDistribution(distribution.toUpperCase());
-        return builder.build();
+    public void setProjectRequestService(final ProjectRequestService projectRequestService) {
+        this.projectRequestService = projectRequestService;
     }
 
-    private NameVersionNode generateProjectNameVersion(final StorageItem item) {
-        final String path = item.getParentPath();
-        String name = item.getName();
-        String version = "0.0.0";
-        final String[] pathSections = path.split("/");
-        if (pathSections.length > 1) {
-            version = pathSections[pathSections.length - 1];
-            name = pathSections[pathSections.length - 2];
-        }
-        final NameVersionNode nameVersion = new NameVersionNode(name, version);
-        return nameVersion;
+    public void setHubResponseService(final HubResponseService hubResponseService) {
+        this.hubResponseService = hubResponseService;
     }
 
-    public String createCLIInstallDirectoryName() {
-        final String hubCLIInstallDirectoryName = String.format("hub%s", String.valueOf(getHubServerConfig().getHubUrl().getHost().hashCode()));
-        intLogger.info(String.format("CLI Installation Root Directory for %s: %s", getHubServerConfig().getHubUrl().toString(), hubCLIInstallDirectoryName));
-        return hubCLIInstallDirectoryName;
+    public void setProjectVersionRequestService(final ProjectVersionRequestService projectVersionRequestService) {
+        this.projectVersionRequestService = projectVersionRequestService;
     }
 
-    public void createProjectAndVersion(final ProjectRequest projectRequest) throws IntegrationException {
-        ProjectView project = null;
-        final ProjectRequestService projectRequestService = getProjectRequestService();
-        final ProjectVersionRequestService projectVersionRequestService = getProjectVersionRequestService();
-        try {
-            project = projectRequestService.getProjectByName(projectRequest.getName());
-        } catch (final DoesNotExistException e) {
-            final String projectURL = projectRequestService.createHubProject(projectRequest);
-            project = projectRequestService.getItem(projectURL, ProjectView.class);
-        }
-        try {
-            projectVersionRequestService.getProjectVersion(project, projectRequest.getVersionRequest().getVersionName());
-        } catch (final DoesNotExistException e) {
-            final String versionURL = projectVersionRequestService.createHubVersion(project, projectRequest.getVersionRequest());
-            projectVersionRequestService.getItem(versionURL, ProjectVersionView.class);
-        }
+    public void setCliDownloadService(final CLIDownloadService cliDownloadService) {
+        this.cliDownloadService = cliDownloadService;
     }
 
-    public void installCLI(final File installDirectory) throws IntegrationException {
-        final String localHostName = HostnameHelper.getMyHostname();
-        intLogger.info("Installing CLI to the following location: " + localHostName + ": " + installDirectory);
-        final CIEnvironmentVariables ciEnvironmentVariables = new CIEnvironmentVariables();
-        ciEnvironmentVariables.putAll(System.getenv());
-        final HubVersionRequestService hubVersionRequestService = getHubVersionRequestService();
-        final CLIDownloadService cliDownloadService = getCliDownloadService();
-        final String hubVersion = hubVersionRequestService.getHubVersion();
-        cliDownloadService.performInstallation(installDirectory, ciEnvironmentVariables, getHubServerConfig().getHubUrl().toString(), hubVersion, localHostName);
+    public void setHubVersionRequestService(final HubVersionRequestService hubVersionRequestService) {
+        this.hubVersionRequestService = hubVersionRequestService;
     }
 }

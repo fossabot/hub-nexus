@@ -28,15 +28,19 @@ import java.util.Map;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.StorageItem;
 
+import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
+
 public class ScanItemMetaData {
     private final StorageItem item;
     private final ResourceStoreRequest request;
     private final Map<String, String> taskParameters;
+    private final ProjectRequest projectRequest;
 
-    public ScanItemMetaData(final StorageItem item, final ResourceStoreRequest request, final Map<String, String> taskParameters) {
+    public ScanItemMetaData(final StorageItem item, final ResourceStoreRequest request, final Map<String, String> taskParameters, final ProjectRequest projectRequest) {
         this.item = item;
         this.request = request;
         this.taskParameters = taskParameters;
+        this.projectRequest = projectRequest;
     }
 
     public StorageItem getItem() {
@@ -49,5 +53,9 @@ public class ScanItemMetaData {
 
     public Map<String, String> getTaskParameters() {
         return taskParameters;
+    }
+
+    public ProjectRequest getProjectRequest() {
+        return projectRequest;
     }
 }
