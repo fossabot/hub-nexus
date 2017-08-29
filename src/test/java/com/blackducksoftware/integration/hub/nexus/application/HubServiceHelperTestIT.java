@@ -35,13 +35,12 @@ import java.util.Map;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.sonatype.nexus.proxy.item.StorageItem;
 
-import com.blackducksoftware.integration.exception.EncryptionException;
 import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDescription;
-import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionDistributionEnum;
 import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionPhaseEnum;
 import com.blackducksoftware.integration.hub.model.enumeration.VersionBomPolicyStatusOverallStatusEnum;
@@ -61,13 +60,14 @@ public class HubServiceHelperTestIT {
     private final RestConnectionTestHelper restConnection = new RestConnectionTestHelper();
     private final TestEventLogger logger = new TestEventLogger();
 
-    private final HubServiceHelper hubServiceHelper;
-    private final Map<String, String> params;
-    private final ProjectVersionView projectVersionView;
-    private final ProjectView projectView;
-    private final TestProjectCreator projectCreator;
+    private HubServiceHelper hubServiceHelper;
+    private Map<String, String> params;
+    private ProjectVersionView projectVersionView;
+    private ProjectView projectView = null;
+    private TestProjectCreator projectCreator;
 
-    public HubServiceHelperTestIT() throws Exception {
+    @Before
+    public void initProject() throws Exception {
         params = generateParams();
         projectCreator = new TestProjectCreator(restConnection, logger);
         hubServiceHelper = new HubServiceHelper(logger, params);
@@ -97,18 +97,6 @@ public class HubServiceHelperTestIT {
     }
 
     @Test
-    public void createHubServerConfig() throws EncryptionException {
-        final HubServerConfig actual = hubServiceHelper.createHubServerConfig(params);
-        final HubServerConfig expected = restConnection.getHubServerConfig();
-
-        Assert.assertEquals(actual.getHubUrl(), expected.getHubUrl());
-        Assert.assertEquals(actual.getGlobalCredentials(), expected.getGlobalCredentials());
-        Assert.assertEquals(actual.getTimeout(), expected.getTimeout());
-        Assert.assertEquals(actual.getProxyInfo(), expected.getProxyInfo());
-        Assert.assertEquals(actual.isAutoImportHttpsCertificates(), expected.isAutoImportHttpsCertificates());
-    }
-
-    @Test
     public void checkPolicyStatusTest() throws IntegrationException {
         final PolicyStatusDescription status = hubServiceHelper.checkPolicyStatus(projectVersionView);
         final String expected = "The Hub found no components.";
@@ -123,12 +111,6 @@ public class HubServiceHelperTestIT {
         final String phase = reportData.getPhase();
         Assert.assertEquals(ProjectVersionDistributionEnum.EXTERNAL.toString(), distribution);
         Assert.assertEquals(ProjectVersionPhaseEnum.DEVELOPMENT.toString(), phase);
-    }
-
-    @Test
-    public void getProjectViewTest() throws IntegrationException {
-        final ProjectView testProjectView = hubServiceHelper.getProjectView("NexusTest");
-        Assert.assertEquals(projectView, testProjectView);
     }
 
     @Test
