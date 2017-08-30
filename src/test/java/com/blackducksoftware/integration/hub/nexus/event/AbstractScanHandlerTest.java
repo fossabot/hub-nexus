@@ -1,26 +1,3 @@
-/*
- * hub-nexus
- *
- * 	Copyright (C) 2017 Black Duck Software, Inc.
- * 	http://www.blackducksoftware.com/
- *
- * 	Licensed to the Apache Software Foundation (ASF) under one
- * 	or more contributor license agreements. See the NOTICE file
- * 	distributed with this work for additional information
- * 	regarding copyright ownership. The ASF licenses this file
- * 	to you under the Apache License, Version 2.0 (the
- * 	"License"); you may not use this file except in compliance
- * 	with the License. You may obtain a copy of the License at
- *
- * 	http://www.apache.org/licenses/LICENSE-2.0
- *
- * 	Unless required by applicable law or agreed to in writing,
- * 	software distributed under the License is distributed on an
- * 	"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * 	KIND, either express or implied. See the License for the
- * 	specific language governing permissions and limitations
- * 	under the License.
- */
 package com.blackducksoftware.integration.hub.nexus.event;
 
 import java.io.File;
@@ -28,12 +5,8 @@ import java.io.FileInputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
 import org.sonatype.nexus.AbstractMavenRepoContentTests;
 import org.sonatype.nexus.configuration.application.ApplicationConfiguration;
-import org.sonatype.nexus.proxy.NoSuchRepositoryException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.item.StorageItem;
@@ -47,7 +20,8 @@ import com.blackducksoftware.integration.hub.nexus.helpers.TestEventBus;
 import com.blackducksoftware.integration.hub.nexus.helpers.TestingPropertyKey;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 
-public class HubScanEventHandlerTestIT extends AbstractMavenRepoContentTests {
+public class AbstractScanHandlerTest extends AbstractMavenRepoContentTests {
+
     private RestConnectionTestHelper restConnection;
     private ApplicationConfiguration appConfiguration;
     private TestEventBus eventBus;
@@ -59,22 +33,13 @@ public class HubScanEventHandlerTestIT extends AbstractMavenRepoContentTests {
     private StorageItem item;
 
     @Override
-    public void setUp() throws Exception {
+    protected void setUp() throws Exception {
         super.setUp();
         eventBus = new TestEventBus();
         appConfiguration = this.nexusConfiguration();
         attributesHandler = lookup(DefaultAttributesHandler.class);
         eventManager = new ScanEventManager(eventBus);
         restConnection = new RestConnectionTestHelper();
-    }
-
-    @Override
-    protected boolean runWithSecurityDisabled() {
-        return true;
-    }
-
-    @Before
-    public void initTest() throws NoSuchRepositoryException, Exception {
         final File zipFile = getTestFile("src/test/resources/repo1/aa-1.2.3.zip");
         final File propFile = getTestFile("src/test/resources/repo1/packaging2extension-mapping.properties");
         resourceStoreRequest = new ResourceStoreRequest("/integration/test/1.0-SNAPSHOT/" + zipFile.getName());
@@ -84,6 +49,11 @@ public class HubScanEventHandlerTestIT extends AbstractMavenRepoContentTests {
         item = repository.retrieveItem(resourceStoreRequest);
         taskParameters = generateParams();
         taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, "IntegationTestTask");
+    }
+
+    @Override
+    protected boolean runWithSecurityDisabled() {
+        return true;
     }
 
     private Map<String, String> generateParams() {
@@ -102,26 +72,40 @@ public class HubScanEventHandlerTestIT extends AbstractMavenRepoContentTests {
         return newParams;
     }
 
-    @Test
-    public void testProcessedEvent() {
-        final HubScanEvent event = new HubScanEvent(repository, item, taskParameters, resourceStoreRequest);
-        event.setProcessed(true);
-        final HubScanEventHandler eventHandler = new HubScanEventHandler(appConfiguration, eventBus, attributesHandler, eventManager);
-        eventHandler.handle(event);
-        Assert.assertFalse(eventBus.hasEvents());
-        Assert.assertTrue(event.isProcessed());
+    public RestConnectionTestHelper getRestConnection() {
+        return restConnection;
     }
 
-    @Test
-    public void testHandleEvent() {
-        final HubScanEvent event = new HubScanEvent(null, null, null, null);
-        final HubScanEventHandler eventHandler = new HubScanEventHandler(appConfiguration, eventBus, attributesHandler, eventManager);
-        eventHandler.handle(event);
-        Assert.assertTrue(eventBus.hasEvents());
-        Assert.assertTrue(event.isProcessed());
+    public ApplicationConfiguration getAppConfiguration() {
+        return appConfiguration;
     }
 
-    public void testProjectVersionViewNull() {
-
+    public TestEventBus getEventBus() {
+        return eventBus;
     }
+
+    public DefaultAttributesHandler getAttributesHandler() {
+        return attributesHandler;
+    }
+
+    public ScanEventManager getEventManager() {
+        return eventManager;
+    }
+
+    public Repository getRepository() {
+        return repository;
+    }
+
+    public Map<String, String> getTaskParameters() {
+        return taskParameters;
+    }
+
+    public ResourceStoreRequest getResourceStoreRequest() {
+        return resourceStoreRequest;
+    }
+
+    public StorageItem getItem() {
+        return item;
+    }
+
 }

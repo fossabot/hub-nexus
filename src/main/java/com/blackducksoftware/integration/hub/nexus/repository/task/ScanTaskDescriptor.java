@@ -46,15 +46,17 @@ import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionPha
 @Named
 @Singleton
 public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
+
     // This ID string must match the class name of the task that actually performs the opertaion
     public static final String ID = "ScanTask";
     public static final String PLUGIN_VERSION = "0.0.1-SNAPSHOT";
     public static final String BLACKDUCK_DIRECTORY = "blackduck";
     public static final String TASK_NAME = "Hub Repository Scan";
-    private static final String DEFAULT_FILE_PATTERNS = "*.war,*.zip,*.tar.gz,*.hpi";
-    private static final String DEFAULT_HUB_TIMEOUT = "300";
-    private static final String DEFAULT_SCAN_MEMORY = "4096";
-    private static final String DEFAULT_WORKING_DIRECTORY = "/sonatype-work";
+    public static final String DEFAULT_FILE_PATTERNS = "*.war,*.zip,*.tar.gz,*.hpi";
+    public static final String DEFAULT_HUB_TIMEOUT = "300";
+    public static final String DEFAULT_SCAN_MEMORY = "4096";
+    public static final String DEFAULT_WORKING_DIRECTORY = "/sonatype-work";
+    public static final String DEFAULT_ARTIFACT_CUTOFF = "2016-01-01T00:00:00.000";
 
     private static final String DESCRIPTION_HUB_IMPORT_CERT = "Import the SSL Certificates from the specified HTTPS Hub Server. Note: For this to work, the keystore must be writable by the nexus user";
     private static final String DESCRIPTION_HUB_PASSWORD = "Provide the password to authenticate with your Hub server";
@@ -102,7 +104,7 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
     private final StringTextFormField timeoutField = new StringTextFormField(TaskField.HUB_TIMEOUT.getParameterKey(), LABEL_CONNECTION_TIMEOUT, DESCRIPTION_HUB_TIMEOUT, FormField.OPTIONAL).withInitialValue(DEFAULT_HUB_TIMEOUT);
     private final CheckboxFormField autoImportCert = new CheckboxFormField(TaskField.HUB_AUTO_IMPORT_CERT.getParameterKey(), LABEL_IMPORT_HUB_SSL_CERTIFICATE, DESCRIPTION_HUB_IMPORT_CERT, FormField.OPTIONAL);
     private final StringTextFormField artifactCutoffField = new StringTextFormField(TaskField.OLD_ARTIFACT_CUTOFF.getParameterKey(), LABEL_ARTIFACT_CUTOFF, DESCRIPTION_SCAN_CUTOFF_DATE, FormField.OPTIONAL)
-            .withInitialValue("2016-01-01T00:00:00.000");
+            .withInitialValue(DEFAULT_ARTIFACT_CUTOFF);
 
     private final StringTextFormField proxyHostField = new StringTextFormField(TaskField.HUB_PROXY_HOST.getParameterKey(), LABEL_PROXY_HOST, DESCRIPTION_PROXY_HOST, FormField.OPTIONAL);
     private final StringTextFormField proxyPortField = new StringTextFormField(TaskField.HUB_PROXY_PORT.getParameterKey(), LABEL_PROXY_PORT, DESCRIPTION_PROXY_PORT, FormField.OPTIONAL);
