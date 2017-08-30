@@ -34,9 +34,8 @@ import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.sonatype.nexus.proxy.attributes.Attributes;
 import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.item.StorageItem;
@@ -46,11 +45,13 @@ import org.sonatype.nexus.proxy.walker.WalkerContext;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.ScanEventManager;
 import com.blackducksoftware.integration.hub.nexus.event.ScanItemMetaData;
+import com.blackducksoftware.integration.hub.nexus.helpers.RestConnectionTestHelper;
+import com.blackducksoftware.integration.hub.nexus.helpers.TestEventLogger;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
-@RunWith(PowerMockRunner.class)
+@RunWith(MockitoJUnitRunner.class)
 @PrepareForTest(RepositoryWalker.class)
-public class RepositoryWalkerTest {
+public class RepositoryWalkerTestIT {
 
     @Mock
     ItemAttributesHelper itemAttributesHelper;
@@ -79,6 +80,8 @@ public class RepositoryWalkerTest {
     @Test
     public void processItemsTest() throws Exception {
         final Map<String, String> taskParams = new HashMap<>();
+        taskParams.put(TaskField.DISTRIBUTION.getParameterKey(), "EXTERNAL");
+        taskParams.put(TaskField.PHASE.getParameterKey(), "DEVELOPMENT");
 
         when(repositoryItemUid.getBooleanAttributeValue(IsHiddenAttribute.class)).thenReturn(false);
 
@@ -88,16 +91,18 @@ public class RepositoryWalkerTest {
         when(item.getRemoteUrl()).thenReturn("");
         when(item.getPath()).thenReturn("test");
         when(item.getRepositoryItemAttributes()).thenReturn(attributes);
+        when(item.getParentPath()).thenReturn("/test/1.1.1");
 
         when(itemAttributesHelper.getScanTime(item)).thenReturn(10l);
         when(itemAttributesHelper.getScanResult(item)).thenReturn(ItemAttributesHelper.SCAN_STATUS_SUCCESS);
 
-        PowerMockito.whenNew(HubServiceHelper.class).withAnyArguments().thenReturn(hubServiceHelper);
-        doNothing().when(hubServiceHelper).createProjectAndVersion(null);
+        final RestConnectionTestHelper restConnection = new RestConnectionTestHelper();
+        final HubServiceHelper hubServiceHelper = new HubServiceHelper(new TestEventLogger(), taskParams);
+        hubServiceHelper.setHubServicesFactory(restConnection.createHubServicesFactory());
 
         when(walkerContext.getResourceStoreRequest()).thenReturn(null);
 
-        final RepositoryWalker walker = new RepositoryWalker("test", itemAttributesHelper, taskParams, scanEventManager);
+        final RepositoryWalker walker = new RepositoryWalker("test", itemAttributesHelper, taskParams, scanEventManager, hubServiceHelper);
         walker.processItem(walkerContext, item);
 
         doNothing().when(scanEventManager).processItem(scanItemMetaData);

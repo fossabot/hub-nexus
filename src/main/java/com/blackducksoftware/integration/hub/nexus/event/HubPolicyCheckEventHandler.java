@@ -62,12 +62,10 @@ public class HubPolicyCheckEventHandler extends HubEventHandler {
             final Map<String, String> taskParameters = event.getTaskParameters();
             final HubServiceHelper hubServiceHelper = createServiceHelper(logger, taskParameters);
             if (hubServiceHelper != null) {
-                final PolicyStatusDescription policyCheckResults = hubServiceHelper.checkPolicyStatus(projectVersionView);
-                if (policyCheckResults != null) {
-                    final VersionBomPolicyStatusView versionBomPolicyStatusView = hubServiceHelper.getOverallPolicyStatus(projectVersionView);
-                    getAttributeHelper().setPolicyStatus(item, policyCheckResults.getPolicyStatusMessage());
-                    getAttributeHelper().setOverallPolicyStatus(item, versionBomPolicyStatusView.overallStatus.toString());
-                }
+                final VersionBomPolicyStatusView versionBomPolicyStatusView = hubServiceHelper.getPolicyStatusDataService().getPolicyStatusForVersion(projectVersionView);
+                final PolicyStatusDescription policyCheckResults = new PolicyStatusDescription(versionBomPolicyStatusView);
+                getAttributeHelper().setPolicyStatus(item, policyCheckResults.getPolicyStatusMessage());
+                getAttributeHelper().setOverallPolicyStatus(item, versionBomPolicyStatusView.overallStatus.toString());
             }
         } catch (final Exception ex) {
             logger.error("Error occurred checking policy", ex);
