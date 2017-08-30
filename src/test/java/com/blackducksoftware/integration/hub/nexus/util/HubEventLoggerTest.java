@@ -33,7 +33,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.blackducksoftware.integration.hub.nexus.event.HubEvent;
-import com.blackducksoftware.integration.hub.nexus.helpers.TestEventLogger;
+import com.blackducksoftware.integration.hub.nexus.test.TestEventLogger;
 
 public class HubEventLoggerTest {
     @Mock

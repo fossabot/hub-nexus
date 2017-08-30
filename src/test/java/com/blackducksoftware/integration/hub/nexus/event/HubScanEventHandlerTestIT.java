@@ -42,10 +42,10 @@ import org.sonatype.nexus.proxy.maven.packaging.ArtifactPackagingMapper;
 import org.sonatype.nexus.proxy.registry.RepositoryRegistry;
 import org.sonatype.nexus.proxy.repository.Repository;
 
-import com.blackducksoftware.integration.hub.nexus.helpers.RestConnectionTestHelper;
-import com.blackducksoftware.integration.hub.nexus.helpers.TestEventBus;
-import com.blackducksoftware.integration.hub.nexus.helpers.TestingPropertyKey;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
+import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper;
+import com.blackducksoftware.integration.hub.nexus.test.TestEventBus;
+import com.blackducksoftware.integration.hub.nexus.test.TestingPropertyKey;
 
 public class HubScanEventHandlerTestIT extends AbstractMavenRepoContentTests {
     private RestConnectionTestHelper restConnection;

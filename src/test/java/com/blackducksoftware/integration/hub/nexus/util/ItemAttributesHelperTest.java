@@ -33,7 +33,7 @@ import org.junit.Test;
 import org.sonatype.nexus.proxy.attributes.AttributesHandler;
 import org.sonatype.nexus.proxy.item.StorageItem;
 
-import com.blackducksoftware.integration.hub.nexus.helpers.MockAttributes;
+import com.blackducksoftware.integration.hub.nexus.test.MockAttributes;
 
 public class ItemAttributesHelperTest {
 

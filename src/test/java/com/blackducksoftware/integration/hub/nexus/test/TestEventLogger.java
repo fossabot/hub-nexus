@@ -21,7 +21,7 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.helpers;
+package com.blackducksoftware.integration.hub.nexus.test;
 
 import org.slf4j.Logger;
 import org.slf4j.Marker;

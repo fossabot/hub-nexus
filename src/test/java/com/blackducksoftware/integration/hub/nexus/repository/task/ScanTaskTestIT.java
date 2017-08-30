@@ -36,8 +36,8 @@ import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.walker.Walker;
 
 import com.blackducksoftware.integration.hub.nexus.event.ScanEventManager;
-import com.blackducksoftware.integration.hub.nexus.helpers.RestConnectionTestHelper;
-import com.blackducksoftware.integration.hub.nexus.helpers.TestingPropertyKey;
+import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper;
+import com.blackducksoftware.integration.hub.nexus.test.TestingPropertyKey;
 
 public class ScanTaskTestIT extends AbstractMavenRepoContentTests {
     private Walker walker;

@@ -40,7 +40,7 @@ import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.repository.Repository;
 
-import com.blackducksoftware.integration.hub.nexus.helpers.TestEventBus;
+import com.blackducksoftware.integration.hub.nexus.test.TestEventBus;
 
 public class ScanEventManagerTest {
 

@@ -45,8 +45,8 @@ import org.sonatype.nexus.proxy.walker.WalkerContext;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.ScanEventManager;
 import com.blackducksoftware.integration.hub.nexus.event.ScanItemMetaData;
-import com.blackducksoftware.integration.hub.nexus.helpers.RestConnectionTestHelper;
-import com.blackducksoftware.integration.hub.nexus.helpers.TestEventLogger;
+import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper;
+import com.blackducksoftware.integration.hub.nexus.test.TestEventLogger;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
 @RunWith(MockitoJUnitRunner.class)
