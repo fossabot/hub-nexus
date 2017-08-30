@@ -21,7 +21,7 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.helpers;
+package com.blackducksoftware.integration.hub.nexus.test;
 
 import static org.junit.Assert.fail;
 

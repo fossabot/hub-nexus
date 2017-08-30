@@ -21,7 +21,7 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.helpers;
+package com.blackducksoftware.integration.hub.nexus.test;
 
 public enum TestingPropertyKey {
     TEST_HUB_SERVER_URL,

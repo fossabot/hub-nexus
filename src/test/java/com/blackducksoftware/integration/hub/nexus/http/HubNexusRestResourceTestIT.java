@@ -52,8 +52,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.sonatype.nexus.proxy.AbstractNexusTestEnvironment;
 
-import com.blackducksoftware.integration.hub.nexus.helpers.RestConnectionTestHelper;
-import com.blackducksoftware.integration.hub.nexus.helpers.TestingPropertyKey;
+import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper;
+import com.blackducksoftware.integration.hub.nexus.test.TestingPropertyKey;
 import com.google.gson.Gson;
 
 import okhttp3.OkHttpClient;
