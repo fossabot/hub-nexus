@@ -104,7 +104,7 @@ public class HubScanEventHandlerTestIT extends AbstractMavenRepoContentTests {
 
     @Test
     public void testProcessedEvent() {
-        final HubScanEvent event = new HubScanEvent(repository, item, taskParameters, resourceStoreRequest);
+        final HubScanEvent event = new HubScanEvent(repository, item, taskParameters, resourceStoreRequest, null);
         event.setProcessed(true);
         final HubScanEventHandler eventHandler = new HubScanEventHandler(appConfiguration, eventBus, attributesHandler, eventManager);
         eventHandler.handle(event);
@@ -114,7 +114,7 @@ public class HubScanEventHandlerTestIT extends AbstractMavenRepoContentTests {
 
     @Test
     public void testHandleEvent() {
-        final HubScanEvent event = new HubScanEvent(null, null, null, null);
+        final HubScanEvent event = new HubScanEvent(null, null, null, null, null);
         final HubScanEventHandler eventHandler = new HubScanEventHandler(appConfiguration, eventBus, attributesHandler, eventManager);
         eventHandler.handle(event);
         Assert.assertTrue(eventBus.hasEvents());

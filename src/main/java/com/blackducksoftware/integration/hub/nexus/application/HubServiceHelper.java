@@ -109,7 +109,7 @@ public class HubServiceHelper {
                 e.printStackTrace();
                 intLogger.error("Encryption error when creating REST connection");
             }
-            hubServicesFactory = new HubServicesFactory(credentialsRestConnection);
+            setHubServicesFactory(new HubServicesFactory(credentialsRestConnection));
         }
 
         return hubServicesFactory;
@@ -196,47 +196,7 @@ public class HubServiceHelper {
         return hubVersionRequestService;
     }
 
-    public void setHubServerConfig(final HubServerConfig hubServerConfig) {
-        this.hubServerConfig = hubServerConfig;
-    }
-
     public void setHubServicesFactory(final HubServicesFactory hubServicesFactory) {
         this.hubServicesFactory = hubServicesFactory;
-    }
-
-    public void setPolicyStatusDataService(final PolicyStatusDataService policyStatusDataService) {
-        this.policyStatusDataService = policyStatusDataService;
-    }
-
-    public void setMetaService(final MetaService metaService) {
-        this.metaService = metaService;
-    }
-
-    public void setRiskReportDataService(final RiskReportDataService riskReportDataService) {
-        this.riskReportDataService = riskReportDataService;
-    }
-
-    public void setCliDataService(final CLIDataService cliDataService) {
-        this.cliDataService = cliDataService;
-    }
-
-    public void setProjectRequestService(final ProjectRequestService projectRequestService) {
-        this.projectRequestService = projectRequestService;
-    }
-
-    public void setHubResponseService(final HubResponseService hubResponseService) {
-        this.hubResponseService = hubResponseService;
-    }
-
-    public void setProjectVersionRequestService(final ProjectVersionRequestService projectVersionRequestService) {
-        this.projectVersionRequestService = projectVersionRequestService;
-    }
-
-    public void setCliDownloadService(final CLIDownloadService cliDownloadService) {
-        this.cliDownloadService = cliDownloadService;
-    }
-
-    public void setHubVersionRequestService(final HubVersionRequestService hubVersionRequestService) {
-        this.hubVersionRequestService = hubVersionRequestService;
     }
 }
