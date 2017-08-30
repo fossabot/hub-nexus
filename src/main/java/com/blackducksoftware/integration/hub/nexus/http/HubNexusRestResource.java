@@ -57,8 +57,6 @@ import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 public class HubNexusRestResource extends ComponentSupport implements Resource {
     public static final String RESOURCE_PATH = "/blackduck/info";
 
-    // TODO Write out the entire names
-
     private final RepositoryRegistry repositoryRegistry;
     private final ItemAttributesHelper itemAttributesHelper;
 
