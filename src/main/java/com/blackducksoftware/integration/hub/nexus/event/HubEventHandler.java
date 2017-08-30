@@ -34,7 +34,7 @@ import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
-public class HubEventHandler extends ComponentSupport implements EventSubscriber, Asynchronous {
+public abstract class HubEventHandler extends ComponentSupport implements EventSubscriber, Asynchronous {
     private final ItemAttributesHelper attributeHelper;
 
     public HubEventHandler(final AttributesHandler attributesHandler) {

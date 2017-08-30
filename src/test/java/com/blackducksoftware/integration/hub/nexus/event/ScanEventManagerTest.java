@@ -23,6 +23,6 @@
  */
 package com.blackducksoftware.integration.hub.nexus.event;
 
-public class HubEventHandlerTestIT {
+public class ScanEventManagerTest {
 
 }
