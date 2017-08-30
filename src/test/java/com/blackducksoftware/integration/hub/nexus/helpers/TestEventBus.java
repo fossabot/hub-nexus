@@ -23,6 +23,7 @@
  */
 package com.blackducksoftware.integration.hub.nexus.helpers;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,5 +66,13 @@ public class TestEventBus implements EventBus {
 
     public int getEventCount() {
         return eventMap.size();
+    }
+
+    public void removeAllEvents() {
+        eventMap.clear();
+    }
+
+    public Collection<Event<?>> getEvents() {
+        return eventMap.values();
     }
 }

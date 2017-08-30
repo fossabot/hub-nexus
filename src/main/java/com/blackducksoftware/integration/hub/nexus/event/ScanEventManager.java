@@ -60,16 +60,19 @@ public class ScanEventManager extends ComponentSupport {
     }
 
     public void markScanEventProcessed(final HubScanEvent event) {
-        final String taskName = event.getTaskParameters().get(PARAMETER_KEY_TASK_NAME);
-        final String eventId = event.getEventId().toString();
-        markEventProcessed(taskName, eventId);
+        if (event.getTaskParameters() != null) {
+            final String taskName = event.getTaskParameters().get(PARAMETER_KEY_TASK_NAME);
+            final String eventId = event.getEventId().toString();
+            markEventProcessed(taskName, eventId);
+        }
     }
 
     private void markEventProcessed(final String taskName, final String eventId) {
         if (taskScanEventMap.containsKey(taskName)) {
             final Map<String, HubScanEvent> eventMap = taskScanEventMap.get(taskName);
             if (eventMap.containsKey(eventId)) {
-                eventMap.remove(eventId);
+                final HubScanEvent event = eventMap.remove(eventId);
+                event.setProcessed(true);
             }
         }
     }
@@ -78,18 +81,22 @@ public class ScanEventManager extends ComponentSupport {
         final HubScanEvent event = new HubScanEvent(data.getItem().getRepositoryItemUid().getRepository(), data.getItem(), data.getTaskParameters(), data.getRequest(), data.getProjectRequest());
         logger.debug("Posting event {} onto the event bus", event.getEventId());
         addNewEvent(event);
-        eventBus.post(event);
     }
 
     private void addNewEvent(final HubScanEvent event) {
-        final String taskName = event.getTaskParameters().get(PARAMETER_KEY_TASK_NAME);
-        Map<String, HubScanEvent> eventMap;
-        if (taskScanEventMap.containsKey(taskName)) {
-            eventMap = taskScanEventMap.get(taskName);
-        } else {
-            eventMap = new ConcurrentHashMap<>(1000);
-            taskScanEventMap.put(taskName, eventMap);
+        if (event.getTaskParameters() != null) {
+            final String taskName = event.getTaskParameters().get(PARAMETER_KEY_TASK_NAME);
+            Map<String, HubScanEvent> eventMap;
+            if (taskName != null) {
+                if (taskScanEventMap.containsKey(taskName)) {
+                    eventMap = taskScanEventMap.get(taskName);
+                } else {
+                    eventMap = new ConcurrentHashMap<>(1000);
+                    taskScanEventMap.put(taskName, eventMap);
+                }
+                eventMap.put(event.getEventId().toString(), event);
+                eventBus.post(event);
+            }
         }
-        eventMap.put(event.getEventId().toString(), event);
     }
 }
