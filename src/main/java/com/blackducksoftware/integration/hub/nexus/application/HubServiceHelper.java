@@ -106,8 +106,8 @@ public class HubServiceHelper {
             try {
                 credentialsRestConnection = createHubServerConfig(taskParameters).createCredentialsRestConnection(intLogger);
             } catch (final EncryptionException e) {
-                e.printStackTrace();
                 intLogger.error("Encryption error when creating REST connection");
+                e.printStackTrace();
             }
             setHubServicesFactory(new HubServicesFactory(credentialsRestConnection));
         }

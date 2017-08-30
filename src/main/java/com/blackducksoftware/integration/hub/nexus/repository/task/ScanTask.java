@@ -59,14 +59,12 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
     private final Walker walker;
     private final DefaultAttributesHandler attributesHandler;
     private final ScanEventManager eventManager;
-    final HubServiceHelper hubServiceHelper;
 
     @Inject
     public ScanTask(final Walker walker, final DefaultAttributesHandler attributesHandler, final ScanEventManager eventManager) {
         this.walker = walker;
         this.attributesHandler = attributesHandler;
         this.eventManager = eventManager;
-        hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), this.getParameters());
     }
 
     @Override
@@ -81,6 +79,7 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
 
     @Override
     protected Object doRun() throws Exception {
+        final HubServiceHelper hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), this.getParameters());
         File blackDuckDirectory = null;
         try {
             final int pendingEvents = eventManager.pendingEventCount(getName());
@@ -95,13 +94,13 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
                 if (!cliInstallDirectory.exists()) {
                     cliInstallDirectory.mkdirs();
                 }
-                installCLI(cliInstallDirectory);
+                installCLI(cliInstallDirectory, hubServiceHelper);
                 final String repositoryFieldId = getParameter(TaskField.REPOSITORY_FIELD_ID.getParameterKey());
                 final List<Repository> repositoryList = createRepositoryList(repositoryFieldId);
                 final List<WalkerContext> contextList = new ArrayList<>();
 
                 for (final Repository repository : repositoryList) {
-                    contextList.add(createRepositoryWalker(eventManager, repository));
+                    contextList.add(createRepositoryWalker(eventManager, repository, hubServiceHelper));
                 }
                 walkRepositories(contextList);
             }
@@ -133,7 +132,7 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
         return repositoryList;
     }
 
-    private WalkerContext createRepositoryWalker(final ScanEventManager eventManager, final Repository repository) {
+    private WalkerContext createRepositoryWalker(final ScanEventManager eventManager, final Repository repository, final HubServiceHelper hubServiceHelper) {
         final ResourceStoreRequest request = new ResourceStoreRequest(getResourceStorePath(), true, false);
         if (StringUtils.isBlank(request.getRequestPath())) {
             request.setRequestPath(RepositoryItemUid.PATH_ROOT);
@@ -157,7 +156,7 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
         }
     }
 
-    private void installCLI(final File installDirectory) throws IntegrationException {
+    private void installCLI(final File installDirectory, final HubServiceHelper hubServiceHelper) throws IntegrationException {
         final String localHostName = HostnameHelper.getMyHostname();
         logger.info("Installing CLI to the following location: " + localHostName + ": " + installDirectory);
         final CIEnvironmentVariables ciEnvironmentVariables = new CIEnvironmentVariables();
