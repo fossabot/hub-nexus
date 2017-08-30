@@ -23,38 +23,74 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.sonatype.nexus.AbstractMavenRepoContentTests;
+import org.sonatype.nexus.configuration.application.NexusConfiguration;
+import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
+import org.sonatype.nexus.proxy.walker.Walker;
 
-public class ScanTaskTestIT {
-    // private final Walker walker;
-    // private final DefaultAttributesHandler defaultAttributesHandler;
-    // private final ScanEventManager scanEventManager;
-    //
-    // @Inject
-    // public ScanTaskTestIT(final Walker walker, final DefaultAttributesHandler defaultAttributesHandler, final ScanEventManager scanEventManager) {
-    // this.walker = walker;
-    // this.defaultAttributesHandler = defaultAttributesHandler;
-    // this.scanEventManager = scanEventManager;
-    // }
+import com.blackducksoftware.integration.hub.nexus.event.ScanEventManager;
+import com.blackducksoftware.integration.hub.nexus.helpers.RestConnectionTestHelper;
+import com.blackducksoftware.integration.hub.nexus.helpers.TestingPropertyKey;
 
-    @Test
-    public void getActionTest() {
-        final ScanTask scanTask = new ScanTask(null, null, null);
-        Assert.assertEquals("BLACKDUCK_HUB_SCAN", scanTask.getAction());
+public class ScanTaskTestIT extends AbstractMavenRepoContentTests {
+    private Walker walker;
+    private DefaultAttributesHandler defaultAttributesHandler;
+    private ScanEventManager scanEventManager;
+    private RestConnectionTestHelper restConnection;
+    private NexusConfiguration appConfiguration;
+    private Map<String, String> taskParameters;
+
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        appConfiguration = this.nexusConfiguration();
+        defaultAttributesHandler = lookup(DefaultAttributesHandler.class);
+        restConnection = new RestConnectionTestHelper();
     }
 
-    @Test
-    public void getMessageTest() {
-        final ScanTask scanTask = new ScanTask(null, null, null);
-        Assert.assertEquals("Searching to scan artifacts in the repository", scanTask.getMessage());
+    @Before
+    public void init() throws Exception {
+        walker = lookup(Walker.class);
+        defaultAttributesHandler = lookup(DefaultAttributesHandler.class);
+        scanEventManager = lookup(ScanEventManager.class);
+        taskParameters = generateParams();
+        taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, "IntegationTestTask");
     }
 
     @Test
     public void doRunTest() throws Exception {
-        final ScanTask scanTask = new ScanTask(null, null, null);
-        final Object nothing = scanTask.doRun();
+
+        final ScanTask scanTask = new ScanTask(walker, defaultAttributesHandler, scanEventManager);
+        final ScanTask spyScanTask = Mockito.spy(scanTask);
+        final Walker spyWalker = Mockito.spy(walker);
+
+        Mockito.when(spyScanTask.getParameters()).thenReturn(taskParameters);
+
+        final Object nothing = spyScanTask.doRun();
         Assert.assertNull(nothing);
+    }
+
+    private Map<String, String> generateParams() {
+        final Map<String, String> newParams = new HashMap<>();
+
+        newParams.put(TaskField.HUB_URL.getParameterKey(), restConnection.getProperty(TestingPropertyKey.TEST_HUB_SERVER_URL));
+        newParams.put(TaskField.HUB_USERNAME.getParameterKey(), restConnection.getProperty(TestingPropertyKey.TEST_USERNAME));
+        newParams.put(TaskField.HUB_PASSWORD.getParameterKey(), restConnection.getProperty(TestingPropertyKey.TEST_PASSWORD));
+        newParams.put(TaskField.HUB_TIMEOUT.getParameterKey(), restConnection.getProperty(TestingPropertyKey.TEST_HUB_TIMEOUT));
+        newParams.put(TaskField.HUB_PROXY_HOST.getParameterKey(), restConnection.getProperty(TestingPropertyKey.TEST_PROXY_HOST_BASIC));
+        newParams.put(TaskField.HUB_PROXY_PORT.getParameterKey(), restConnection.getProperty(TestingPropertyKey.TEST_PROXY_PORT_BASIC));
+        newParams.put(TaskField.HUB_PROXY_USERNAME.getParameterKey(), restConnection.getProperty(TestingPropertyKey.TEST_PROXY_USER_BASIC));
+        newParams.put(TaskField.HUB_PROXY_PASSWORD.getParameterKey(), restConnection.getProperty(TestingPropertyKey.TEST_PROXY_PASSWORD_BASIC));
+        newParams.put(TaskField.HUB_AUTO_IMPORT_CERT.getParameterKey(), restConnection.getProperty(TestingPropertyKey.TEST_AUTO_IMPORT_HTTPS_CERT));
+
+        return newParams;
     }
 
 }
