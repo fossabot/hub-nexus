@@ -68,7 +68,7 @@ public class ScanEventManagerTest {
 
     @Test
     public void testProcessItemNullParameterMap() throws Exception {
-        final ScanItemMetaData data = new ScanItemMetaData(item, null, null);
+        final ScanItemMetaData data = new ScanItemMetaData(item, null, null, null);
         eventManager.processItem(data);
         assertFalse(eventBus.hasEvents());
     }
@@ -77,7 +77,7 @@ public class ScanEventManagerTest {
     public void testProcessItem() throws Exception {
         final Map<String, String> taskParameters = new HashMap<>();
         taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, TEST_TASK_NAME);
-        final ScanItemMetaData data = new ScanItemMetaData(item, null, taskParameters);
+        final ScanItemMetaData data = new ScanItemMetaData(item, null, taskParameters, null);
         eventManager.processItem(data);
         assertTrue(eventBus.hasEvents());
     }
@@ -87,7 +87,7 @@ public class ScanEventManagerTest {
         assertEquals(0, eventManager.pendingEventCount(TEST_TASK_NAME));
         final Map<String, String> taskParameters = new HashMap<>();
         taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, TEST_TASK_NAME);
-        final ScanItemMetaData data = new ScanItemMetaData(item, null, taskParameters);
+        final ScanItemMetaData data = new ScanItemMetaData(item, null, taskParameters, null);
         eventManager.processItem(data);
         assertTrue(eventBus.hasEvents());
         assertEquals(eventBus.getEventCount(), eventManager.pendingEventCount(TEST_TASK_NAME));
@@ -98,7 +98,7 @@ public class ScanEventManagerTest {
         assertEquals(0, eventManager.pendingEventCount(TEST_TASK_NAME));
         final Map<String, String> taskParameters = new HashMap<>();
         taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, TEST_TASK_NAME);
-        final ScanItemMetaData data = new ScanItemMetaData(item, null, taskParameters);
+        final ScanItemMetaData data = new ScanItemMetaData(item, null, taskParameters, null);
         eventManager.processItem(data);
         assertTrue(eventBus.hasEvents());
         assertEquals(eventBus.getEventCount(), eventManager.pendingEventCount(TEST_TASK_NAME));
