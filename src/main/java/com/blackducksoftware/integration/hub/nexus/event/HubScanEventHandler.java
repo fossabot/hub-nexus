@@ -71,8 +71,7 @@ public class HubScanEventHandler extends HubEventHandler {
             } else {
                 final IntegrationInfo phoneHomeInfo = new IntegrationInfo(ThirdPartyName.NEXUS, appConfiguration.getConfigurationModel().getNexusVersion(), ScanTaskDescriptor.PLUGIN_VERSION);
                 final HubServiceHelper hubServiceHelper = createServiceHelper(logger, event.getTaskParameters());
-                final String cliInstallRootDirectory = String.format("hub%s", String.valueOf(hubServiceHelper.getHubServerConfig().getHubUrl().getHost().hashCode()));
-                logger.info(String.format("CLI Installation Root Directory for %s: %s", hubServiceHelper.getHubServerConfig().getHubUrl().toString(), cliInstallRootDirectory));
+                final String cliInstallRootDirectory = hubServiceHelper.createCLIInstallDirectoryName();
                 final File blackDuckDirectory = new File(event.getTaskParameters().get(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
                 final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
                 final ArtifactScanner scanner = new ArtifactScanner(event, logger, getAttributeHelper(), taskDirectory, hubServiceHelper, phoneHomeInfo);

@@ -43,15 +43,10 @@ import org.sonatype.nexus.proxy.walker.WalkerContext;
 import org.sonatype.nexus.proxy.walker.WalkerException;
 import org.sonatype.nexus.scheduling.AbstractNexusRepositoriesPathAwareTask;
 
-import com.blackducksoftware.integration.exception.IntegrationException;
-import com.blackducksoftware.integration.hub.api.nonpublic.HubVersionRequestService;
-import com.blackducksoftware.integration.hub.cli.CLIDownloadService;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.ScanEventManager;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
-import com.blackducksoftware.integration.hub.util.HostnameHelper;
 import com.blackducksoftware.integration.log.Slf4jIntLogger;
-import com.blackducksoftware.integration.util.CIEnvironmentVariables;
 
 @Named(ScanTaskDescriptor.ID)
 public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
@@ -59,14 +54,12 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
     private final Walker walker;
     private final DefaultAttributesHandler attributesHandler;
     private final ScanEventManager eventManager;
-    final HubServiceHelper hubServiceHelper;
 
     @Inject
     public ScanTask(final Walker walker, final DefaultAttributesHandler attributesHandler, final ScanEventManager eventManager) {
         this.walker = walker;
         this.attributesHandler = attributesHandler;
         this.eventManager = eventManager;
-        hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), this.getParameters());
     }
 
     @Override
@@ -88,14 +81,16 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
                 logger.info("{} pending events from the last run.  Skipping task execution.", pendingEvents);
             } else {
                 logger.info("No Pending events for this task.  Start task execution.");
+                final HubServiceHelper hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), this.getParameters());
                 blackDuckDirectory = new File(getParameter(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
-                final String cliInstallRootDirectory = String.format("hub%s", String.valueOf(hubServiceHelper.getHubServerConfig().getHubUrl().getHost().hashCode()));
+                final String cliInstallRootDirectory = hubServiceHelper.createCLIInstallDirectoryName();
                 final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
                 final File cliInstallDirectory = new File(taskDirectory, "tools");
                 if (!cliInstallDirectory.exists()) {
                     cliInstallDirectory.mkdirs();
                 }
-                installCLI(cliInstallDirectory);
+
+                hubServiceHelper.installCLI(cliInstallDirectory);
                 final String repositoryFieldId = getParameter(TaskField.REPOSITORY_FIELD_ID.getParameterKey());
                 final List<Repository> repositoryList = createRepositoryList(repositoryFieldId);
                 final List<WalkerContext> contextList = new ArrayList<>();
@@ -143,7 +138,7 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
         final String fileMatchPatterns = getParameter(TaskField.FILE_PATTERNS.getParameterKey());
         final WalkerContext context = new DefaultWalkerContext(repository, request);
         getLogger().info("Creating walker for repository {}", repository.getName());
-        context.getProcessors().add(new RepositoryWalker(fileMatchPatterns, new ItemAttributesHelper(attributesHandler), getParameters(), eventManager, hubServiceHelper));
+        context.getProcessors().add(new RepositoryWalker(fileMatchPatterns, new ItemAttributesHelper(attributesHandler), getParameters(), eventManager));
         return context;
     }
 
@@ -155,16 +150,5 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
                 logger.error("Exception walking repository. ", walkerEx);
             }
         }
-    }
-
-    private void installCLI(final File installDirectory) throws IntegrationException {
-        final String localHostName = HostnameHelper.getMyHostname();
-        logger.info("Installing CLI to the following location: " + localHostName + ": " + installDirectory);
-        final CIEnvironmentVariables ciEnvironmentVariables = new CIEnvironmentVariables();
-        ciEnvironmentVariables.putAll(System.getenv());
-        final HubVersionRequestService hubVersionRequestService = hubServiceHelper.getHubVersionRequestService();
-        final CLIDownloadService cliDownloadService = hubServiceHelper.getCliDownloadService();
-        final String hubVersion = hubVersionRequestService.getHubVersion();
-        cliDownloadService.performInstallation(installDirectory, ciEnvironmentVariables, hubServiceHelper.getHubServerConfig().getHubUrl().toString(), hubVersion, localHostName);
     }
 }
