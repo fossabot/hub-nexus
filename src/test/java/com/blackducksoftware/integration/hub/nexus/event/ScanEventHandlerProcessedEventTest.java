@@ -30,7 +30,7 @@ public class ScanEventHandlerProcessedEventTest extends AbstractScanHandlerTest 
 
     @Test
     public void testProcessedEvent() {
-        final HubScanEvent event = new HubScanEvent(getRepository(), getItem(), getTaskParameters(), getResourceStoreRequest(), null);
+        final HubScanEvent event = new HubScanEvent(getRepository(), getItem(), getTaskParameters(), getResourceStoreRequest(), getProjectRequest());
         event.setProcessed(true);
         final HubScanEventHandler eventHandler = new HubScanEventHandler(getAppConfiguration(), getEventBus(), getAttributesHandler(), getEventManager());
         eventHandler.handle(event);

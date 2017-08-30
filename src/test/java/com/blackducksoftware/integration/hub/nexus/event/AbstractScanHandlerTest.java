@@ -28,20 +28,26 @@ import java.io.FileInputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.sonatype.nexus.AbstractMavenRepoContentTests;
 import org.sonatype.nexus.configuration.application.ApplicationConfiguration;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
+import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.maven.MavenHostedRepository;
 import org.sonatype.nexus.proxy.maven.packaging.ArtifactPackagingMapper;
 import org.sonatype.nexus.proxy.registry.RepositoryRegistry;
 import org.sonatype.nexus.proxy.repository.Repository;
 
+import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionDistributionEnum;
+import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionPhaseEnum;
+import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper;
 import com.blackducksoftware.integration.hub.nexus.test.TestEventBus;
 import com.blackducksoftware.integration.hub.nexus.test.TestingPropertyKey;
+import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder;
 
 public class AbstractScanHandlerTest extends AbstractMavenRepoContentTests {
 
@@ -54,6 +60,7 @@ public class AbstractScanHandlerTest extends AbstractMavenRepoContentTests {
     private Map<String, String> taskParameters;
     private ResourceStoreRequest resourceStoreRequest;
     private StorageItem item;
+    private ProjectRequest projectRequest;
 
     @Override
     protected void setUp() throws Exception {
@@ -67,11 +74,27 @@ public class AbstractScanHandlerTest extends AbstractMavenRepoContentTests {
         final File propFile = getTestFile("src/test/resources/repo1/packaging2extension-mapping.properties");
         resourceStoreRequest = new ResourceStoreRequest("/integration/test/1.0-SNAPSHOT/" + zipFile.getName());
         repository = lookup(RepositoryRegistry.class).getRepositoryWithFacet("snapshots", MavenHostedRepository.class);
+        if (StringUtils.isBlank(resourceStoreRequest.getRequestPath())) {
+            resourceStoreRequest.setRequestPath(RepositoryItemUid.PATH_ROOT);
+        }
+        resourceStoreRequest.setRequestLocalOnly(true);
         lookup(ArtifactPackagingMapper.class).setPropertiesFile(propFile);
         repository.storeItem(resourceStoreRequest, new FileInputStream(zipFile), null);
         item = repository.retrieveItem(resourceStoreRequest);
         taskParameters = generateParams();
         taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, "IntegationTestTask");
+        projectRequest = createProjectRequest();
+        resourceStoreRequest = new ResourceStoreRequest("");
+    }
+
+    private ProjectRequest createProjectRequest() {
+        final ProjectRequestBuilder builder = new ProjectRequestBuilder();
+        builder.setProjectName("hub-nexus-it");
+        builder.setVersionName("0.0.1-SNAPSHOT");
+        builder.setProjectLevelAdjustments(true);
+        builder.setPhase(ProjectVersionPhaseEnum.DEVELOPMENT);
+        builder.setDistribution(ProjectVersionDistributionEnum.INTERNAL);
+        return builder.build();
     }
 
     @Override
@@ -130,4 +153,7 @@ public class AbstractScanHandlerTest extends AbstractMavenRepoContentTests {
         return item;
     }
 
+    public ProjectRequest getProjectRequest() {
+        return projectRequest;
+    }
 }
