@@ -23,15 +23,16 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.sonatype.nexus.AbstractMavenRepoContentTests;
-import org.sonatype.nexus.configuration.application.NexusConfiguration;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.walker.Walker;
 
@@ -44,13 +45,11 @@ public class ScanTaskTestIT extends AbstractMavenRepoContentTests {
     private DefaultAttributesHandler defaultAttributesHandler;
     private ScanEventManager scanEventManager;
     private RestConnectionTestHelper restConnection;
-    private NexusConfiguration appConfiguration;
     private Map<String, String> taskParameters;
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        appConfiguration = this.nexusConfiguration();
         defaultAttributesHandler = lookup(DefaultAttributesHandler.class);
         restConnection = new RestConnectionTestHelper();
     }
@@ -69,12 +68,14 @@ public class ScanTaskTestIT extends AbstractMavenRepoContentTests {
 
         final ScanTask scanTask = new ScanTask(walker, defaultAttributesHandler, scanEventManager);
         final ScanTask spyScanTask = Mockito.spy(scanTask);
-        final Walker spyWalker = Mockito.spy(walker);
 
         Mockito.when(spyScanTask.getParameters()).thenReturn(taskParameters);
 
-        final Object nothing = spyScanTask.doRun();
-        Assert.assertNull(nothing);
+        spyScanTask.doRun();
+
+        final File blackduckFile = new File("blackduck");
+        Assert.assertTrue(blackduckFile.exists());
+        FileUtils.deleteQuietly(blackduckFile);
     }
 
     private Map<String, String> generateParams() {
