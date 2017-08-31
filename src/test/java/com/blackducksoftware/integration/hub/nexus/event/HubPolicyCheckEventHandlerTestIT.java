@@ -48,7 +48,6 @@ public class HubPolicyCheckEventHandlerTestIT extends AbstractHandlerTest {
                 scanEventHandler.handle(scanEvent);
                 Assert.assertTrue(getEventBus().hasEvents());
                 Assert.assertTrue(scanEvent.isProcessed());
-
             }
         }
 
