@@ -30,7 +30,7 @@ import org.sonatype.nexus.events.Event;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
-public class ScanEventHandlerEventTestIT extends AbstractScanHandlerTest {
+public class ScanEventHandlerEventTestIT extends AbstractHandlerTest {
 
     @Test
     public void testHandleEvent() throws Exception {

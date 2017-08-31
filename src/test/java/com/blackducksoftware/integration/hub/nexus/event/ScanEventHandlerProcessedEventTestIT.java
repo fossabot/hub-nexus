@@ -26,7 +26,7 @@ package com.blackducksoftware.integration.hub.nexus.event;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class ScanEventHandlerProcessedEventTestIT extends AbstractScanHandlerTest {
+public class ScanEventHandlerProcessedEventTestIT extends AbstractHandlerTest {
 
     @Test
     public void testProcessedEvent() {

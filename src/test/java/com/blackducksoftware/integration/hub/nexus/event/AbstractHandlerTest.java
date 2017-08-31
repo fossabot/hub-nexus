@@ -49,7 +49,7 @@ import com.blackducksoftware.integration.hub.nexus.test.TestEventBus;
 import com.blackducksoftware.integration.hub.nexus.test.TestingPropertyKey;
 import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder;
 
-public class AbstractScanHandlerTest extends AbstractMavenRepoContentTests {
+public class AbstractHandlerTest extends AbstractMavenRepoContentTests {
 
     private RestConnectionTestHelper restConnection;
     private ApplicationConfiguration appConfiguration;

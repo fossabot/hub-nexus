@@ -23,6 +23,48 @@
  */
 package com.blackducksoftware.integration.hub.nexus.event;
 
-public class HubPolicyCheckEventHandlerTestIT {
+import org.junit.Assert;
+import org.junit.Test;
+import org.sonatype.nexus.events.Event;
 
+import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
+import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
+
+public class HubPolicyCheckEventHandlerTestIT extends AbstractHandlerTest {
+
+    @Test
+    public void testHandleEvent() throws Exception {
+        getTaskParameters().put(TaskField.WORKING_DIRECTORY.getParameterKey(), getWorkHomeDir().getCanonicalPath());
+        getTaskParameters().put(TaskField.HUB_SCAN_MEMORY.getParameterKey(), "4096");
+        getTaskParameters().put(TaskField.HUB_TIMEOUT.getParameterKey(), "300");
+
+        final HubScanEventHandler scanEventHandler = new HubScanEventHandler(getAppConfiguration(), getEventBus(), getAttributesHandler(), getEventManager());
+        final HubPolicyCheckEventHandler policyEventHandler = new HubPolicyCheckEventHandler(getAttributesHandler());
+        final ScanItemMetaData data = new ScanItemMetaData(getItem(), getResourceStoreRequest(), getTaskParameters(), getProjectRequest());
+        getEventManager().processItem(data);
+        for (final Event<?> event : getEventBus().getEvents()) {
+            if (event instanceof HubScanEvent) {
+                final HubScanEvent scanEvent = (HubScanEvent) event;
+                scanEventHandler.handle(scanEvent);
+                Assert.assertTrue(getEventBus().hasEvents());
+                Assert.assertTrue(scanEvent.isProcessed());
+
+            }
+        }
+
+        for (final Event<?> event : getEventBus().getEvents()) {
+            if (event instanceof HubPolicyCheckEvent) {
+                final HubPolicyCheckEvent scanEvent = (HubPolicyCheckEvent) event;
+                policyEventHandler.handle(scanEvent);
+                Assert.assertTrue(getEventBus().hasEvents());
+                final ItemAttributesHelper itemAttributesHelper = new ItemAttributesHelper(getAttributesHandler());
+                final String overallStatus = itemAttributesHelper.getOverallPolicyStatus(getItem());
+                final String policyMessage = itemAttributesHelper.getPolicyStatus(getItem());
+                Assert.assertNotNull(overallStatus);
+                Assert.assertNotNull(policyMessage);
+                Assert.assertEquals("NOT_IN_VIOLATION", overallStatus);
+                Assert.assertEquals("The Hub found: 0 components in violation, 0 components in violation, but overridden, and 1 components not in violation.", policyMessage);
+            }
+        }
+    }
 }
