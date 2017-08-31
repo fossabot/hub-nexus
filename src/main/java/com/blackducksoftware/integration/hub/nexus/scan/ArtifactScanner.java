@@ -71,7 +71,7 @@ public class ArtifactScanner {
             logger.info("Beginning scan of artifact");
             if (hubServiceHelper == null) {
                 logger.error("Hub Service Helper not initialized.  Unable to communicate with the configured hub server");
-                attributesHelper.clearAttributes(item);
+                attributesHelper.clearBlackduckAttributes(item);
                 attributesHelper.setScanResult(item, ItemAttributesHelper.SCAN_STATUS_FAILED);
                 return null;
             } else {
@@ -99,7 +99,7 @@ public class ArtifactScanner {
             }
         } catch (final Exception ex) {
             logger.error("Error occurred during scan task", ex);
-            attributesHelper.clearAttributes(item);
+            attributesHelper.clearBlackduckAttributes(item);
             attributesHelper.setScanResult(item, ItemAttributesHelper.SCAN_STATUS_FAILED);
             return null;
         } finally {

@@ -98,7 +98,7 @@ public class ItemAttributesHelper {
         return false;
     }
 
-    public void clearAttributes(final StorageItem item) {
+    public void clearBlackduckAttributes(final StorageItem item) {
         final Attributes attList = item.getRepositoryItemAttributes();
         final Set<String> keys = attList.asMap().keySet();
 

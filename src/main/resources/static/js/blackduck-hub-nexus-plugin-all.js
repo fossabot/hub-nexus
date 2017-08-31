@@ -22,6 +22,7 @@
  * 	under the License.
  */
 Sonatype.repoServer.HubTab = function(config) {
+	var globalTabData = '';
 
 	Ext.apply(this, config || {}, {
 		halfSize : false
@@ -84,14 +85,48 @@ Sonatype.repoServer.HubTab = function(config) {
 		        	anchor : Sonatype.view.FIELD_OFFSET_WITH_SCROLL,
 		        	allowBlank : true,
 		        	readOnly : true
-		        }
+		        }, {
+					xtype : 'button',
+					text : 'Clear artifact attributes',
+					name : 'buttonClearAttributes',
+					handler : this.clearAttributesHandler,
+				}
 		        
 		    ]
 	});
 };
 
 Ext.extend(Sonatype.repoServer.HubTab, Ext.Panel, {
+	clearAttributesHandler : function() {
+		Ext.MessageBox.show({
+			title : 'Confirmation',
+			msg : 'Deleting the artifact info will remove this hub data from nexus and cause the artifact to be scanned again in the future, are you sure you want to continue?',
+			buttons : Ext.MessageBox.OKCANCEL,
+			icon : Ext.MessageBox.WARNING,
+			fn : function(btn) {
+				if(btn == 'ok') {
+					var repoId = globalTabData.repoId;
+					var currentUri = globalTabData.resourceURI;
+					var indexOfNexus = currentUri.indexOf('/nexus');
+					currentUri = currentUri.slice(indexOfNexus, currentUri.length);
+					var urlSeg = currentUri.split("/");
+					var newArr = urlSeg.slice(7, urlSeg.length);
+					var artPath = '/' + newArr.join('/');
+
+					Ext.Ajax.request({
+						url : '/nexus/service/siesta/blackduck/info?repoId=' + repoId + '&itemPath=' + artPath,
+						method : 'DELETE',
+						scope : this
+					});
+				} else {
+					return;
+				}
+			}
+		});
+	},
 	showArtifact : function(data, artifactContainer) {
+		globalTabData = data;
+		
 		var repoId = data.repoId
 		var currentUri = data.resourceURI;
 		var indexOfNexus = currentUri.indexOf('/nexus')
@@ -171,6 +206,7 @@ Sonatype.Events.addListener('artifactContainerUpdate', function(artifactContaine
 
 	if (payload && payload.leaf) {
 		panel.showArtifact(payload, artifactContainer);
+		panel.clearAttributesHandler(payload);
 	}
 	else {
 		panel.showArtifact(null, artifactContainer);
