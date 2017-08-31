@@ -92,23 +92,19 @@ Sonatype.repoServer.HubTab = function(config) {
 
 Ext.extend(Sonatype.repoServer.HubTab, Ext.Panel, {
 	showArtifact : function(data, artifactContainer) {
-		// debugger;
+		var repoId = data.repoId
 		var currentUri = data.resourceURI;
 		var indexOfNexus = currentUri.indexOf('/nexus')
 		currentUri = currentUri.slice(indexOfNexus, currentUri.length);
 		var urlSeg = currentUri.split("/");
-		var repoId = urlSeg[5];
 		var newArr = urlSeg.slice(7, urlSeg.length);
 		var artPath = '/' + newArr.join('/');
-		var self = this;
-		this.data = data;
 		if (data != null) {
 			Ext.Ajax.request({
 				url : '/nexus/service/siesta/blackduck/info?repoId=' + repoId + '&itemPath=' + artPath,
 				callback : function(options, isSuccess, response) {
 					if (isSuccess) {
 						var infoResp = Ext.decode(response.responseText);
-						showBasicMetaData(self);
 
 						if (infoResp.scanTime == '0') {
 							artifactContainer.hideTab(this);
@@ -138,23 +134,10 @@ Ext.extend(Sonatype.repoServer.HubTab, Ext.Panel, {
 			});
 		} else {
 			console.log('data is null');
-			noData(this);
 			artifactContainer.hideTab(this);
 		}
 	}
 });
-
-function noData(hubTab){
-	hubTab.find('name', 'scanTime')[0].setRawValue(null);
-	hubTab.find('name', 'apiUrl')[0].setRawValue(null);
-	hubTab.find('name', 'policyStatus')[0].setRawValue(null);
-}
-
-function showBasicMetaData(hubTab){
-	hubTab.find('name', 'apiUrl')[0].show();
-	hubTab.find('name', 'scanTime')[0].show();
-	hubTab.find('name', 'policyStatus')[0].show();
-}
 
 Sonatype.Events.addListener('fileContainerInit', function(items) {
 	items.push(new Sonatype.repoServer.HubTab({
