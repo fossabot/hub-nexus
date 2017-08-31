@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.junit.After;
+import org.slf4j.LoggerFactory;
 import org.sonatype.nexus.AbstractMavenRepoContentTests;
 import org.sonatype.nexus.configuration.application.ApplicationConfiguration;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
@@ -40,16 +42,21 @@ import org.sonatype.nexus.proxy.maven.packaging.ArtifactPackagingMapper;
 import org.sonatype.nexus.proxy.registry.RepositoryRegistry;
 import org.sonatype.nexus.proxy.repository.Repository;
 
+import com.blackducksoftware.integration.hub.api.project.ProjectRequestService;
+import com.blackducksoftware.integration.hub.exception.DoesNotExistException;
 import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionDistributionEnum;
 import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionPhaseEnum;
 import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
+import com.blackducksoftware.integration.hub.model.view.ProjectView;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper;
 import com.blackducksoftware.integration.hub.nexus.test.TestEventBus;
 import com.blackducksoftware.integration.hub.nexus.test.TestingPropertyKey;
 import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder;
+import com.blackducksoftware.integration.hub.service.HubServicesFactory;
+import com.blackducksoftware.integration.log.Slf4jIntLogger;
 
-public class AbstractHandlerTest extends AbstractMavenRepoContentTests {
+public abstract class AbstractHandlerTest extends AbstractMavenRepoContentTests {
 
     private RestConnectionTestHelper restConnection;
     private ApplicationConfiguration appConfiguration;
@@ -65,21 +72,42 @@ public class AbstractHandlerTest extends AbstractMavenRepoContentTests {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
+        setupTest(getZipFilePath());
+    }
+
+    @After
+    public void cleanUpAfterTest() throws Exception {
+        try {
+            final Slf4jIntLogger intLogger = new Slf4jIntLogger(LoggerFactory.getLogger(getClass()));
+            final HubServicesFactory hubServicesFactory = restConnection.createHubServicesFactory(intLogger);
+            final ProjectRequestService projectRequestService = hubServicesFactory.createProjectRequestService(intLogger);
+            final ProjectView projectView = projectRequestService.getProjectByName(projectRequest.getName());
+            projectRequestService.deleteHubProject(projectView);
+        } catch (final DoesNotExistException ex) {
+            // ignore if the project doesn't exist then do not fail the test this is just cleanup.
+        }
+    }
+
+    public abstract String getZipFilePath();
+
+    private void setupTest(final String zipFilePath) throws Exception {
         eventBus = new TestEventBus();
         appConfiguration = this.nexusConfiguration();
         attributesHandler = lookup(DefaultAttributesHandler.class);
         eventManager = new ScanEventManager(eventBus);
         restConnection = new RestConnectionTestHelper();
-        final File zipFile = getTestFile("src/test/resources/repo1/aa-1.2.3.zip");
-        final File propFile = getTestFile("src/test/resources/repo1/packaging2extension-mapping.properties");
-        resourceStoreRequest = new ResourceStoreRequest("/integration/test/1.0-SNAPSHOT/" + zipFile.getName());
+        final File zipFile = getTestFile(zipFilePath);
+        final File propFile = getTestFile("src/test/resources/repo1/extension-mapping.properties");
+        resourceStoreRequest = new ResourceStoreRequest("/integration/test/0.0.1-SNAPSHOT/" + zipFile.getName());
         repository = lookup(RepositoryRegistry.class).getRepositoryWithFacet("snapshots", MavenHostedRepository.class);
         if (StringUtils.isBlank(resourceStoreRequest.getRequestPath())) {
             resourceStoreRequest.setRequestPath(RepositoryItemUid.PATH_ROOT);
         }
         resourceStoreRequest.setRequestLocalOnly(true);
         lookup(ArtifactPackagingMapper.class).setPropertiesFile(propFile);
-        repository.storeItem(resourceStoreRequest, new FileInputStream(zipFile), null);
+        try (final FileInputStream zipFileInputStream = new FileInputStream(zipFile)) {
+            repository.storeItem(resourceStoreRequest, zipFileInputStream, null);
+        }
         item = repository.retrieveItem(resourceStoreRequest);
         taskParameters = generateParams();
         taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, "IntegationTestTask");
