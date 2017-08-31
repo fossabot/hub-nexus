@@ -47,7 +47,7 @@ import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionPha
 @Singleton
 public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
 
-    // This ID string must match the class name of the task that actually performs the opertaion
+    // This ID string must match the class name of the task that actually performs the operation
     public static final String ID = "ScanTask";
     public static final String PLUGIN_VERSION = "0.0.1-SNAPSHOT";
     public static final String BLACKDUCK_DIRECTORY = "blackduck";
@@ -93,7 +93,7 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
     private static final String LABEL_REPO_PATH = "Repository Path";
     private static final String LABEL_SCAN_MEMORY_ALLOCATION = "Scan Memory Allocation";
     private static final String LABEL_WORKING_DIRECTORY = "Working Directory";
-    private static final String LABEL_ARTIFACT_CUTOFF = "Artifact cutoff date";
+    private static final String LABEL_ARTIFACT_CUTOFF = "Artifact Cutoff Date";
     private static final String LABEL_RESCAN_FAILURE = "Re-scan Failed Attempts";
 
     private final RepoOrGroupComboFormField repoField = new RepoOrGroupComboFormField(TaskField.REPOSITORY_FIELD_ID.getParameterKey(), RepoOrGroupComboFormField.DEFAULT_LABEL, DESCRIPTION_REPO_NAME, FormField.MANDATORY);
@@ -124,6 +124,7 @@ public class ScanTaskDescriptor extends AbstractScheduledTaskDescriptor {
         this.appDirectories = appDirectories;
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
     public List<FormField> formFields() {
         final List<FormField> fields = new ArrayList<>();
