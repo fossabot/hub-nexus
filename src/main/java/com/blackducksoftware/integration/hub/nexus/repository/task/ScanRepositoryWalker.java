@@ -51,7 +51,7 @@ import com.blackducksoftware.integration.hub.nexus.scan.NameVersionNode;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder;
 
-public class RepositoryWalker extends AbstractWalkerProcessor {
+public class ScanRepositoryWalker extends AbstractWalkerProcessor {
     private final Logger logger = Loggers.getLogger(getClass());
     private final String fileMatchPatterns;
     private final ItemAttributesHelper attributesHelper;
@@ -59,7 +59,7 @@ public class RepositoryWalker extends AbstractWalkerProcessor {
     private final ScanEventManager eventManager;
     private final HubServiceHelper hubServiceHelper;
 
-    public RepositoryWalker(final String fileMatchPatterns, final ItemAttributesHelper attributesHelper, final Map<String, String> taskParameters, final ScanEventManager eventManager, final HubServiceHelper hubServicesHelper) {
+    public ScanRepositoryWalker(final String fileMatchPatterns, final ItemAttributesHelper attributesHelper, final Map<String, String> taskParameters, final ScanEventManager eventManager, final HubServiceHelper hubServicesHelper) {
         this.fileMatchPatterns = fileMatchPatterns;
         this.attributesHelper = attributesHelper;
         this.taskParameters = taskParameters;

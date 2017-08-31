@@ -47,7 +47,7 @@ import com.blackducksoftware.integration.hub.nexus.test.TestEventLogger
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
 
 @RunWith(MockitoJUnitRunner.class)
-@PrepareForTest(RepositoryWalker.class)
+@PrepareForTest(ScanRepositoryWalker.class)
 public class RepositoryWalkerTestIT {
 
     @Mock
@@ -99,7 +99,7 @@ public class RepositoryWalkerTestIT {
 
         when(walkerContext.getResourceStoreRequest()).thenReturn(null)
 
-        final RepositoryWalker walker = new RepositoryWalker("test", itemAttributesHelper, taskParams, scanEventManager, hubServiceHelper)
+        final ScanRepositoryWalker walker = new ScanRepositoryWalker("test", itemAttributesHelper, taskParams, scanEventManager, hubServiceHelper)
         walker.processItem(walkerContext, item)
 
         doNothing().when(scanEventManager).processItem(scanItemMetaData)

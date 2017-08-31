@@ -40,8 +40,6 @@ import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.walker.DefaultWalkerContext;
 import org.sonatype.nexus.proxy.walker.Walker;
 import org.sonatype.nexus.proxy.walker.WalkerContext;
-import org.sonatype.nexus.proxy.walker.WalkerException;
-import org.sonatype.nexus.scheduling.AbstractNexusRepositoriesPathAwareTask;
 
 import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.api.nonpublic.HubVersionRequestService;
@@ -54,15 +52,14 @@ import com.blackducksoftware.integration.log.Slf4jIntLogger;
 import com.blackducksoftware.integration.util.CIEnvironmentVariables;
 
 @Named(ScanTaskDescriptor.ID)
-public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
+public class ScanTask extends AbstractHubTask {
     private static final String ALL_REPO_ID = "all_repo";
-    private final Walker walker;
     private final DefaultAttributesHandler attributesHandler;
     private final ScanEventManager eventManager;
 
     @Inject
     public ScanTask(final Walker walker, final DefaultAttributesHandler attributesHandler, final ScanEventManager eventManager) {
-        this.walker = walker;
+        super(walker);
         this.attributesHandler = attributesHandler;
         this.eventManager = eventManager;
     }
@@ -142,18 +139,8 @@ public class ScanTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
         final String fileMatchPatterns = getParameter(TaskField.FILE_PATTERNS.getParameterKey());
         final WalkerContext context = new DefaultWalkerContext(repository, request);
         getLogger().info("Creating walker for repository {}", repository.getName());
-        context.getProcessors().add(new RepositoryWalker(fileMatchPatterns, new ItemAttributesHelper(attributesHandler), getParameters(), eventManager, hubServiceHelper));
+        context.getProcessors().add(new ScanRepositoryWalker(fileMatchPatterns, new ItemAttributesHelper(attributesHandler), getParameters(), eventManager, hubServiceHelper));
         return context;
-    }
-
-    private void walkRepositories(final List<WalkerContext> contextList) {
-        for (final WalkerContext context : contextList) {
-            try {
-                walker.walk(context);
-            } catch (final WalkerException walkerEx) {
-                logger.error("Exception walking repository. ", walkerEx);
-            }
-        }
     }
 
     private void installCLI(final File installDirectory, final HubServiceHelper hubServiceHelper) throws IntegrationException {
