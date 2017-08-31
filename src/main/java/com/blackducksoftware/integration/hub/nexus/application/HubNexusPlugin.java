@@ -38,7 +38,7 @@ public class HubNexusPlugin extends PluginIdentity {
     public static final String ID_PREFIX = "hub-nexus";
 
     @NonNls
-    public static final String GROUP_ID = "com.blackducksoftware.integrations";
+    public static final String GROUP_ID = "com.blackducksoftware.integration";
 
     // The UI JS file must start with this artifact ID (The JS file has additional details after this name).
     @NonNls
