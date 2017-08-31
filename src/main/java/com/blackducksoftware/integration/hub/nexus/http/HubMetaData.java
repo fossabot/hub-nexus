@@ -34,8 +34,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "blackduck")
 public class HubMetaData {
-    // final Logger logger = Loggers.getLogger(HubMetaData.class);
-
     @JsonProperty("apiUrl")
     private String apiUrl;
 

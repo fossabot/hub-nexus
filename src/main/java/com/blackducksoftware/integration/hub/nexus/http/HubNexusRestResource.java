@@ -72,12 +72,12 @@ public class HubNexusRestResource extends ComponentSupport implements Resource {
     @Produces({ APPLICATION_JSON, APPLICATION_XML })
     public HubMetaData get(@QueryParam("repoId") final String repoId, @QueryParam("itemPath") final String itemPath) {
         Repository repo = null;
+        final HubMetaData data = new HubMetaData();
 
         try {
             repo = repositoryRegistry.getRepository(repoId);
         } catch (final NoSuchRepositoryException e) {
-            logger.info("Error retrieving repo");
-            e.printStackTrace();
+            logger.error("Error retrieving repo {}", e);
         }
 
         if (repo != null) {
@@ -87,12 +87,10 @@ public class HubNexusRestResource extends ComponentSupport implements Resource {
             try {
                 item = repo.retrieveItem(request);
             } catch (StorageException | AccessDeniedException | ItemNotFoundException | IllegalOperationException e) {
-                logger.info("Error retrieving item");
-                e.printStackTrace();
+                logger.error("Error retrieving item {}", e);
             }
 
             if (item != null) {
-                final HubMetaData data = new HubMetaData();
                 data.setScanStatus(itemAttributesHelper.getScanResult(item));
                 data.setPolicyStatus(itemAttributesHelper.getPolicyStatus(item));
                 data.setPolicyOverallStatus(itemAttributesHelper.getOverallPolicyStatus(item));
@@ -103,7 +101,7 @@ public class HubNexusRestResource extends ComponentSupport implements Resource {
             }
         }
 
-        return new HubMetaData();
+        return data;
     }
 
 }

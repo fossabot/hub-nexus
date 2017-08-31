@@ -40,6 +40,7 @@ public class HubNexusPlugin extends PluginIdentity {
     @NonNls
     public static final String GROUP_ID = "com.blackducksoftware.integrations";
 
+    // The UI JS file must start with this artifact ID (The JS file has additional details after this name).
     @NonNls
     public static final String ARTIFACT_ID = "blackduck-" + ID_PREFIX + "-plugin";
 
