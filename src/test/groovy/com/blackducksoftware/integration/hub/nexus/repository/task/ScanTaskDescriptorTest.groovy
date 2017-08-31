@@ -21,28 +21,28 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.repository.task;
+package com.blackducksoftware.integration.hub.nexus.repository.task
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.Assert
+import org.junit.Test
 
 public class ScanTaskDescriptorTest {
 
     @Test
     public void getIdTest() {
-        final ScanTaskDescriptor taskDesc = new ScanTaskDescriptor(null);
-        Assert.assertEquals("ScanTask", taskDesc.getId());
+        final ScanTaskDescriptor taskDesc = new ScanTaskDescriptor(null)
+        Assert.assertEquals("ScanTask", taskDesc.getId())
     }
 
     @Test
     public void getNameTest() {
-        final ScanTaskDescriptor taskDesc = new ScanTaskDescriptor(null);
-        Assert.assertEquals("Hub Repository Scan", taskDesc.getName());
+        final ScanTaskDescriptor taskDesc = new ScanTaskDescriptor(null)
+        Assert.assertEquals("Hub Repository Scan", taskDesc.getName())
     }
 
     @Test
     public void formFieldsTest() {
-        final ScanTaskDescriptor taskDesc = new ScanTaskDescriptor(null);
-        Assert.assertTrue(taskDesc.formFields().size() == 18);
+        final ScanTaskDescriptor taskDesc = new ScanTaskDescriptor(null)
+        Assert.assertTrue(taskDesc.formFields().size() == 18)
     }
 }

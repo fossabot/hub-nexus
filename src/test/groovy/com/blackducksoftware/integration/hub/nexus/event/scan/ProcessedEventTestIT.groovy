@@ -21,28 +21,28 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.event.scan;
+package com.blackducksoftware.integration.hub.nexus.event.scan
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.Assert
+import org.junit.Test
 
-import com.blackducksoftware.integration.hub.nexus.event.AbstractHandlerTest;
-import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent;
-import com.blackducksoftware.integration.hub.nexus.event.HubScanEventHandler;
+import com.blackducksoftware.integration.hub.nexus.event.AbstractHandlerTest
+import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent
+import com.blackducksoftware.integration.hub.nexus.event.HubScanEventHandler
 
 public class ProcessedEventTestIT extends AbstractHandlerTest {
 
     @Override
     public String getZipFilePath() {
-        return "src/test/resources/repo1/aa-1.2.3.zip";
+        return "src/test/resources/repo1/aa-1.2.3.zip"
     }
 
     @Test
     public void testProcessedEvent() {
-        final HubScanEvent event = new HubScanEvent(getRepository(), getItem(), getTaskParameters(), getResourceStoreRequest(), getProjectRequest());
-        event.setProcessed(true);
-        final HubScanEventHandler eventHandler = new HubScanEventHandler(getAppConfiguration(), getEventBus(), getAttributesHandler(), getEventManager());
-        eventHandler.handle(event);
-        Assert.assertFalse(getEventBus().hasEvents());
+        final HubScanEvent event = new HubScanEvent(getRepository(), getItem(), getTaskParameters(), getResourceStoreRequest(), getProjectRequest())
+        event.setProcessed(true)
+        final HubScanEventHandler eventHandler = new HubScanEventHandler(getAppConfiguration(), getEventBus(), getAttributesHandler(), getEventManager())
+        eventHandler.handle(event)
+        Assert.assertFalse(getEventBus().hasEvents())
     }
 }

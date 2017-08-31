@@ -21,122 +21,122 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.test;
+package com.blackducksoftware.integration.hub.nexus.test
 
-import org.slf4j.Logger;
-import org.slf4j.Marker;
+import org.slf4j.Logger
+import org.slf4j.Marker
 
-import com.blackducksoftware.integration.test.TestLogger;
+import com.blackducksoftware.integration.test.TestLogger
 
 public class TestEventLogger extends TestLogger implements Logger {
 
     public String getLastInfoLog() {
-        return getOutputList().get(getOutputList().size() - 1);
+        return getOutputList().get(getOutputList().size() - 1)
     }
 
     @Override
     public String getName() {
-        return "TestEventLogger";
+        return "TestEventLogger"
     }
 
     @Override
     public boolean isTraceEnabled() {
-        return true;
+        return true
     }
 
     @Override
     public void trace(final String format, final Object arg) {
-        super.trace(String.format(format, arg));
+        super.trace(String.format(format, arg))
     }
 
     @Override
     public void trace(final String format, final Object arg1, final Object arg2) {
-        super.trace(String.format(format, arg1, arg2));
+        super.trace(String.format(format, arg1, arg2))
     }
 
     @Override
     public void trace(final String format, final Object... arguments) {
-        super.trace(String.format(format, arguments));
+        super.trace(String.format(format, arguments))
     }
 
     @Override
     public boolean isDebugEnabled() {
-        return true;
+        return true
     }
 
     @Override
     public void debug(final String format, final Object arg) {
-        super.debug(String.format(format, arg));
+        super.debug(String.format(format, arg))
     }
 
     @Override
     public void debug(final String format, final Object arg1, final Object arg2) {
-        super.debug(String.format(format, arg1, arg2));
+        super.debug(String.format(format, arg1, arg2))
     }
 
     @Override
     public void debug(final String format, final Object... arguments) {
-        super.debug(String.format(format, arguments));
+        super.debug(String.format(format, arguments))
     }
 
     @Override
     public boolean isInfoEnabled() {
-        return true;
+        return true
     }
 
     @Override
     public void info(final String format, final Object arg) {
-        super.info(String.format(format, arg));
+        super.info(String.format(format, arg))
     }
 
     @Override
     public void info(final String format, final Object arg1, final Object arg2) {
-        super.info(String.format(format, arg1, arg2));
+        super.info(String.format(format, arg1, arg2))
     }
 
     @Override
     public void info(final String format, final Object... arguments) {
-        super.info(String.format(format, arguments));
+        super.info(String.format(format, arguments))
     }
 
     @Override
     public boolean isWarnEnabled() {
-        return true;
+        return true
     }
 
     @Override
     public void warn(final String format, final Object arg) {
-        super.warn(String.format(format, arg));
+        super.warn(String.format(format, arg))
     }
 
     @Override
     public void warn(final String format, final Object... arguments) {
-        super.warn(String.format(format, arguments));
+        super.warn(String.format(format, arguments))
     }
 
     @Override
     public void warn(final String format, final Object arg1, final Object arg2) {
-        super.warn(String.format(format, arg1, arg2));
+        super.warn(String.format(format, arg1, arg2))
     }
 
     @Override
     public boolean isErrorEnabled() {
-        return true;
+        return true
     }
 
     @Override
     public void error(final String format, final Object arg) {
-        super.error(String.format(format, arg));
+        super.error(String.format(format, arg))
     }
 
     @Override
     public void error(final String format, final Object arg1, final Object arg2) {
-        super.error(String.format(format, arg1, arg2));
+        super.error(String.format(format, arg1, arg2))
     }
 
     @Override
     public void error(final String format, final Object... arguments) {
-        super.error(String.format(format, arguments));
+        super.error(String.format(format, arguments))
     }
 
     /*
@@ -145,7 +145,7 @@ public class TestEventLogger extends TestLogger implements Logger {
 
     @Override
     public boolean isTraceEnabled(final Marker marker) {
-        return false;
+        return false
     }
 
     @Override
@@ -170,7 +170,7 @@ public class TestEventLogger extends TestLogger implements Logger {
 
     @Override
     public boolean isDebugEnabled(final Marker marker) {
-        return false;
+        return false
     }
 
     @Override
@@ -199,7 +199,7 @@ public class TestEventLogger extends TestLogger implements Logger {
 
     @Override
     public boolean isInfoEnabled(final Marker marker) {
-        return false;
+        return false
     }
 
     @Override
@@ -228,7 +228,7 @@ public class TestEventLogger extends TestLogger implements Logger {
 
     @Override
     public boolean isWarnEnabled(final Marker marker) {
-        return false;
+        return false
     }
 
     @Override
@@ -253,7 +253,7 @@ public class TestEventLogger extends TestLogger implements Logger {
 
     @Override
     public boolean isErrorEnabled(final Marker marker) {
-        return false;
+        return false
     }
 
     @Override
@@ -275,5 +275,4 @@ public class TestEventLogger extends TestLogger implements Logger {
     @Override
     public void error(final Marker marker, final String msg, final Throwable t) {
     }
-
 }

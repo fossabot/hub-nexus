@@ -21,39 +21,36 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.test;
+package com.blackducksoftware.integration.hub.nexus.test
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.sonatype.nexus.proxy.attributes.Attributes;
+import org.sonatype.nexus.proxy.attributes.Attributes
 
 public class MockAttributes implements Attributes {
-    private final Map<String, String> attributes = new HashMap<>();
+    private final Map<String, String> attributes = new HashMap<>()
 
     @Override
     public Map<String, String> asMap() {
-        return attributes;
+        return attributes
     }
 
     @Override
     public boolean containsKey(final String key) {
-        return attributes.containsKey(key);
+        return attributes.containsKey(key)
     }
 
     @Override
     public String get(final String key) {
-        return attributes.get(key);
+        return attributes.get(key)
     }
 
     @Override
     public String put(final String key, final String value) {
-        return attributes.put(key, value);
+        return attributes.put(key, value)
     }
 
     @Override
     public String remove(final String key) {
-        return attributes.remove(key);
+        return attributes.remove(key)
     }
 
     @Override
@@ -66,7 +63,7 @@ public class MockAttributes implements Attributes {
 
     @Override
     public int getGeneration() {
-        return 0;
+        return 0
     }
 
     @Override
@@ -79,7 +76,7 @@ public class MockAttributes implements Attributes {
 
     @Override
     public String getPath() {
-        return null;
+        return null
     }
 
     @Override
@@ -88,7 +85,7 @@ public class MockAttributes implements Attributes {
 
     @Override
     public boolean isReadable() {
-        return false;
+        return false
     }
 
     @Override
@@ -97,7 +94,7 @@ public class MockAttributes implements Attributes {
 
     @Override
     public boolean isWritable() {
-        return false;
+        return false
     }
 
     @Override
@@ -107,7 +104,7 @@ public class MockAttributes implements Attributes {
 
     @Override
     public String getRepositoryId() {
-        return null;
+        return null
     }
 
     @Override
@@ -116,7 +113,7 @@ public class MockAttributes implements Attributes {
 
     @Override
     public long getCreated() {
-        return 0;
+        return 0
     }
 
     @Override
@@ -125,7 +122,7 @@ public class MockAttributes implements Attributes {
 
     @Override
     public long getModified() {
-        return 0;
+        return 0
     }
 
     @Override
@@ -134,7 +131,7 @@ public class MockAttributes implements Attributes {
 
     @Override
     public long getStoredLocally() {
-        return 0;
+        return 0
     }
 
     @Override
@@ -143,7 +140,7 @@ public class MockAttributes implements Attributes {
 
     @Override
     public long getCheckedRemotely() {
-        return 0;
+        return 0
     }
 
     @Override
@@ -152,7 +149,7 @@ public class MockAttributes implements Attributes {
 
     @Override
     public long getLastRequested() {
-        return 0;
+        return 0
     }
 
     @Override
@@ -161,7 +158,7 @@ public class MockAttributes implements Attributes {
 
     @Override
     public boolean isExpired() {
-        return false;
+        return false
     }
 
     @Override
@@ -170,7 +167,7 @@ public class MockAttributes implements Attributes {
 
     @Override
     public String getRemoteUrl() {
-        return null;
+        return null
     }
 
     @Override

@@ -22,7 +22,7 @@
  * 	under the License.
  */
 /*
-  * hub-nexus
+ * hub-nexus
  *
  * 	Copyright (C) 2017 Black Duck Software, Inc.
  * 	http://www.blackducksoftware.com/
@@ -32,7 +32,7 @@
  * 	distributed with this work for additional information
  * 	regarding copyright ownership. The ASF licenses this file
  * 	to you under the Apache License, Version 2.0 (the
- * 	"License"); you may not use this file except in compliance
+ * 	"License") you may not use this file except in compliance
  * 	with the License. You may obtain a copy of the License at
  *
  * 	http://www.apache.org/licenses/LICENSE-2.0
@@ -44,43 +44,41 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.http;
+package com.blackducksoftware.integration.hub.nexus.http
 
-import java.io.IOException;
+import org.junit.Assert
+import org.junit.Test
+import org.sonatype.nexus.proxy.AbstractNexusTestEnvironment
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.sonatype.nexus.proxy.AbstractNexusTestEnvironment;
+import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper
+import com.blackducksoftware.integration.hub.nexus.test.TestingPropertyKey
+import com.google.gson.Gson
 
-import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper;
-import com.blackducksoftware.integration.hub.nexus.test.TestingPropertyKey;
-import com.google.gson.Gson;
-
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 
 public class HubNexusRestResourceTestIT extends AbstractNexusTestEnvironment {
-    private final RestConnectionTestHelper restConnection = new RestConnectionTestHelper();
+    private final RestConnectionTestHelper restConnection = new RestConnectionTestHelper()
 
     @Test
     public void getTest() throws IOException {
-        final Gson gson = new Gson();
-        final String restGetUrl = restConnection.getProperty(TestingPropertyKey.TEST_NEXUS_SERVER_URL) + "service/siesta/blackduck/info?repoId=releases&itemPath=fakepath/aura.sql/3.x/aura.sql-3.x.zip";
-        final OkHttpClient client = new OkHttpClient();
-        final Request request = new Request.Builder().url(restGetUrl).build();
+        final Gson gson = new Gson()
+        final String restGetUrl = restConnection.getProperty(TestingPropertyKey.TEST_NEXUS_SERVER_URL) + "service/siesta/blackduck/info?repoId=releases&itemPath=fakepath/aura.sql/3.x/aura.sql-3.x.zip"
+        final OkHttpClient client = new OkHttpClient()
+        final Request request = new Request.Builder().url(restGetUrl).build()
 
-        final Response response = client.newCall(request).execute();
-        final String responseBody = response.body().string();
-        final TestJson testJson = gson.fromJson(responseBody, TestJson.class);
-        Assert.assertTrue(testJson.scanStatus.equals("SUCCESS"));
+        final Response response = client.newCall(request).execute()
+        final String responseBody = response.body().string()
+        final TestJson testJson = gson.fromJson(responseBody, TestJson.class)
+        Assert.assertTrue(testJson.scanStatus.equals("SUCCESS"))
     }
 
     class TestJson {
-        String scanStatus;
-        String policyStatus;
-        String scanTime;
-        String policyOverallStatus;
-        String uiUrl;
+        String scanStatus
+        String policyStatus
+        String scanTime
+        String policyOverallStatus
+        String uiUrl
     }
 }
