@@ -25,15 +25,21 @@ package com.blackducksoftware.integration.hub.nexus.repository.task;
 
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.sonatype.nexus.proxy.item.StorageCollectionItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
+import org.sonatype.nexus.proxy.item.uid.IsHiddenAttribute;
 import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
 import org.sonatype.nexus.proxy.walker.WalkerContext;
+import org.sonatype.sisu.goodies.common.Loggers;
 import org.sonatype.sisu.goodies.eventbus.EventBus;
 
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
 public class PolicyRepositoryWalker extends AbstractWalkerProcessor {
+    private final Logger logger = Loggers.getLogger(getClass());
     private final EventBus eventBus;
     private final ItemAttributesHelper itemAttributesHelper;
     private final Map<String, String> taskParameters;
@@ -48,6 +54,25 @@ public class PolicyRepositoryWalker extends AbstractWalkerProcessor {
 
     @Override
     public void processItem(final WalkerContext context, final StorageItem item) throws Exception {
+        try {
+            if (item instanceof StorageCollectionItem) {
+                return; // directory found
+            }
+            if (item.getRepositoryItemUid().getBooleanAttributeValue(IsHiddenAttribute.class)) {
+                return;
+            }
 
+            if (StringUtils.isNotBlank(item.getRemoteUrl())) {
+                logger.info("Item came from a proxied repository, skipping: {}", item);
+                return;
+            }
+
+            final String scanResult = itemAttributesHelper.getScanResult(item);
+            if (StringUtils.isNotBlank(scanResult) && scanResult.equals(ItemAttributesHelper.SCAN_STATUS_SUCCESS)) {
+                logger.info("Begin Policy check for item {}", item);
+            }
+        } catch (final Exception ex) {
+            logger.error("Error occurred in walker processor for repository: ", ex);
+        }
     }
 }
