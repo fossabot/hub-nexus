@@ -48,7 +48,7 @@ import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
 
 @RunWith(MockitoJUnitRunner.class)
 @PrepareForTest(ScanRepositoryWalker.class)
-public class RepositoryWalkerTestIT {
+public class ScanRepositoryWalkerTestIT {
 
     @Mock
     ItemAttributesHelper itemAttributesHelper
