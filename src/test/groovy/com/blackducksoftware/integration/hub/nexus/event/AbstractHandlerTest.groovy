@@ -39,8 +39,6 @@ import org.sonatype.nexus.proxy.repository.Repository
 
 import com.blackducksoftware.integration.hub.api.project.ProjectRequestService
 import com.blackducksoftware.integration.hub.exception.DoesNotExistException
-import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionDistributionEnum
-import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionPhaseEnum
 import com.blackducksoftware.integration.hub.model.request.ProjectRequest
 import com.blackducksoftware.integration.hub.model.view.ProjectView
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField
@@ -111,11 +109,11 @@ public abstract class AbstractHandlerTest extends AbstractMavenRepoContentTests 
 
     private ProjectRequest createProjectRequest() {
         final ProjectRequestBuilder builder = new ProjectRequestBuilder()
-        builder.setProjectName("hub-nexus-it")
-        builder.setVersionName("0.0.1-SNAPSHOT")
+        builder.setProjectName(restConnection.getProperty(TestingPropertyKey.TEST_PROJECT))
+        builder.setVersionName(restConnection.getProperty(TestingPropertyKey.TEST_VERSION))
         builder.setProjectLevelAdjustments(true)
-        builder.setPhase(ProjectVersionPhaseEnum.DEVELOPMENT)
-        builder.setDistribution(ProjectVersionDistributionEnum.INTERNAL)
+        builder.setPhase(restConnection.getProperty(TestingPropertyKey.TEST_PHASE))
+        builder.setDistribution(restConnection.getProperty(TestingPropertyKey.TEST_DISTRIBUTION))
         return builder.build()
     }
 
