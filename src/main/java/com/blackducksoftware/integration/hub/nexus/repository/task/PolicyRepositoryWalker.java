@@ -85,7 +85,6 @@ public class PolicyRepositoryWalker extends AbstractWalkerProcessor {
     private ProjectVersionView getProjectVersion(final StorageItem item) throws IntegrationException {
         final String url = itemAttributesHelper.getApiUrl(item);
         final ProjectVersionView projectVersionView = hubServiceHelper.getProjectVersionRequestService().getItem(url, ProjectVersionView.class);
-
         return projectVersionView;
     }
 }

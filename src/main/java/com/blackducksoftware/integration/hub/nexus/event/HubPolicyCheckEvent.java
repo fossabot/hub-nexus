@@ -32,7 +32,6 @@ import org.sonatype.nexus.proxy.repository.Repository;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 
 public class HubPolicyCheckEvent extends HubEvent {
-
     private final ProjectVersionView projectVersionView;
 
     public HubPolicyCheckEvent(final Repository repository, final StorageItem item, final Map<String, String> taskParameters, final ResourceStoreRequest request, final ProjectVersionView projectVersionView) {

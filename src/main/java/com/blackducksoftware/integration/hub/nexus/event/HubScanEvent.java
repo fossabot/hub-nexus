@@ -32,7 +32,6 @@ import org.sonatype.nexus.proxy.repository.Repository;
 import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
 
 public class HubScanEvent extends HubEvent {
-
     private boolean processed;
     private ProjectRequest projectRequest;
 

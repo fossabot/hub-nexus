@@ -38,7 +38,6 @@ import org.sonatype.sisu.goodies.eventbus.EventBus;
 @Named
 @Singleton
 public class ScanEventManager extends ComponentSupport {
-
     public static final String PARAMETER_KEY_TASK_NAME = ".name";
     private final Logger logger = LoggerFactory.getLogger(ScanEventManager.class);
     private final EventBus eventBus;

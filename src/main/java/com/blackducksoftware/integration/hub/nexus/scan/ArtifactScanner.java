@@ -46,8 +46,7 @@ import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.scan.HubScanConfig;
 
 public class ArtifactScanner {
-    final boolean HUB_SCAN_DRY_RUN = false;
-
+    private final boolean HUB_SCAN_DRY_RUN = false;
     private final HubEventLogger logger;
     private final HubScanEvent event;
     private final ItemAttributesHelper attributesHelper;
@@ -94,7 +93,6 @@ public class ArtifactScanner {
                     attributesHelper.setUiUrl(item, uiUrl);
                 }
                 attributesHelper.setScanResult(item, ItemAttributesHelper.SCAN_STATUS_SUCCESS);
-
                 return projectVersionView;
             }
         } catch (final Exception ex) {
@@ -128,7 +126,6 @@ public class ArtifactScanner {
         final File repositoryPath = storage.getFileFromBase(repository, request);
         final File file = new File(repositoryPath, item.getPath());
         hubScanConfigBuilder.addScanTargetPath(file.getCanonicalPath());
-
         return hubScanConfigBuilder.build();
     }
 }

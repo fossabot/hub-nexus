@@ -114,7 +114,7 @@ public class ScanTask extends AbstractHubTask {
 
     @Override
     protected String getMessage() {
-        return "Searching to scan artifacts in the repository";
+        return "HUB-NEXUS-PLUGIN-SCAN: Searching for artifacts to scan in the repository";
     }
 
     private List<Repository> createRepositoryList(final String repositoryFieldId) throws NoSuchRepositoryException {

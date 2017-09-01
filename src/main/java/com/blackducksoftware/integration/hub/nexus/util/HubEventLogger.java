@@ -29,7 +29,6 @@ import com.blackducksoftware.integration.hub.nexus.event.HubEvent;
 import com.blackducksoftware.integration.log.Slf4jIntLogger;
 
 public class HubEventLogger extends Slf4jIntLogger {
-
     private final HubEvent event;
 
     public HubEventLogger(final HubEvent event, final Logger logger) {

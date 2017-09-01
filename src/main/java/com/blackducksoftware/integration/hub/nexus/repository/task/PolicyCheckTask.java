@@ -95,7 +95,7 @@ public class PolicyCheckTask extends AbstractHubTask {
 
     @Override
     protected String getMessage() {
-        return "Search for successfully scanned artifacts with the Hub and check their policy";
+        return "HUB-NEXUS-PLUGIN-POLICY-CHECK: Search for successfully scanned artifacts and check their policy";
     }
 
 }

@@ -29,7 +29,6 @@ import javax.inject.Singleton;
 @Named
 @Singleton
 public class PolicyCheckTaskDescriptor extends AbstractHubTaskDescriptor {
-
     public static final String ID = "PolicyCheckTask";
     public static final String TASK_NAME = "Hub Policy Check";
 

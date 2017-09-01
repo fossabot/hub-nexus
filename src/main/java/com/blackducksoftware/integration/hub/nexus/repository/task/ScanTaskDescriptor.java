@@ -44,7 +44,6 @@ import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionPha
 @Named
 @Singleton
 public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
-
     // This ID string must match the class name of the task that actually performs the operation
     public static final String ID = "ScanTask";
     public static final String PLUGIN_VERSION = "0.0.1-SNAPSHOT";
@@ -85,7 +84,6 @@ public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
     private final StringTextFormField scanMemoryField = new StringTextFormField(TaskField.HUB_SCAN_MEMORY.getParameterKey(), LABEL_SCAN_MEMORY_ALLOCATION, DESCRIPTION_HUB_SCAN_MEMORY, FormField.OPTIONAL)
             .withInitialValue(DEFAULT_SCAN_MEMORY);
     private final CheckboxFormField rescanFailures = new CheckboxFormField(TaskField.RESCAN_FAILURES.getParameterKey(), LABEL_RESCAN_FAILURE, DESCRIPTION_RESCAN_FAILURE, FormField.OPTIONAL);
-
     private final ApplicationDirectories appDirectories;
 
     @Inject
@@ -124,7 +122,6 @@ public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
         } catch (final IOException | NullPointerException e) {
             workingDirectoryField = new StringTextFormField(TaskField.WORKING_DIRECTORY.getParameterKey(), LABEL_WORKING_DIRECTORY, DESCRIPTION_TASK_WORKING_DIRECTORY, FormField.MANDATORY).withInitialValue(DEFAULT_WORKING_DIRECTORY);
         }
-
         return workingDirectoryField;
     }
 

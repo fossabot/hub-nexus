@@ -47,12 +47,9 @@ public class ItemAttributesHelper {
     public static final String BLACK_DUCK_PROJECT_VERSION_UI_URL_PROPERTY_NAME = "uiUrl";
     public static final String BLACK_DUCK_POLICY_STATUS_PROPERTY_NAME = "policyStatus";
     public static final String BLACK_DUCK_OVERALL_POLICY_STATUS_PROPERTY_NAME = "overallPolicyStatus";
-
     public static final String BLACKDUCK = "blackduck-";
-
     private final AttributesHandler attributesHandler;
-
-    final Logger logger = Loggers.getLogger(getClass());
+    private final Logger logger = Loggers.getLogger(getClass());
 
     @Inject
     public ItemAttributesHelper(final AttributesHandler attributesHandler) {
@@ -94,7 +91,6 @@ public class ItemAttributesHelper {
         if (attList.containsKey(key)) {
             return true;
         }
-
         return false;
     }
 
