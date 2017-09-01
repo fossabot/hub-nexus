@@ -111,21 +111,27 @@ public class ScanRepositoryWalker extends AbstractWalkerProcessor {
                 final long lastModified = item.getRepositoryItemAttributes().getModified();
                 logger.debug("Last modified " + lastModified + " ms ago");
                 if (scanTime > lastModified) {
-                    final String scanResult = attributesHelper.getScanResult(item);
-                    logger.debug("Previous scan result {}", scanResult);
-                    if (StringUtils.isNotBlank(scanResult) && scanResult.equals(ItemAttributesHelper.SCAN_STATUS_FAILED)) {
-                        final String rescanFailure = taskParameters.get(TaskField.RESCAN_FAILURES.getParameterKey());
-                        final boolean performRescan = Boolean.parseBoolean(rescanFailure);
-                        if (performRescan) {
-                            logger.debug("{} already scanned but re-scan failed option selected.", item.getName());
-                            return true;
+                    final String alwaysScanString = taskParameters.get(TaskField.ALWAYS_SCAN.getParameterKey());
+                    final boolean alwaysScan = Boolean.parseBoolean(alwaysScanString);
+                    if (alwaysScan) {
+                        return true;
+                    } else {
+                        final String scanResult = attributesHelper.getScanResult(item);
+                        logger.debug("Previous scan result {}", scanResult);
+                        if (StringUtils.isNotBlank(scanResult) && scanResult.equals(ItemAttributesHelper.SCAN_STATUS_FAILED)) {
+                            final String rescanFailure = taskParameters.get(TaskField.RESCAN_FAILURES.getParameterKey());
+                            final boolean performRescan = Boolean.parseBoolean(rescanFailure);
+                            if (performRescan) {
+                                logger.debug("{} already scanned but re-scan failed option selected.", item.getName());
+                                return true;
+                            } else {
+                                logger.debug("{} already scanned, but failed.  Configure the re-scan option on the task to scan again.", item.getName());
+                                return false;
+                            }
                         } else {
-                            logger.debug("{} already scanned, but failed.  Configure the re-scan option on the task to scan again.", item.getName());
+                            logger.debug("{} already scanned successfully", item.getName());
                             return false;
                         }
-                    } else {
-                        logger.debug("{} already scanned successfully", item.getName());
-                        return false;
                     }
                 } else {
                     return true;

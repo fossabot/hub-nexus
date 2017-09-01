@@ -64,7 +64,8 @@ public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
     private static final String DESCRIPTION_TASK_WORKING_DIRECTORY = "The parent directory where the blackduck directory will be created to contain temporary data for the scans";
     private static final String DESCRIPTION_SCAN_CUTOFF_DATE = "If this is set, only artifacts with a modified date later than this will be scanned. To scan only artifacts newer than January 01, 2016 you would use "
             + "the cutoff format of \"2016-01-01T00:00:00.000\"";
-    private static final String DESCRIPTION_RESCAN_FAILURE = "Re-scan artifacts if the previous scan status was failed";
+    private static final String DESCRIPTION_RESCAN_FAILURE = "Re-scan artifacts if the previous scan result was failed";
+    private static final String DESCRIPTION_ALWAYS_SCAN = "Always scan artifacts that are not too old and match the file pattern, regardless of previous scan result";
 
     private static final String LABEL_DISTRIBUTION = "Distribution";
     private static final String LABEL_FILE_PATTERN_MATCHES = "File Pattern Matches";
@@ -74,6 +75,7 @@ public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
     private static final String LABEL_WORKING_DIRECTORY = "Working Directory";
     private static final String LABEL_ARTIFACT_CUTOFF = "Artifact Cutoff Date";
     private static final String LABEL_RESCAN_FAILURE = "Re-scan Failed Attempts";
+    private static final String LABEL_ALWAYS_SCAN = "Always Scan Artifacts";
 
     private final RepoOrGroupComboFormField repoField = new RepoOrGroupComboFormField(TaskField.REPOSITORY_FIELD_ID.getParameterKey(), RepoOrGroupComboFormField.DEFAULT_LABEL, DESCRIPTION_REPO_NAME, FormField.MANDATORY);
     private final StringTextFormField resourceStorePathField = new StringTextFormField(TaskField.REPOSITORY_PATH_FIELD_ID.getParameterKey(), LABEL_REPO_PATH, DESCRIPTION_REPO_PATH, FormField.OPTIONAL);
@@ -84,6 +86,7 @@ public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
     private final StringTextFormField scanMemoryField = new StringTextFormField(TaskField.HUB_SCAN_MEMORY.getParameterKey(), LABEL_SCAN_MEMORY_ALLOCATION, DESCRIPTION_HUB_SCAN_MEMORY, FormField.OPTIONAL)
             .withInitialValue(DEFAULT_SCAN_MEMORY);
     private final CheckboxFormField rescanFailures = new CheckboxFormField(TaskField.RESCAN_FAILURES.getParameterKey(), LABEL_RESCAN_FAILURE, DESCRIPTION_RESCAN_FAILURE, FormField.OPTIONAL);
+    private final CheckboxFormField alwaysRescan = new CheckboxFormField(TaskField.ALWAYS_SCAN.getParameterKey(), LABEL_ALWAYS_SCAN, DESCRIPTION_ALWAYS_SCAN, FormField.OPTIONAL);
     private final ApplicationDirectories appDirectories;
 
     @Inject
@@ -107,6 +110,7 @@ public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
         fields.add(phaseFormField);
         fields.add(scanMemoryField);
         fields.add(rescanFailures);
+        fields.add(alwaysRescan);
         fields.add(filePatternField);
         fields.add(workingDirectoryField);
         fields.add(artifactCutoffField);
