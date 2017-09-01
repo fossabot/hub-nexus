@@ -74,7 +74,7 @@ public class ItemAttributesHelperTest {
     public void clearAttributes() {
         final ItemAttributesHelper itemAttributesHelper = new ItemAttributesHelper(attributesHandler)
         itemAttributesHelper.setApiUrl(item, "google")
-        itemAttributesHelper.clearAttributes(item)
+        itemAttributesHelper.clearBlackduckAttributes(item)
 
         Assert.assertTrue(mockAttributes.asMap().isEmpty())
     }

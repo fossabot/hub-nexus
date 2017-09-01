@@ -29,6 +29,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_XML;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -66,6 +67,32 @@ public class HubNexusRestResource extends ComponentSupport implements Resource {
     public HubNexusRestResource(final RepositoryRegistry repoRegistry, final DefaultAttributesHandler defaultAttributesHandler) {
         this.repositoryRegistry = repoRegistry;
         itemAttributesHelper = new ItemAttributesHelper(defaultAttributesHandler);
+    }
+
+    @DELETE
+    public void delete(@QueryParam("repoId") final String repoId, @QueryParam("itemPath") final String itemPath) {
+        Repository repo = null;
+
+        try {
+            repo = repositoryRegistry.getRepository(repoId);
+        } catch (final NoSuchRepositoryException e) {
+            logger.error("Error retrieving repo {}", e);
+        }
+
+        if (repo != null) {
+            StorageItem item = null;
+            final ResourceStoreRequest request = new ResourceStoreRequest(itemPath);
+
+            try {
+                item = repo.retrieveItem(request);
+            } catch (StorageException | AccessDeniedException | ItemNotFoundException | IllegalOperationException e) {
+                logger.error("Error retrieving item {}", e);
+            }
+
+            if (item != null) {
+                itemAttributesHelper.clearBlackduckAttributes(item);
+            }
+        }
     }
 
     @GET
