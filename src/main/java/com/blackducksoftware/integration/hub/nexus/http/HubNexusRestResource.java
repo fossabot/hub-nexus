@@ -42,7 +42,7 @@ import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.NoSuchRepositoryException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.StorageException;
-import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
+import org.sonatype.nexus.proxy.attributes.AttributesHandler;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.registry.RepositoryRegistry;
 import org.sonatype.nexus.proxy.repository.Repository;
@@ -64,7 +64,7 @@ public class HubNexusRestResource extends ComponentSupport implements Resource {
     final Logger logger = Loggers.getLogger(HubNexusRestResource.class);
 
     @Inject
-    public HubNexusRestResource(final RepositoryRegistry repoRegistry, final DefaultAttributesHandler defaultAttributesHandler) {
+    public HubNexusRestResource(final RepositoryRegistry repoRegistry, final AttributesHandler defaultAttributesHandler) {
         this.repositoryRegistry = repoRegistry;
         itemAttributesHelper = new ItemAttributesHelper(defaultAttributesHandler);
     }

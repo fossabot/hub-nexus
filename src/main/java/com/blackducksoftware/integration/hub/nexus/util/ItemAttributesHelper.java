@@ -24,7 +24,8 @@
 package com.blackducksoftware.integration.hub.nexus.util;
 
 import java.io.IOException;
-import java.util.Set;
+import java.util.Iterator;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -96,12 +97,14 @@ public class ItemAttributesHelper {
 
     public void clearBlackduckAttributes(final StorageItem item) {
         final Attributes attList = item.getRepositoryItemAttributes();
-        final Set<String> keys = attList.asMap().keySet();
+        final Iterator<Map.Entry<String, String>> entryIterator = attList.asMap().entrySet().iterator();
 
-        for (final String key : keys) {
+        while (entryIterator.hasNext()) {
+            final Map.Entry<String, String> entry = entryIterator.next();
+            final String key = entry.getKey();
             if (key.startsWith(BLACKDUCK)) {
                 logger.debug("Removing key " + key);
-                attList.remove(key);
+                entryIterator.remove();
             }
         }
 

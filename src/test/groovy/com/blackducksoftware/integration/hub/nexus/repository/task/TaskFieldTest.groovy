@@ -26,16 +26,12 @@ package com.blackducksoftware.integration.hub.nexus.repository.task
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mock
 import org.powermock.core.classloader.annotations.PrepareForTest
 import org.powermock.modules.junit4.PowerMockRunner
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(TaskField.class)
 public class TaskFieldTest {
-
-    @Mock
-    TaskField taskField
 
     @Test
     public void getParameterKeyTest() throws Exception {

@@ -23,16 +23,21 @@
  */
 package com.blackducksoftware.integration.hub.nexus.http
 
-import org.junit.Assert
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertNotNull
+import static org.junit.Assert.assertNull
+import static org.junit.Assert.assertTrue
+
+import org.apache.commons.lang3.StringUtils
+import org.junit.Before
 import org.junit.Test
+import org.sonatype.nexus.proxy.attributes.AttributesHandler
+import org.sonatype.nexus.proxy.item.StorageItem
+import org.sonatype.nexus.proxy.registry.RepositoryRegistry
+import org.sonatype.nexus.proxy.repository.Repository
 
+import com.blackducksoftware.integration.hub.nexus.test.MockAttributes
 import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper
-import com.blackducksoftware.integration.hub.nexus.test.TestingPropertyKey
-import com.google.gson.Gson
-
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
 
 public class HubNexusRestResourceTestIT {
     private final RestConnectionTestHelper restConnection = new RestConnectionTestHelper()
@@ -47,24 +52,69 @@ public class HubNexusRestResourceTestIT {
     //        final String responseBody = response.body().string()
     //    }
 
-    @Test
-    public void getTest() throws IOException {
-        final Gson gson = new Gson()
-        final String restGetUrl = restConnection.getProperty(TestingPropertyKey.TEST_NEXUS_SERVER_URL) + "service/siesta/blackduck/info?repoId=releases&itemPath=fakepath/aura.sql/3.x/aura.sql-3.x.zip"
-        final OkHttpClient client = new OkHttpClient()
-        final Request request = new Request.Builder().url(restGetUrl).build()
+    private RepositoryRegistry repositoryRegistry;
+    private Repository repository;
+    private StorageItem item;
+    private MockAttributes mockAttributes;
+    private AttributesHandler attributesHandler;
 
-        final Response response = client.newCall(request).execute()
-        final String responseBody = response.body().string()
-        final TestJson testJson = gson.fromJson(responseBody, TestJson.class)
-        Assert.assertTrue(testJson.scanStatus.equals("SUCCESS"))
+    @Before
+    public void createAttributes() {
+
+        mockAttributes = new MockAttributes()
+        mockAttributes.put("blackduck-scanTime", "100")
+        mockAttributes.put("blackduck-scanResult", "success")
+        mockAttributes.put("blackduck-apiUrl", "apiurl")
+        mockAttributes.put("blackduck-uiUrl", "uiurl")
+        mockAttributes.put("blackduck-policyStatus", "NOT_IN_VIOLATION")
+        mockAttributes.put("blackduck-overallPolicyStatus", "policy message")
+
     }
 
-    class TestJson {
-        String scanStatus
-        String policyStatus
-        String scanTime
-        String policyOverallStatus
-        String uiUrl
+    @Test
+    public void getRepoNotFoundTest() throws IOException {
+        repositoryRegistry = [getRepository: {repoId -> return null}] as RepositoryRegistry
+        HubNexusRestResource restResource = new HubNexusRestResource(repositoryRegistry, attributesHandler)
+        HubMetaData hubMetaData = restResource.get("","")
+        assertNotNull(hubMetaData)
+        assertTrue(StringUtils.isBlank(hubMetaData.apiUrl))
+        assertTrue(StringUtils.isBlank(hubMetaData.uiUrl))
+        assertTrue(StringUtils.isBlank(hubMetaData.scanTime))
+        assertTrue(StringUtils.isBlank(hubMetaData.scanStatus))
+        assertTrue(StringUtils.isBlank(hubMetaData.policyOverallStatus))
+        assertTrue(StringUtils.isBlank(hubMetaData.policyStatus))
+
+    }
+
+    @Test
+    public void getTest() throws IOException {
+        item = [ getRepositoryItemAttributes: { -> return mockAttributes }] as StorageItem
+        repository = [ retrieveItem: { itemPath -> return item }] as Repository
+        repositoryRegistry = [ getRepository: { repoId -> return repository }] as RepositoryRegistry
+        HubNexusRestResource restResource = new HubNexusRestResource(repositoryRegistry, attributesHandler)
+        HubMetaData hubMetaData = restResource.get("","")
+        assertNotNull(hubMetaData)
+        assertEquals("uiurl", hubMetaData.uiUrl)
+        assertEquals("100", hubMetaData.scanTime)
+        assertEquals("success", hubMetaData.scanStatus)
+        assertEquals("NOT_IN_VIOLATION", hubMetaData.policyStatus)
+        assertEquals("policy message", hubMetaData.policyOverallStatus)
+
+    }
+
+    @Test
+    public void deleteRepoNotFoundTest() throws Exception {
+        attributesHandler = [ storeAttributes: { item -> return }] as AttributesHandler
+        item = [ getRepositoryItemAttributes: { -> return mockAttributes }] as StorageItem
+        repository = [ retrieveItem: { itemPath -> return item }] as Repository
+        repositoryRegistry = [ getRepository: { repoId -> return repository }] as RepositoryRegistry
+        HubNexusRestResource restResource = new HubNexusRestResource(repositoryRegistry, attributesHandler)
+        restResource.delete("","")
+        assertNull(mockAttributes.get("blackduck-scanTime"))
+        assertNull(mockAttributes.get("blackduck-scanResult"))
+        assertNull(mockAttributes.get("blackduck-apiUrl"))
+        assertNull(mockAttributes.get("blackduck-uiUrl"))
+        assertNull(mockAttributes.get("blackduck-policyStatus"))
+        assertNull(mockAttributes.get("blackduck-overallPolicyStatus"))
     }
 }
