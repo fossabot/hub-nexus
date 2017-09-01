@@ -35,7 +35,10 @@ import org.sonatype.nexus.proxy.walker.WalkerContext;
 import org.sonatype.sisu.goodies.common.Loggers;
 import org.sonatype.sisu.goodies.eventbus.EventBus;
 
+import com.blackducksoftware.integration.exception.IntegrationException;
+import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
+import com.blackducksoftware.integration.hub.nexus.event.HubPolicyCheckEvent;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
 public class PolicyRepositoryWalker extends AbstractWalkerProcessor {
@@ -70,9 +73,19 @@ public class PolicyRepositoryWalker extends AbstractWalkerProcessor {
             final String scanResult = itemAttributesHelper.getScanResult(item);
             if (StringUtils.isNotBlank(scanResult) && scanResult.equals(ItemAttributesHelper.SCAN_STATUS_SUCCESS)) {
                 logger.info("Begin Policy check for item {}", item);
+                final ProjectVersionView projectVersionView = getProjectVersion(item);
+                final HubPolicyCheckEvent event = new HubPolicyCheckEvent(item.getRepositoryItemUid().getRepository(), item, taskParameters, context.getResourceStoreRequest(), projectVersionView);
+                eventBus.post(event);
             }
         } catch (final Exception ex) {
             logger.error("Error occurred in walker processor for repository: ", ex);
         }
+    }
+
+    private ProjectVersionView getProjectVersion(final StorageItem item) throws IntegrationException {
+        final String url = itemAttributesHelper.getApiUrl(item);
+        final ProjectVersionView projectVersionView = hubServiceHelper.getProjectVersionRequestService().getItem(url, ProjectVersionView.class);
+
+        return projectVersionView;
     }
 }
