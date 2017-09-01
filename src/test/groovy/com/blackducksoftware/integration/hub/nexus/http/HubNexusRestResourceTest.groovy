@@ -37,21 +37,8 @@ import org.sonatype.nexus.proxy.registry.RepositoryRegistry
 import org.sonatype.nexus.proxy.repository.Repository
 
 import com.blackducksoftware.integration.hub.nexus.test.MockAttributes
-import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper
 
-public class HubNexusRestResourceTestIT {
-    private final RestConnectionTestHelper restConnection = new RestConnectionTestHelper()
-
-    //    @Test
-    //    public void deleteTest() throws IOException {
-    //        final String restDeleteUrl = restConnection.getProperty(TestingPropertyKey.TEST_NEXUS_SERVER_URL) + "service/siesta/blackduck/info?repoId=releases&itemPath=docs/example/1.2.3/example-1.2.3.zip"
-    //        final OkHttpClient client = new OkHttpClient()
-    //        final Request request = new Request.Builder().url(restDeleteUrl).delete().build()
-    //
-    //        final Response response = client.newCall(request).execute()
-    //        final String responseBody = response.body().string()
-    //    }
-
+public class HubNexusRestResourceTest {
     private RepositoryRegistry repositoryRegistry;
     private Repository repository;
     private StorageItem item;
@@ -68,7 +55,6 @@ public class HubNexusRestResourceTestIT {
         mockAttributes.put("blackduck-uiUrl", "uiurl")
         mockAttributes.put("blackduck-policyStatus", "NOT_IN_VIOLATION")
         mockAttributes.put("blackduck-overallPolicyStatus", "policy message")
-
     }
 
     @Test
@@ -83,7 +69,6 @@ public class HubNexusRestResourceTestIT {
         assertTrue(StringUtils.isBlank(hubMetaData.scanStatus))
         assertTrue(StringUtils.isBlank(hubMetaData.policyOverallStatus))
         assertTrue(StringUtils.isBlank(hubMetaData.policyStatus))
-
     }
 
     @Test
@@ -99,7 +84,6 @@ public class HubNexusRestResourceTestIT {
         assertEquals("success", hubMetaData.scanStatus)
         assertEquals("NOT_IN_VIOLATION", hubMetaData.policyStatus)
         assertEquals("policy message", hubMetaData.policyOverallStatus)
-
     }
 
     @Test
