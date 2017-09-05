@@ -38,6 +38,7 @@ Sonatype.repoServer.HubTab = function(config) {
 		collapsible : false,
 		collapsed : false,
 		layout : 'form',
+		iconCls : 'bd_icon',
 		items: [ 
 		        {
 		        	html:'<img src="static/bd_logo.png" align= "right" />'
