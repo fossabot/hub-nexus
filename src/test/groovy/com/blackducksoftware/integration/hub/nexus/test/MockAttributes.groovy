@@ -23,10 +23,12 @@
  */
 package com.blackducksoftware.integration.hub.nexus.test
 
+import java.util.concurrent.ConcurrentHashMap
+
 import org.sonatype.nexus.proxy.attributes.Attributes
 
 public class MockAttributes implements Attributes {
-    private final Map<String, String> attributes = new HashMap<>()
+    private final Map<String, String> attributes = new ConcurrentHashMap<>()
 
     @Override
     public Map<String, String> asMap() {
