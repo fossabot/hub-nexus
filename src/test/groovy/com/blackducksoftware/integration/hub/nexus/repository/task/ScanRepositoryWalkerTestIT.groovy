@@ -68,7 +68,7 @@ public class ScanRepositoryWalkerTestIT {
     private WalkerContext walkerContext
     private RepositoryItemUid repositoryItemUid
     private Attributes attributes
-    private TestEventBus eventBus;
+    private TestEventBus eventBus
     private Map<String,String> taskParameters
     private RestConnectionTestHelper restConnection
     @Mock
@@ -87,6 +87,7 @@ public class ScanRepositoryWalkerTestIT {
         eventBus = new TestEventBus();
         scanEventManager = new ScanEventManager(eventBus)
         repositoryItemUid = [ getBooleanAttributeValue: { attr -> false }, getRepository: { -> null } ] as RepositoryItemUid
+        walkerContext = [ getResourceStoreRequest: { -> null } ] as WalkerContext
     }
 
     @After
@@ -119,8 +120,6 @@ public class ScanRepositoryWalkerTestIT {
         final HubServiceHelper hubServiceHelper = new HubServiceHelper(new TestEventLogger(), taskParameters)
         hubServiceHelper.setHubServicesFactory(restConnection.createHubServicesFactory())
 
-        walkerContext = [ getResourceStoreRequest: { -> null } ] as WalkerContext
-
         final ScanRepositoryWalker walker = new ScanRepositoryWalker(PROJECT_NAME, itemAttributesHelper, taskParameters, scanEventManager, hubServiceHelper)
         walker.processItem(walkerContext, item)
         assertFalse(eventBus.hasEvents())
@@ -146,8 +145,6 @@ public class ScanRepositoryWalkerTestIT {
         final RestConnectionTestHelper restConnection = new RestConnectionTestHelper()
         final HubServiceHelper hubServiceHelper = new HubServiceHelper(new TestEventLogger(), taskParameters)
         hubServiceHelper.setHubServicesFactory(restConnection.createHubServicesFactory())
-
-        walkerContext = [ getResourceStoreRequest: { -> null } ] as WalkerContext
 
         final ScanRepositoryWalker walker = new ScanRepositoryWalker(PROJECT_NAME, itemAttributesHelper, taskParameters, scanEventManager, hubServiceHelper)
         walker.processItem(walkerContext, item)
@@ -176,8 +173,6 @@ public class ScanRepositoryWalkerTestIT {
         final HubServiceHelper hubServiceHelper = new HubServiceHelper(new TestEventLogger(), taskParameters)
         hubServiceHelper.setHubServicesFactory(restConnection.createHubServicesFactory())
 
-        walkerContext = [ getResourceStoreRequest: { -> null } ] as WalkerContext
-
         final ScanRepositoryWalker walker = new ScanRepositoryWalker(PROJECT_NAME, itemAttributesHelper, taskParameters, scanEventManager, hubServiceHelper)
         walker.processItem(walkerContext, item)
         assertFalse(eventBus.hasEvents())
@@ -205,8 +200,6 @@ public class ScanRepositoryWalkerTestIT {
         final HubServiceHelper hubServiceHelper = new HubServiceHelper(new TestEventLogger(), taskParameters)
         hubServiceHelper.setHubServicesFactory(restConnection.createHubServicesFactory())
 
-        walkerContext = [ getResourceStoreRequest: { -> null } ] as WalkerContext
-
         final ScanRepositoryWalker walker = new ScanRepositoryWalker(PROJECT_NAME, itemAttributesHelper, taskParameters, scanEventManager, hubServiceHelper)
         walker.processItem(walkerContext, item)
         assertTrue(eventBus.hasEvents())
@@ -233,8 +226,6 @@ public class ScanRepositoryWalkerTestIT {
         final RestConnectionTestHelper restConnection = new RestConnectionTestHelper()
         final HubServiceHelper hubServiceHelper = new HubServiceHelper(new TestEventLogger(), taskParameters)
         hubServiceHelper.setHubServicesFactory(restConnection.createHubServicesFactory())
-
-        walkerContext = [ getResourceStoreRequest: { -> null } ] as WalkerContext
 
         final ScanRepositoryWalker walker = new ScanRepositoryWalker(PROJECT_NAME, itemAttributesHelper, taskParameters, scanEventManager, hubServiceHelper)
         walker.processItem(walkerContext, item)
