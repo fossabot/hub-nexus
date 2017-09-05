@@ -26,6 +26,7 @@ package com.blackducksoftware.integration.hub.nexus.repository.task
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
+import org.mockito.Mockito
 import org.mockito.runners.MockitoJUnitRunner
 import org.powermock.core.classloader.annotations.PrepareForTest
 import org.sonatype.nexus.proxy.attributes.Attributes
@@ -47,19 +48,15 @@ public class ScanRepositoryWalkerTestIT {
     @Mock
     ItemAttributesHelper itemAttributesHelper
 
-    @Mock
     StorageItem item
 
     @Mock
     ScanEventManager scanEventManager
 
-    @Mock
     WalkerContext walkerContext
 
-    @Mock
     RepositoryItemUid repositoryItemUid
 
-    @Mock
     Attributes attributes
 
     @Mock
@@ -74,7 +71,7 @@ public class ScanRepositoryWalkerTestIT {
         taskParams.put(TaskField.DISTRIBUTION.getParameterKey(), "EXTERNAL")
         taskParams.put(TaskField.PHASE.getParameterKey(), "DEVELOPMENT")
 
-        repositoryItemUid = [ getBooleanAttributeValue: { attr -> false }]
+        repositoryItemUid = [ getBooleanAttributeValue: { attr -> false }] as RepositoryItemUid
 
         attributes = [ getModified: { -> 10l }] as Attributes
 
@@ -84,8 +81,8 @@ public class ScanRepositoryWalkerTestIT {
             getRepositoryItemAttributes: { -> attributes },
             getParentPath: { -> "/test/1.1.1" } ] as StorageItem
 
-        itemAttributesHelper = [ getScanTime: { item -> 10l },
-            getScanResult: { item -> ItemAttributesHelper.SCAN_STATUS_SUCCESS }] as ItemAttributesHelper
+        Mockito.when(itemAttributesHelper.getScanTime(item)).thenReturn(101L)
+        Mockito.when(itemAttributesHelper.getScanResult(item)).thenReturn(ItemAttributesHelper.SCAN_STATUS_SUCCESS)
 
         final RestConnectionTestHelper restConnection = new RestConnectionTestHelper()
         final HubServiceHelper hubServiceHelper = new HubServiceHelper(new TestEventLogger(), taskParams)
@@ -93,10 +90,10 @@ public class ScanRepositoryWalkerTestIT {
 
         walkerContext = [ getResourceStoreRequest: { -> null } ] as WalkerContext
 
-final ScanRepositoryWalker walker = new ScanRepositoryWalker("test", itemAttributesHelper, taskParams, scanEventManager, hubServiceHelper)
-walker.processItem(walkerContext, item)
+        final ScanRepositoryWalker walker = new ScanRepositoryWalker("test", itemAttributesHelper, taskParams, scanEventManager, hubServiceHelper)
+        walker.processItem(walkerContext, item)
 
-doNothing().when(scanEventManager).processItem(scanItemMetaData)
-verify(scanEventManager).processItem(any(ScanItemMetaData.class))
-}
+        doNothing().when(scanEventManager).processItem(scanItemMetaData)
+        verify(scanEventManager).processItem(any(ScanItemMetaData.class))
+    }
 }
