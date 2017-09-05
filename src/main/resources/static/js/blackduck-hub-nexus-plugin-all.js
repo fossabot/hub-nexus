@@ -98,13 +98,14 @@ Sonatype.repoServer.HubTab = function(config) {
 
 Ext.extend(Sonatype.repoServer.HubTab, Ext.Panel, {
 	clearAttributesHandler : function() {
-		Ext.MessageBox.show({
+		Sonatype.MessageBox.show({
 			title : 'Confirmation',
 			msg : 'Deleting the artifact info will remove this hub data from nexus and cause the artifact to be scanned again in the future, are you sure you want to continue?',
-			buttons : Ext.MessageBox.OKCANCEL,
-			icon : Ext.MessageBox.WARNING,
+			buttons : Sonatype.MessageBox.YESNO,
+			scope : this,
+			icon : Sonatype.MessageBox.QUESTION,
 			fn : function(btn) {
-				if(btn == 'ok') {
+				if(btn == 'ok' || btn == 'yes') {
 					var repoId = globalTabData.repoId;
 					var currentUri = globalTabData.resourceURI;
 					var indexOfNexus = currentUri.indexOf('/nexus');
@@ -116,7 +117,16 @@ Ext.extend(Sonatype.repoServer.HubTab, Ext.Panel, {
 					Ext.Ajax.request({
 						url : '/nexus/service/siesta/blackduck/info?repoId=' + repoId + '&itemPath=' + artPath,
 						method : 'DELETE',
-						scope : this
+						scope : this,
+						callback : function(options, isSuccess, response) {
+							if(isSuccess) {
+								var panel = Sonatype.view.mainTabPanel.getActiveTab();
+								var id = panel.getId();
+								if(id == 'view-repositories') {
+									panel.refreshHandler(null, null);
+								}
+							}
+						}
 					});
 				} else {
 					return;
@@ -206,7 +216,6 @@ Sonatype.Events.addListener('artifactContainerUpdate', function(artifactContaine
 
 	if (payload && payload.leaf) {
 		panel.showArtifact(payload, artifactContainer);
-		panel.clearAttributesHandler(payload);
 	}
 	else {
 		panel.showArtifact(null, artifactContainer);
