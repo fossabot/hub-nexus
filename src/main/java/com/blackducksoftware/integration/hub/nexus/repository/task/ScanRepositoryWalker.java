@@ -30,6 +30,8 @@ import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.slf4j.Logger;
+import org.sonatype.nexus.proxy.ResourceStoreRequest;
+import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.item.StorageCollectionItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.item.uid.IsHiddenAttribute;
@@ -88,7 +90,9 @@ public class ScanRepositoryWalker extends AbstractWalkerProcessor {
                 final String phase = taskParameters.get(TaskField.PHASE.getParameterKey());
                 final ProjectRequest projectRequest = createProjectRequest(distribution, phase, item);
                 createProjectAndVersion(projectRequest);
-                final ScanItemMetaData scanItem = new ScanItemMetaData(item, context.getResourceStoreRequest(), taskParameters, projectRequest);
+                // the walker has already restricted the items to find. Now for scanning to work create a request that is for the repository root because the item path is relative to the repository root
+                final ResourceStoreRequest eventRequest = new ResourceStoreRequest(RepositoryItemUid.PATH_ROOT, true, false);
+                final ScanItemMetaData scanItem = new ScanItemMetaData(item, eventRequest, taskParameters, projectRequest);
                 eventManager.processItem(scanItem);
             }
         } catch (final Exception ex) {
