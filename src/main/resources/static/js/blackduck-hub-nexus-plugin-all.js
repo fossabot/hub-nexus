@@ -31,7 +31,7 @@ Sonatype.repoServer.HubTab = function(config) {
 	this.sp = Sonatype.lib.Permissions;
 
 	Sonatype.repoServer.HubTab.superclass.constructor.call( this, {
-		title : 'Hub',
+		title : 'BlackDuck Hub',
 		autoScroll : true,
 		border : true,
 		frame : true,
