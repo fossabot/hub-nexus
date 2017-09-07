@@ -52,7 +52,7 @@ public class NotInViolationPolicyCheckEventTestIT extends AbstractPolicyCheckTes
                 final String policyMessage = itemAttributesHelper.getPolicyStatus(getItem())
                 Assert.assertNotNull(overallStatus)
                 Assert.assertNotNull(policyMessage)
-                Assert.assertEquals("NOT_IN_VIOLATION", overallStatus)
+                Assert.assertEquals("Not In Violation", overallStatus)
                 Assert.assertEquals("The Hub found: 0 components in violation, 0 components in violation, but overridden, and 1 components not in violation.", policyMessage)
             }
         }
