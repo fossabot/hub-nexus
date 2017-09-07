@@ -1,5 +1,5 @@
 ## Overview ##
-The hub-nexus plugin is a Nexus Repository Manager 2 plugin in order to scan artifacts and check their policy with the Black Duck Hub product.
+The Black Duck Hub Nexus plugin is a new tool designed to help you manage the logistics of your Nexus repositories and contents. The Black Duck Hub Nexus plugin can also help you uncover security and compliance risks associated with the open source artifacts stored in Nexus repositories.
 
 ## Build ##
 
