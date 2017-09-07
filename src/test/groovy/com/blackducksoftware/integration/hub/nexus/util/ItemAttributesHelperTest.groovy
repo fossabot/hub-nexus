@@ -90,8 +90,8 @@ public class ItemAttributesHelperTest {
     @Test
     public void getStringTest() {
         final ItemAttributesHelper itemAttributesHelper = new ItemAttributesHelper(attributesHandler)
-        mockAttributes.put("blackduck-scanResult", "result")
+        mockAttributes.put("blackduck-scanResult", "1")
 
-        Assert.assertTrue(itemAttributesHelper.getScanResult(item).equals("result"))
+        Assert.assertEquals(1,itemAttributesHelper.getScanResult(item))
     }
 }

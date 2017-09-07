@@ -120,9 +120,9 @@ public class ScanRepositoryWalker extends AbstractWalkerProcessor {
                     if (alwaysScan) {
                         return true;
                     } else {
-                        final String scanResult = attributesHelper.getScanResult(item);
+                        final long scanResult = attributesHelper.getScanResult(item);
                         logger.debug("Previous scan result {}", scanResult);
-                        if (StringUtils.isNotBlank(scanResult) && scanResult.equals(ItemAttributesHelper.SCAN_STATUS_FAILED)) {
+                        if (scanResult == ItemAttributesHelper.SCAN_STATUS_FAILED) {
                             final String rescanFailure = taskParameters.get(TaskField.RESCAN_FAILURES.getParameterKey());
                             final boolean performRescan = Boolean.parseBoolean(rescanFailure);
                             if (performRescan) {

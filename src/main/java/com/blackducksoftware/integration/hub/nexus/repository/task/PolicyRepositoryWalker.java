@@ -70,8 +70,8 @@ public class PolicyRepositoryWalker extends AbstractWalkerProcessor {
                 return;
             }
 
-            final String scanResult = itemAttributesHelper.getScanResult(item);
-            if (StringUtils.isNotBlank(scanResult) && scanResult.equals(ItemAttributesHelper.SCAN_STATUS_SUCCESS)) {
+            final long scanResult = itemAttributesHelper.getScanResult(item);
+            if (scanResult == ItemAttributesHelper.SCAN_STATUS_SUCCESS) {
                 logger.info("Begin Policy check for item {}", item);
                 final ProjectVersionView projectVersionView = getProjectVersion(item);
                 final HubPolicyCheckEvent event = new HubPolicyCheckEvent(item.getRepositoryItemUid().getRepository(), item, taskParameters, context.getResourceStoreRequest(), projectVersionView);

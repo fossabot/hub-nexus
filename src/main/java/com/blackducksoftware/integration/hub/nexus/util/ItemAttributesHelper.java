@@ -39,8 +39,8 @@ import org.sonatype.sisu.goodies.common.Loggers;
 @Named
 @Singleton
 public class ItemAttributesHelper {
-    public static final String SCAN_STATUS_FAILED = "FAILED";
-    public static final String SCAN_STATUS_SUCCESS = "SUCCESS";
+    public static final long SCAN_STATUS_FAILED = 0;
+    public static final long SCAN_STATUS_SUCCESS = 1;
     public static final String BLACK_DUCK_SCAN_TIME_PROPERTY_NAME = "scanTime";
     public static final String BLACK_DUCK_SCAN_RESULT_PROPERTY_NAME = "scanResult";
     public static final String BLACK_DUCK_PROJECT_VERSION_URL_PROPERTY_NAME = "apiUrl";
@@ -121,12 +121,13 @@ public class ItemAttributesHelper {
         addAttribute(BLACK_DUCK_SCAN_TIME_PROPERTY_NAME, timeString, item);
     }
 
-    public String getScanResult(final StorageItem item) {
-        return getString(item, BLACK_DUCK_SCAN_RESULT_PROPERTY_NAME, "");
+    public long getScanResult(final StorageItem item) {
+        return getLong(item, BLACK_DUCK_SCAN_RESULT_PROPERTY_NAME, SCAN_STATUS_FAILED);
     }
 
-    public void setScanResult(final StorageItem item, final String scanResult) {
-        addAttribute(BLACK_DUCK_SCAN_RESULT_PROPERTY_NAME, scanResult, item);
+    public void setScanResult(final StorageItem item, final long scanResult) {
+        final String statusString = String.valueOf(scanResult);
+        addAttribute(BLACK_DUCK_SCAN_RESULT_PROPERTY_NAME, statusString, item);
     }
 
     public String getPolicyStatus(final StorageItem item) {

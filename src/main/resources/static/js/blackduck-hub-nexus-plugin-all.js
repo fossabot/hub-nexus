@@ -163,7 +163,12 @@ Ext.extend(Sonatype.repoServer.HubTab, Ext.Panel, {
 							this.find('name', 'overallPolicyStatus')[0].setRawValue(infoResp.policyOverallStatus);
 							this.find('name', 'policyStatus')[0].setRawValue(infoResp.policyStatus);
 							this.find('name', 'scanTime')[0].setRawValue(dateTime);
-							this.find('name', 'scanResult')[0].setRawValue(infoResp.scanStatus);
+							var scanStatus = infoResp.scanStatus;
+							var statusString = "Failed";
+							if (scanStatus == 1) {
+								statusString = "Success";
+							}
+							this.find('name', 'scanResult')[0].setRawValue(statusString);
 
 							artifactContainer.showTab(this);
 						}

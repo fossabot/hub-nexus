@@ -118,7 +118,7 @@ public class HubNexusRestResource extends ComponentSupport implements Resource {
             }
 
             if (item != null) {
-                data.setScanStatus(itemAttributesHelper.getScanResult(item));
+                data.setScanStatus(String.valueOf(itemAttributesHelper.getScanResult(item)));
                 data.setPolicyStatus(itemAttributesHelper.getPolicyStatus(item));
                 data.setPolicyOverallStatus(itemAttributesHelper.getOverallPolicyStatus(item));
                 data.setScanTime(String.valueOf(itemAttributesHelper.getScanTime(item)));

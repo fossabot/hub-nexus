@@ -50,7 +50,7 @@ public class HubNexusRestResourceTest {
 
         mockAttributes = new MockAttributes()
         mockAttributes.put("blackduck-scanTime", "100")
-        mockAttributes.put("blackduck-scanResult", "success")
+        mockAttributes.put("blackduck-scanResult", "1")
         mockAttributes.put("blackduck-apiUrl", "apiurl")
         mockAttributes.put("blackduck-uiUrl", "uiurl")
         mockAttributes.put("blackduck-policyStatus", "NOT_IN_VIOLATION")
@@ -81,7 +81,7 @@ public class HubNexusRestResourceTest {
         assertNotNull(hubMetaData)
         assertEquals("uiurl", hubMetaData.uiUrl)
         assertEquals("100", hubMetaData.scanTime)
-        assertEquals("success", hubMetaData.scanStatus)
+        assertEquals("1", hubMetaData.scanStatus)
         assertEquals("NOT_IN_VIOLATION", hubMetaData.policyStatus)
         assertEquals("policy message", hubMetaData.policyOverallStatus)
     }

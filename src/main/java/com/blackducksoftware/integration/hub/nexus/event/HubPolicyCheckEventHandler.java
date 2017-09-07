@@ -29,6 +29,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.sonatype.nexus.proxy.attributes.AttributesHandler;
 import org.sonatype.nexus.proxy.item.StorageItem;
@@ -65,12 +66,21 @@ public class HubPolicyCheckEventHandler extends HubEventHandler {
                 final VersionBomPolicyStatusView versionBomPolicyStatusView = hubServiceHelper.getPolicyStatusDataService().getPolicyStatusForVersion(projectVersionView);
                 final PolicyStatusDescription policyCheckResults = new PolicyStatusDescription(versionBomPolicyStatusView);
                 getAttributeHelper().setPolicyStatus(item, policyCheckResults.getPolicyStatusMessage());
-                getAttributeHelper().setOverallPolicyStatus(item, versionBomPolicyStatusView.overallStatus.toString());
+                final String overallStatus = transformOverallStatus(versionBomPolicyStatusView.overallStatus.toString());
+                getAttributeHelper().setOverallPolicyStatus(item, overallStatus);
             }
         } catch (final Exception ex) {
             logger.error("Error occurred checking policy", ex);
         } finally {
             logger.info("Finished checking policy event");
         }
+    }
+
+    private String transformOverallStatus(final String overallStatus) {
+        String statusMessage = overallStatus;
+        statusMessage = StringUtils.replace(overallStatus, "_", " ");
+        statusMessage = StringUtils.lowerCase(statusMessage);
+        statusMessage = StringUtils.capitaliseAllWords(statusMessage);
+        return statusMessage;
     }
 }
