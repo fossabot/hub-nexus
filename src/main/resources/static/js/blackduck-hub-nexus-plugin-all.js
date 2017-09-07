@@ -31,17 +31,17 @@ Sonatype.repoServer.HubTab = function(config) {
 	this.sp = Sonatype.lib.Permissions;
 
 	Sonatype.repoServer.HubTab.superclass.constructor.call( this, {
-		title : 'BlackDuck Hub',
+		title : 'Black Duck Hub',
 		autoScroll : true,
 		border : true,
 		frame : true,
 		collapsible : false,
 		collapsed : false,
+		labelWidth : 130,
 		layout : 'form',
-		iconCls : 'bd_icon',
 		items: [ 
 		        {
-		        	html:'<img src="static/bd_logo.png" align= "right" />'
+		        	html:'<img src="static/icons/bd_logo.png" align= "right" />'
 		        },{
 		        	xtype : 'displayfield',
 		        	fieldLabel : 'UI URL',
@@ -56,22 +56,21 @@ Sonatype.repoServer.HubTab = function(config) {
 		        	name : 'apiUrl',
 		        	anchor : Sonatype.view.FIELD_OFFSET_WITH_SCROLL,
 		        	allowBlank : true,
-		        	readOnly : true    	     
-
+		        	readOnly : true,    	     
 		        }, {
 		        	xtype : 'displayfield',
 		        	fieldLabel : 'Overall Policy Status',
 		        	name : 'overallPolicyStatus',
 		        	anchor : Sonatype.view.FIELD_OFFSET_WITH_SCROLL,
 		        	allowBlank : true,
-		        	readOnly : true
+		        	readOnly : true,    	     
 		        }, {
 		        	xtype : 'displayfield',
 		        	fieldLabel : 'Policy Status',
 		        	name : 'policyStatus',
 		        	anchor : Sonatype.view.FIELD_OFFSET_WITH_SCROLL,
 		        	allowBlank : true,
-		        	readOnly : true
+		        	readOnly : true,    	     
 		        }, {
 		        	xtype : 'displayfield',
 		        	fieldLabel : 'Scan Time',
