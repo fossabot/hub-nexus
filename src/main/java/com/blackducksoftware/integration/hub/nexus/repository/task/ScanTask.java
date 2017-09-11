@@ -46,6 +46,7 @@ import com.blackducksoftware.integration.hub.api.nonpublic.HubVersionRequestServ
 import com.blackducksoftware.integration.hub.cli.CLIDownloadService;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.ScanEventManager;
+import com.blackducksoftware.integration.hub.nexus.http.DownloadRequestProcessor;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.util.HostnameHelper;
 import com.blackducksoftware.integration.log.Slf4jIntLogger;
@@ -56,12 +57,14 @@ public class ScanTask extends AbstractHubTask {
     private static final String ALL_REPO_ID = "all_repo";
     private final DefaultAttributesHandler attributesHandler;
     private final ScanEventManager eventManager;
+    private final DownloadRequestProcessor downloadRequestProcessor;
 
     @Inject
-    public ScanTask(final Walker walker, final DefaultAttributesHandler attributesHandler, final ScanEventManager eventManager) {
+    public ScanTask(final Walker walker, final DefaultAttributesHandler attributesHandler, final ScanEventManager eventManager, final DownloadRequestProcessor downloadRequestProcessor) {
         super(walker);
         this.attributesHandler = attributesHandler;
         this.eventManager = eventManager;
+        this.downloadRequestProcessor = downloadRequestProcessor;
     }
 
     @Override
@@ -97,6 +100,7 @@ public class ScanTask extends AbstractHubTask {
                 final List<WalkerContext> contextList = new ArrayList<>();
 
                 for (final Repository repository : repositoryList) {
+                    repository.registerRequestStrategy(downloadRequestProcessor.getClass().toString(), downloadRequestProcessor);
                     contextList.add(createRepositoryWalker(eventManager, repository, hubServiceHelper));
                 }
                 walkRepositories(contextList);
