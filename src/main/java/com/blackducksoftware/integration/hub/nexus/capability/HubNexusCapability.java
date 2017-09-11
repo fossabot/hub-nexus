@@ -36,7 +36,7 @@ public class HubNexusCapability extends CapabilitySupport<HubNexusCapabilityConf
 
     @Override
     protected HubNexusCapabilityConfiguration createConfig(final Map<String, String> properties) throws Exception {
-        return new HubNexusCapabilityConfiguration();
+        return new HubNexusCapabilityConfiguration(properties);
     }
 
 }

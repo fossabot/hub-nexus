@@ -23,8 +23,13 @@
  */
 package com.blackducksoftware.integration.hub.nexus.capability;
 
+import java.util.Map;
+
 import org.sonatype.nexus.capability.support.CapabilityConfigurationSupport;
 
 public class HubNexusCapabilityConfiguration extends CapabilityConfigurationSupport {
+
+    public HubNexusCapabilityConfiguration(final Map<String, String> properties) {
+    }
 
 }

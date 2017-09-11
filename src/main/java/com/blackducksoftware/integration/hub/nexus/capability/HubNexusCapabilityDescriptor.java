@@ -34,7 +34,7 @@ import org.sonatype.nexus.formfields.CheckboxFormField;
 import org.sonatype.nexus.formfields.FormField;
 import org.sonatype.nexus.plugins.capabilities.CapabilityType;
 
-@Named
+@Named(HubNexusCapabilityDescriptor.ID)
 @Singleton
 public class HubNexusCapabilityDescriptor extends CapabilityDescriptorSupport {
     public final CapabilityType TYPE = CapabilityType.capabilityType(ID);
