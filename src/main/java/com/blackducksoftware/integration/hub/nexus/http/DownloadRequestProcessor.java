@@ -37,6 +37,7 @@ import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.repository.AbstractRequestStrategy;
 import org.sonatype.nexus.proxy.repository.Repository;
 
+import com.blackducksoftware.integration.hub.model.enumeration.VersionBomPolicyStatusOverallStatusEnum;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
 @Named
@@ -54,7 +55,7 @@ public class DownloadRequestProcessor extends AbstractRequestStrategy {
     @Override
     public void onServing(final Repository repository, final ResourceStoreRequest request, final StorageItem item) throws ItemNotFoundException, IllegalOperationException {
         final String policyStatus = itemAttributesHelper.getOverallPolicyStatus(item);
-        if (policyStatus.toLowerCase().equals("not in violation") && request.getRequestUrl() != null && !request.isDescribe()) {
+        if (policyStatus.toLowerCase().equals(VersionBomPolicyStatusOverallStatusEnum.IN_VIOLATION.toString()) && request.getRequestUrl() != null && !request.isDescribe()) {
             throw new IllegalStateException("Cannot serve a file in violation");
         }
     }
