@@ -26,17 +26,20 @@ package com.blackducksoftware.integration.hub.nexus.capability;
 import java.util.Map;
 
 import javax.inject.Named;
-import javax.inject.Singleton;
 
 import org.sonatype.nexus.capability.support.CapabilitySupport;
 
 @Named(HubNexusCapabilityDescriptor.ID)
-@Singleton
 public class HubNexusCapability extends CapabilitySupport<HubNexusCapabilityConfiguration> {
 
     @Override
     protected HubNexusCapabilityConfiguration createConfig(final Map<String, String> properties) throws Exception {
         return new HubNexusCapabilityConfiguration(properties);
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName();
     }
 
 }

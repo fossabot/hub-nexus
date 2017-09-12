@@ -23,6 +23,7 @@
  */
 package com.blackducksoftware.integration.hub.nexus.capability;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.sonatype.nexus.capability.support.CapabilityConfigurationSupport;
@@ -30,6 +31,15 @@ import org.sonatype.nexus.capability.support.CapabilityConfigurationSupport;
 public class HubNexusCapabilityConfiguration extends CapabilityConfigurationSupport {
 
     public HubNexusCapabilityConfiguration(final Map<String, String> properties) {
+    }
+
+    public HubNexusCapabilityConfiguration() {
+    }
+
+    public Map<String, String> asMap() {
+        final Map<String, String> map = new HashMap<>();
+
+        return map;
     }
 
 }

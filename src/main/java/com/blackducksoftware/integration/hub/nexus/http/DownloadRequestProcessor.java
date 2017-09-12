@@ -27,8 +27,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
@@ -43,12 +41,10 @@ import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 @Named
 @Singleton
 public class DownloadRequestProcessor extends AbstractRequestStrategy {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ItemAttributesHelper itemAttributesHelper;
 
     @Inject
     public DownloadRequestProcessor(final AttributesHandler attributesHandler) {
-        logger.info("Request strat ctor");
         itemAttributesHelper = new ItemAttributesHelper(attributesHandler);
     }
 

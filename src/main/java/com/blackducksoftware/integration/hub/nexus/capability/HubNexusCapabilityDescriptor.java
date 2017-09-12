@@ -32,13 +32,17 @@ import javax.inject.Singleton;
 import org.sonatype.nexus.capability.support.CapabilityDescriptorSupport;
 import org.sonatype.nexus.formfields.CheckboxFormField;
 import org.sonatype.nexus.formfields.FormField;
+import org.sonatype.nexus.plugins.capabilities.CapabilityDescriptor;
 import org.sonatype.nexus.plugins.capabilities.CapabilityType;
+import org.sonatype.nexus.plugins.capabilities.Validator;
+
+import com.blackducksoftware.integration.hub.nexus.application.HubNexusPlugin;
 
 @Named(HubNexusCapabilityDescriptor.ID)
 @Singleton
-public class HubNexusCapabilityDescriptor extends CapabilityDescriptorSupport {
-    public final CapabilityType TYPE = CapabilityType.capabilityType(ID);
-    public static final String ID = "HubNexusCapability";
+public class HubNexusCapabilityDescriptor extends CapabilityDescriptorSupport implements CapabilityDescriptor {
+    public static final String ID = HubNexusPlugin.ID_PREFIX;
+    public static final CapabilityType TYPE = CapabilityType.capabilityType(ID);
 
     @Override
     public CapabilityType type() {
@@ -51,12 +55,27 @@ public class HubNexusCapabilityDescriptor extends CapabilityDescriptorSupport {
     }
 
     @Override
+    public String about() {
+        return "UHHH";
+    }
+
+    @Override
     public List<FormField> formFields() {
         final List<FormField> formFields = new ArrayList<>();
 
         formFields.add(new CheckboxFormField("id", "test", "test desc", FormField.OPTIONAL));
 
         return formFields;
+    }
+
+    @Override
+    public Validator validator() {
+        return validators().capability().uniquePer(TYPE);
+    }
+
+    @Override
+    protected String renderAbout() throws Exception {
+        return render(ID + "-about.vm");
     }
 
 }

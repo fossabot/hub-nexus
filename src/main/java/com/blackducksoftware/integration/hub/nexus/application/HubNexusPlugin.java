@@ -35,12 +35,12 @@ import org.sonatype.nexus.plugin.PluginIdentity;
 public class HubNexusPlugin extends PluginIdentity {
 
     @NonNls
-    public static final String ID_PREFIX = "hub-nexus";
+    public static final String ID_PREFIX = "hubnexus";
 
     @NonNls
     public static final String GROUP_ID = "com.blackducksoftware.integration";
 
-    // The UI JS file must start with this artifact ID (The JS file has additional details after this name).
+    // The UI JS file must start with this artifact ID followed by -all.
     @NonNls
     public static final String ARTIFACT_ID = "blackduck-" + ID_PREFIX + "-plugin";
 
