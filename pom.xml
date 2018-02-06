@@ -36,6 +36,7 @@
 
   <properties>
     <skipITTests>true</skipITTests>
+    <sonar.projectName>Integrations - Black Duck Hub Plugin for Nexus</sonar.projectName>
   </properties>
 
   <dependencies>
