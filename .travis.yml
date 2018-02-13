@@ -3,6 +3,12 @@ language: java
 jdk:
   - oraclejdk8
 
+addons:
+  sonarcloud:
+    organization: "black-duck-software"
+    token:
+      secure: "tmfnX7TtKRMZulIVxlfyJUMMm3S+4SIdiyDxae2zsDmzypjJvIzUssm38gpOYCNzIS80v4KH2F4NXl5Bgi8rod3bsCqSMbs76CBi+pKHyr0Se56X4fnVBm713b3l+eeFfKacECx2uj3eiU/6/Fd1VNVy5Z4Cqh04jsI5nEev9dx9QNU7qe3uyAJ6Po3BkBky4ALWaDL1nq24JkfD+Pvs6DB+Y6cJyD1pgxTNyADenOgjqbVFoO/2wQdB2kPoMv7Ikr+BEz1n6WR5654e9rI2k9ZUZp7HEBVrjhaVmMlOgIK+Oep3Z9BUWZm3OOa5eTL24NtfNG8BAYMyRW86XwIynEcK2qbILJS59TH65knAwWnkn8u0zRElpjlV+BUQ53b+Z8ePYhrq/QBC8V288lmDh4hRDxHMoB/mNYq7N3nKzRUyMsLNFqeaHwsfWGtPSPRrZMd3NBXQeIKzjAURCoWvjtMR7/Zjek0/7s9JyT9qcHspmcy2MrK4Vm/drcgeniVGUxgzD8JfN81fbtozqGQTuvpMmYhDvhFlSlXIYpjyCA3kX7pVaaAIn3IeJzbZUD6NQyo59D6Qjy7zooSR7Jky4wVYUFpV1qlaEawxBcRBiEj9huLmiPixzZ973Tg/mPcWJgsWer66uSH0T02lfh8xubrajj02gcdIQdLl2dZYpTI="
+
 before_install:
 - wget https://archive.apache.org/dist/maven/maven-3/3.0.5/binaries/apache-maven-3.0.5-bin.zip
 - unzip -qq apache-maven-3.0.5-bin.zip
@@ -11,7 +17,7 @@ before_install:
 
 install: true
 script:
-- mvn -U clean package 
-  
+  - mvn -U clean org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar
+
 after_success:
 - mvn jacoco:report coveralls:report
