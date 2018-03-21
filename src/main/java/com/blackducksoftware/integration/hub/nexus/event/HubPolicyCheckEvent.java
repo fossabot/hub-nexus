@@ -29,7 +29,7 @@ import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.repository.Repository;
 
-import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
+import com.blackducksoftware.integration.hub.api.generated.view.ProjectVersionView;
 
 public class HubPolicyCheckEvent extends HubEvent {
     private final ProjectVersionView projectVersionView;

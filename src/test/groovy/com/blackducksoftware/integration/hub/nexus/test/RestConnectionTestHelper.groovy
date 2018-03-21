@@ -26,18 +26,18 @@ package com.blackducksoftware.integration.hub.nexus.test
 import java.util.logging.Level
 import java.util.logging.Logger
 
+import org.junit.Assert
+
 import com.blackducksoftware.integration.exception.EncryptionException
-import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder
+import com.blackducksoftware.integration.hub.configuration.HubServerConfig
+import com.blackducksoftware.integration.hub.configuration.HubServerConfigBuilder
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException
-import com.blackducksoftware.integration.hub.global.HubServerConfig
 import com.blackducksoftware.integration.hub.rest.CredentialsRestConnection
 import com.blackducksoftware.integration.hub.rest.RestConnection
 import com.blackducksoftware.integration.hub.service.HubServicesFactory
 import com.blackducksoftware.integration.log.IntLogger
 import com.blackducksoftware.integration.log.LogLevel
 import com.blackducksoftware.integration.log.PrintStreamIntLogger
-
-import okhttp3.OkHttpClient
 
 public class RestConnectionTestHelper {
     private Properties testProperties
@@ -55,7 +55,7 @@ public class RestConnectionTestHelper {
     }
 
     private void initProperties() {
-        Logger.getLogger(OkHttpClient.class.getName()).setLevel(Level.FINE)
+        Logger.getLogger(getClass().getName()).setLevel(Level.FINE)
         testProperties = new Properties()
         final ClassLoader classLoader = Thread.currentThread().getContextClassLoader()
         try {
@@ -102,7 +102,7 @@ public class RestConnectionTestHelper {
         builder.setProxyUsername(getProperty(TestingPropertyKey.TEST_PROXY_USER_BASIC))
         builder.setProxyPassword(getProperty(TestingPropertyKey.TEST_PROXY_PASSWORD_BASIC))
         boolean autoImportHttpsCertificates = Boolean.parseBoolean(getProperty(TestingPropertyKey.TEST_AUTO_IMPORT_HTTPS_CERT))
-        builder.setAutoImportHttpsCertificates(autoImportHttpsCertificates)
+        builder.setAlwaysTrustServerCertificate(autoImportHttpsCertificates)
 
         return builder.build()
     }
@@ -130,12 +130,7 @@ public class RestConnectionTestHelper {
     public CredentialsRestConnection getRestConnection(final HubServerConfig serverConfig, final LogLevel logLevel) throws IllegalArgumentException, EncryptionException, HubIntegrationException {
 
         final CredentialsRestConnection restConnection = new CredentialsRestConnection(new PrintStreamIntLogger(System.out, logLevel), serverConfig.getHubUrl(), serverConfig.getGlobalCredentials().getUsername(),
-                serverConfig.getGlobalCredentials().getDecryptedPassword(), serverConfig.getTimeout())
-        restConnection.proxyHost = serverConfig.getProxyInfo().getHost()
-        restConnection.proxyPort = serverConfig.getProxyInfo().getPort()
-        restConnection.proxyNoHosts = serverConfig.getProxyInfo().getIgnoredProxyHosts()
-        restConnection.proxyUsername = serverConfig.getProxyInfo().getUsername()
-        restConnection.proxyPassword = serverConfig.getProxyInfo().getDecryptedPassword()
+                serverConfig.getGlobalCredentials().getDecryptedPassword(), serverConfig.getTimeout(), serverConfig.getProxyInfo())
 
         return restConnection
     }
@@ -161,7 +156,7 @@ public class RestConnectionTestHelper {
             final File file = new File(url.toURI().getPath())
             return file
         } catch (final Exception e) {
-            fail("Could not get file: " + e.getMessage())
+            Assert.fail("Could not get file: " + e.getMessage())
             return null
         }
     }

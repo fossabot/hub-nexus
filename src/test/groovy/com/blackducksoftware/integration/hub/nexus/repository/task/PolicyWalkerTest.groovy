@@ -40,12 +40,12 @@ import org.sonatype.nexus.proxy.item.RepositoryItemUid
 import org.sonatype.nexus.proxy.item.StorageItem
 import org.sonatype.nexus.proxy.walker.WalkerContext
 
-import com.blackducksoftware.integration.hub.api.project.version.ProjectVersionRequestService
-import com.blackducksoftware.integration.hub.model.view.ProjectVersionView
+import com.blackducksoftware.integration.hub.api.generated.view.ProjectVersionView
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper
 import com.blackducksoftware.integration.hub.nexus.event.HubPolicyCheckEvent
 import com.blackducksoftware.integration.hub.nexus.test.TestEventBus
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
+import com.blackducksoftware.integration.hub.service.HubService
 
 @RunWith(MockitoJUnitRunner.class)
 public class PolicyWalkerTest {
@@ -80,10 +80,10 @@ public class PolicyWalkerTest {
             getParentPath: { -> PARENT_PATH },
             getName: { -> "itemName" }] as StorageItem
         walkerContext = [ getResourceStoreRequest: { -> null } ] as WalkerContext
-        ProjectVersionRequestService projectVersionRequestService = Mockito.mock(ProjectVersionRequestService.class)
+        HubService hubService = Mockito.mock(HubService.class)
         hubServiceHelper = Mockito.mock(HubServiceHelper.class)
-        Mockito.when(hubServiceHelper.getProjectVersionRequestService()).thenReturn(projectVersionRequestService)
-        Mockito.when(projectVersionRequestService.getItem(Mockito.anyString(), Mockito.any())).thenReturn(Mockito.mock(ProjectVersionView.class))
+        Mockito.when(hubServiceHelper.getHubResponseService()).thenReturn(hubService)
+        Mockito.when(hubService.getResponse(Mockito.anyString(), Mockito.any())).thenReturn(Mockito.mock(ProjectVersionView.class))
     }
 
     @Test

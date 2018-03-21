@@ -38,9 +38,6 @@ import org.sonatype.nexus.formfields.FormField;
 import org.sonatype.nexus.formfields.RepoOrGroupComboFormField;
 import org.sonatype.nexus.formfields.StringTextFormField;
 
-import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionDistributionEnum;
-import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionPhaseEnum;
-
 @Named
 @Singleton
 public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
@@ -88,6 +85,41 @@ public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
     private final CheckboxFormField rescanFailures = new CheckboxFormField(TaskField.RESCAN_FAILURES.getParameterKey(), LABEL_RESCAN_FAILURE, DESCRIPTION_RESCAN_FAILURE, FormField.OPTIONAL);
     private final CheckboxFormField alwaysRescan = new CheckboxFormField(TaskField.ALWAYS_SCAN.getParameterKey(), LABEL_ALWAYS_SCAN, DESCRIPTION_ALWAYS_SCAN, FormField.OPTIONAL);
     private final ApplicationDirectories appDirectories;
+
+    enum ProjectVersionDistributionEnum {
+        EXTERNAL("External"),
+        SAAS("Saas"),
+        INTERNAL("Internal"),
+        OPEN_SOURCE("Open Source");
+
+        private String key;
+
+        ProjectVersionDistributionEnum(final String key) {
+            this.key = key;
+        }
+
+        public String getKey() {
+            return key;
+        }
+    }
+
+    enum ProjectVersionPhaseEnum {
+        IN_PLANNING("In planning"),
+        IN_DEVELOPMENT("In development"),
+        RELEASED("Released"),
+        DEPRECATED("Deprecated"),
+        ARCHIVED("Archived");
+
+        private String key;
+
+        ProjectVersionPhaseEnum(final String key) {
+            this.key = key;
+        }
+
+        public String getKey() {
+            return key;
+        }
+    }
 
     @Inject
     public ScanTaskDescriptor(final ApplicationDirectories appDirectories) {
@@ -140,7 +172,7 @@ public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
     private StringTextFormField createPhaseField() {
         final String possibleValues = StringUtils.join(ProjectVersionPhaseEnum.values(), ",");
         final String description = DESCRIPTION_HUB_PROJECT_PHASE.concat(possibleValues);
-        final StringTextFormField phaseFormField = new StringTextFormField(TaskField.PHASE.getParameterKey(), LABEL_PHASE, description, FormField.OPTIONAL).withInitialValue(ProjectVersionPhaseEnum.DEVELOPMENT.name());
+        final StringTextFormField phaseFormField = new StringTextFormField(TaskField.PHASE.getParameterKey(), LABEL_PHASE, description, FormField.OPTIONAL).withInitialValue(ProjectVersionPhaseEnum.IN_DEVELOPMENT.name());
         return phaseFormField;
     }
 

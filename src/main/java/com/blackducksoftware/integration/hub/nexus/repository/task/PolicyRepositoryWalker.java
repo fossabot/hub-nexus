@@ -36,10 +36,11 @@ import org.sonatype.sisu.goodies.common.Loggers;
 import org.sonatype.sisu.goodies.eventbus.EventBus;
 
 import com.blackducksoftware.integration.exception.IntegrationException;
-import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
+import com.blackducksoftware.integration.hub.api.generated.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.HubPolicyCheckEvent;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
+import com.blackducksoftware.integration.hub.service.HubService;
 
 public class PolicyRepositoryWalker extends AbstractWalkerProcessor {
     private final Logger logger = Loggers.getLogger(getClass());
@@ -84,7 +85,8 @@ public class PolicyRepositoryWalker extends AbstractWalkerProcessor {
 
     private ProjectVersionView getProjectVersion(final StorageItem item) throws IntegrationException {
         final String url = itemAttributesHelper.getApiUrl(item);
-        final ProjectVersionView projectVersionView = hubServiceHelper.getProjectVersionRequestService().getItem(url, ProjectVersionView.class);
+        final HubService hubService = hubServiceHelper.getHubResponseService();
+        final ProjectVersionView projectVersionView = hubService.getResponse(url, ProjectVersionView.class);
         return projectVersionView;
     }
 }

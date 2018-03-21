@@ -33,17 +33,18 @@ import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
 
-import com.blackducksoftware.integration.hub.builder.HubScanConfigBuilder;
-import com.blackducksoftware.integration.hub.dataservice.cli.CLIDataService;
-import com.blackducksoftware.integration.hub.global.HubServerConfig;
-import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
+import com.blackducksoftware.integration.hub.api.generated.view.ProjectVersionView;
+import com.blackducksoftware.integration.hub.configuration.HubScanConfig;
+import com.blackducksoftware.integration.hub.configuration.HubScanConfigBuilder;
+import com.blackducksoftware.integration.hub.configuration.HubServerConfig;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.application.IntegrationInfo;
 import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
-import com.blackducksoftware.integration.hub.scan.HubScanConfig;
+import com.blackducksoftware.integration.hub.service.SignatureScannerService;
+import com.blackducksoftware.integration.hub.service.model.ProjectVersionWrapper;
 
 public class ArtifactScanner {
     private final boolean HUB_SCAN_DRY_RUN = false;
@@ -78,12 +79,11 @@ public class ArtifactScanner {
                 final HubServerConfig hubServerConfig = hubServiceHelper.getHubServerConfig();
                 final HubScanConfig scanConfig = createScanConfig(Integer.parseInt(scanMemoryValue), workingDirectory);
                 logger.info(String.format("Scan Path %s", scanConfig.getScanTargetPaths()));
-                final CLIDataService cliDataService = hubServiceHelper.getCliDataService();
-                final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, event.getProjectRequest(), true, phoneHomeInfo.getThirdPartyName(), phoneHomeInfo.getThirdPartyVersion(),
-                        phoneHomeInfo.getPluginVersion());
+                final SignatureScannerService signatureScannerService = hubServiceHelper.getSignatureScannerService();
+                final ProjectVersionWrapper projectVersionView = signatureScannerService.installAndRunControlledScan(hubServerConfig, scanConfig, event.getProjectRequest(), true);
                 logger.info("Checking scan results...");
-                final String apiUrl = hubServiceHelper.getMetaService().getHref(projectVersionView);
-                final String uiUrl = hubServiceHelper.getMetaService().getFirstLink(projectVersionView, "components");
+                final String apiUrl = hubServiceHelper.getHubResponseService().getHref(projectVersionView.getProjectVersionView());
+                final String uiUrl = hubServiceHelper.getHubResponseService().getFirstLink(projectVersionView.getProjectVersionView(), "components");
 
                 if (StringUtils.isNotBlank(apiUrl)) {
                     attributesHelper.setApiUrl(item, apiUrl);
@@ -93,7 +93,7 @@ public class ArtifactScanner {
                     attributesHelper.setUiUrl(item, uiUrl);
                 }
                 attributesHelper.setScanResult(item, ItemAttributesHelper.SCAN_STATUS_SUCCESS);
-                return projectVersionView;
+                return projectVersionView.getProjectVersionView();
             }
         } catch (final Exception ex) {
             logger.error("Error occurred during scan task", ex);

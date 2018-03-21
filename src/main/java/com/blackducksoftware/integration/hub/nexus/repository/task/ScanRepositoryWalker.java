@@ -40,18 +40,18 @@ import org.sonatype.nexus.proxy.walker.WalkerContext;
 import org.sonatype.sisu.goodies.common.Loggers;
 
 import com.blackducksoftware.integration.exception.IntegrationException;
-import com.blackducksoftware.integration.hub.api.project.ProjectRequestService;
-import com.blackducksoftware.integration.hub.api.project.version.ProjectVersionRequestService;
+import com.blackducksoftware.integration.hub.api.generated.component.ProjectRequest;
+import com.blackducksoftware.integration.hub.api.generated.view.ProjectVersionView;
+import com.blackducksoftware.integration.hub.api.generated.view.ProjectView;
 import com.blackducksoftware.integration.hub.exception.DoesNotExistException;
-import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
-import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
-import com.blackducksoftware.integration.hub.model.view.ProjectView;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.ScanEventManager;
 import com.blackducksoftware.integration.hub.nexus.event.ScanItemMetaData;
 import com.blackducksoftware.integration.hub.nexus.scan.NameVersionNode;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
-import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder;
+import com.blackducksoftware.integration.hub.service.HubService;
+import com.blackducksoftware.integration.hub.service.ProjectService;
+import com.blackducksoftware.integration.hub.service.model.ProjectRequestBuilder;
 
 public class ScanRepositoryWalker extends AbstractWalkerProcessor {
     private final Logger logger = Loggers.getLogger(getClass());
@@ -189,19 +189,19 @@ public class ScanRepositoryWalker extends AbstractWalkerProcessor {
 
     private void createProjectAndVersion(final ProjectRequest projectRequest) throws IntegrationException {
         ProjectView project = null;
-        final ProjectRequestService projectRequestService = hubServiceHelper.getProjectRequestService();
-        final ProjectVersionRequestService projectVersionRequestService = hubServiceHelper.getProjectVersionRequestService();
+        final ProjectService projectRequestService = hubServiceHelper.getProjectRequestService();
+        final HubService hubService = hubServiceHelper.getHubResponseService();
         try {
-            project = projectRequestService.getProjectByName(projectRequest.getName());
+            project = projectRequestService.getProjectByName(projectRequest.name);
         } catch (final DoesNotExistException e) {
             final String projectURL = projectRequestService.createHubProject(projectRequest);
-            project = projectRequestService.getItem(projectURL, ProjectView.class);
+            project = hubService.getResponse(projectURL, ProjectView.class);
         }
         try {
-            projectVersionRequestService.getProjectVersion(project, projectRequest.getVersionRequest().getVersionName());
+            projectRequestService.getProjectVersion(project, projectRequest.versionRequest.versionName);
         } catch (final DoesNotExistException e) {
-            final String versionURL = projectVersionRequestService.createHubVersion(project, projectRequest.getVersionRequest());
-            projectVersionRequestService.getItem(versionURL, ProjectVersionView.class);
+            final String versionURL = projectRequestService.createHubVersion(project, projectRequest.versionRequest);
+            hubService.getResponse(versionURL, ProjectVersionView.class);
         }
     }
 }

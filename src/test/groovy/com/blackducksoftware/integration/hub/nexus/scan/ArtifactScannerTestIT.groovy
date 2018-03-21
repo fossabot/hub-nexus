@@ -28,7 +28,7 @@ import org.junit.Before
 import org.junit.Test
 import org.sonatype.nexus.events.Event
 
-import com.blackducksoftware.integration.hub.model.view.ProjectVersionView
+import com.blackducksoftware.integration.hub.api.generated.view.ProjectVersionView
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper
 import com.blackducksoftware.integration.hub.nexus.application.IntegrationInfo
 import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent

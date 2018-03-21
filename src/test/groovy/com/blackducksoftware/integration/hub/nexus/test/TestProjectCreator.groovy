@@ -24,35 +24,32 @@
 package com.blackducksoftware.integration.hub.nexus.test
 
 import com.blackducksoftware.integration.exception.IntegrationException
-import com.blackducksoftware.integration.hub.api.project.ProjectRequestService
-import com.blackducksoftware.integration.hub.api.project.version.ProjectVersionRequestService
-import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionDistributionEnum
-import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionPhaseEnum
-import com.blackducksoftware.integration.hub.model.request.ProjectRequest
-import com.blackducksoftware.integration.hub.model.request.ProjectVersionRequest
-import com.blackducksoftware.integration.hub.model.view.ProjectVersionView
-import com.blackducksoftware.integration.hub.model.view.ProjectView
+import com.blackducksoftware.integration.hub.api.generated.component.ProjectRequest
+import com.blackducksoftware.integration.hub.api.generated.component.ProjectVersionRequest
+import com.blackducksoftware.integration.hub.api.generated.view.ProjectVersionView
+import com.blackducksoftware.integration.hub.api.generated.view.ProjectView
+import com.blackducksoftware.integration.hub.nexus.repository.task.ScanTaskDescriptor.ProjectVersionDistributionEnum
+import com.blackducksoftware.integration.hub.nexus.repository.task.ScanTaskDescriptor.ProjectVersionPhaseEnum
 import com.blackducksoftware.integration.hub.service.HubServicesFactory
+import com.blackducksoftware.integration.hub.service.ProjectService
 import com.blackducksoftware.integration.log.IntLogger
 
 public class TestProjectCreator {
     private final HubServicesFactory hubServicesFactory
-    private final ProjectRequestService projectRequestService
-    private final ProjectVersionRequestService projectVersionRequestService
+    private final ProjectService projectRequestService
     private final IntLogger logger
 
     public TestProjectCreator(final RestConnectionTestHelper restConnectionTestHelper, final IntLogger logger) throws Exception {
         this.logger = logger
         hubServicesFactory = restConnectionTestHelper.createHubServicesFactory()
-        projectRequestService = hubServicesFactory.createProjectRequestService(logger)
-        projectVersionRequestService = hubServicesFactory.createProjectVersionRequestService(logger)
+        projectRequestService = hubServicesFactory.createProjectService()
     }
 
     public String createProject(final String name, final ProjectVersionDistributionEnum distribution, final ProjectVersionPhaseEnum phase, final String version) throws IntegrationException {
         final ProjectRequest projectRequest = new ProjectRequest(name)
         final ProjectVersionRequest projectVersionRequest = new ProjectVersionRequest(distribution, phase, version)
 
-        projectRequest.setVersionRequest(projectVersionRequest)
+        projectRequest.versionRequest = projectVersionRequest
 
         final String projectName = projectRequestService.createHubProject(projectRequest)
 
@@ -76,7 +73,7 @@ public class TestProjectCreator {
     }
 
     public ProjectVersionView getProjectVersionView(final ProjectView project, final String projectVersionName) throws IntegrationException {
-        return projectVersionRequestService.getProjectVersion(project, projectVersionName)
+        return projectRequestService.getProjectVersion(project, projectVersionName)
     }
 
     public void destroyProject(final ProjectView projectView) throws IntegrationException {

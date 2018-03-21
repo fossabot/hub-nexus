@@ -37,16 +37,16 @@ import org.sonatype.nexus.proxy.maven.packaging.ArtifactPackagingMapper
 import org.sonatype.nexus.proxy.registry.RepositoryRegistry
 import org.sonatype.nexus.proxy.repository.Repository
 
-import com.blackducksoftware.integration.hub.api.project.ProjectRequestService
+import com.blackducksoftware.integration.hub.api.generated.component.ProjectRequest
+import com.blackducksoftware.integration.hub.api.generated.view.ProjectView
 import com.blackducksoftware.integration.hub.exception.DoesNotExistException
-import com.blackducksoftware.integration.hub.model.request.ProjectRequest
-import com.blackducksoftware.integration.hub.model.view.ProjectView
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField
 import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper
 import com.blackducksoftware.integration.hub.nexus.test.TestEventBus
 import com.blackducksoftware.integration.hub.nexus.test.TestingPropertyKey
-import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder
 import com.blackducksoftware.integration.hub.service.HubServicesFactory
+import com.blackducksoftware.integration.hub.service.ProjectService
+import com.blackducksoftware.integration.hub.service.model.ProjectRequestBuilder
 import com.blackducksoftware.integration.log.Slf4jIntLogger
 
 public abstract class AbstractHandlerTest extends AbstractMavenRepoContentTests {
@@ -73,7 +73,7 @@ public abstract class AbstractHandlerTest extends AbstractMavenRepoContentTests 
         try {
             final Slf4jIntLogger intLogger = new Slf4jIntLogger(LoggerFactory.getLogger(getClass()))
             final HubServicesFactory hubServicesFactory = restConnection.createHubServicesFactory(intLogger)
-            final ProjectRequestService projectRequestService = hubServicesFactory.createProjectRequestService(intLogger)
+            final ProjectService projectRequestService = hubServicesFactory.createProjectService()
             final ProjectView projectView = projectRequestService.getProjectByName(projectRequest.getName())
             projectRequestService.deleteHubProject(projectView)
         } catch (final DoesNotExistException ex) {

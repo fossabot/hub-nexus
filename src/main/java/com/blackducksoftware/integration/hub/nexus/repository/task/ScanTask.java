@@ -42,12 +42,13 @@ import org.sonatype.nexus.proxy.walker.Walker;
 import org.sonatype.nexus.proxy.walker.WalkerContext;
 
 import com.blackducksoftware.integration.exception.IntegrationException;
-import com.blackducksoftware.integration.hub.api.nonpublic.HubVersionRequestService;
-import com.blackducksoftware.integration.hub.cli.CLIDownloadService;
+import com.blackducksoftware.integration.hub.api.generated.discovery.ApiDiscovery;
+import com.blackducksoftware.integration.hub.api.generated.response.CurrentVersionView;
+import com.blackducksoftware.integration.hub.cli.CLIDownloadUtility;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.ScanEventManager;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
-import com.blackducksoftware.integration.hub.util.HostnameHelper;
+import com.blackducksoftware.integration.hub.service.model.HostnameHelper;
 import com.blackducksoftware.integration.log.Slf4jIntLogger;
 import com.blackducksoftware.integration.util.CIEnvironmentVariables;
 
@@ -148,9 +149,8 @@ public class ScanTask extends AbstractHubTask {
         logger.info("Installing CLI to the following location: " + localHostName + ": " + installDirectory);
         final CIEnvironmentVariables ciEnvironmentVariables = new CIEnvironmentVariables();
         ciEnvironmentVariables.putAll(System.getenv());
-        final HubVersionRequestService hubVersionRequestService = hubServiceHelper.getHubVersionRequestService();
-        final CLIDownloadService cliDownloadService = hubServiceHelper.getCliDownloadService();
-        final String hubVersion = hubVersionRequestService.getHubVersion();
-        cliDownloadService.performInstallation(installDirectory, ciEnvironmentVariables, hubServiceHelper.getHubServerConfig().getHubUrl().toString(), hubVersion, localHostName);
+        final CLIDownloadUtility cliDownloadService = hubServiceHelper.getCliDownloadUtility();
+        final CurrentVersionView currentVersion = hubServiceHelper.getHubResponseService().getResponse(ApiDiscovery.CURRENT_VERSION_LINK_RESPONSE);
+        cliDownloadService.performInstallation(installDirectory, ciEnvironmentVariables, hubServiceHelper.getHubServerConfig().getHubUrl().toString(), currentVersion.version, localHostName);
     }
 }

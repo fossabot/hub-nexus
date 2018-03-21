@@ -28,7 +28,7 @@ import java.util.Map;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.StorageItem;
 
-import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
+import com.blackducksoftware.integration.hub.api.generated.component.ProjectRequest;
 
 public class ScanItemMetaData {
     private final StorageItem item;

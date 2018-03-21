@@ -41,9 +41,8 @@ import org.sonatype.nexus.proxy.item.RepositoryItemUid
 import org.sonatype.nexus.proxy.item.StorageItem
 import org.sonatype.nexus.proxy.walker.WalkerContext
 
-import com.blackducksoftware.integration.hub.api.project.ProjectRequestService
+import com.blackducksoftware.integration.hub.api.generated.view.ProjectView
 import com.blackducksoftware.integration.hub.exception.DoesNotExistException
-import com.blackducksoftware.integration.hub.model.view.ProjectView
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper
 import com.blackducksoftware.integration.hub.nexus.event.ScanEventManager
 import com.blackducksoftware.integration.hub.nexus.event.ScanItemMetaData
@@ -52,6 +51,7 @@ import com.blackducksoftware.integration.hub.nexus.test.TestEventBus
 import com.blackducksoftware.integration.hub.nexus.test.TestEventLogger
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
 import com.blackducksoftware.integration.hub.service.HubServicesFactory
+import com.blackducksoftware.integration.hub.service.ProjectService
 import com.blackducksoftware.integration.log.Slf4jIntLogger
 
 @RunWith(MockitoJUnitRunner.class)
@@ -95,7 +95,7 @@ public class ScanRepositoryWalkerTestIT {
         try {
             final Slf4jIntLogger intLogger = new Slf4jIntLogger(LoggerFactory.getLogger(getClass()))
             final HubServicesFactory hubServicesFactory = restConnection.createHubServicesFactory(intLogger)
-            final ProjectRequestService projectRequestService = hubServicesFactory.createProjectRequestService(intLogger)
+            final ProjectService projectRequestService = hubServicesFactory.createProjectService()
             final ProjectView projectView = projectRequestService.getProjectByName(PROJECT_NAME)
             projectRequestService.deleteHubProject(projectView)
         } catch (final DoesNotExistException ex) {

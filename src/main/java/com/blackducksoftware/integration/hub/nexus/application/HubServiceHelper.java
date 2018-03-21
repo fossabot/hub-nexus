@@ -26,21 +26,15 @@ package com.blackducksoftware.integration.hub.nexus.application;
 import java.util.Map;
 
 import com.blackducksoftware.integration.exception.EncryptionException;
-import com.blackducksoftware.integration.exception.IntegrationException;
-import com.blackducksoftware.integration.hub.api.item.MetaService;
-import com.blackducksoftware.integration.hub.api.nonpublic.HubVersionRequestService;
-import com.blackducksoftware.integration.hub.api.project.ProjectRequestService;
-import com.blackducksoftware.integration.hub.api.project.version.ProjectVersionRequestService;
-import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
-import com.blackducksoftware.integration.hub.cli.CLIDownloadService;
-import com.blackducksoftware.integration.hub.dataservice.cli.CLIDataService;
-import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDataService;
-import com.blackducksoftware.integration.hub.dataservice.report.RiskReportDataService;
-import com.blackducksoftware.integration.hub.global.HubServerConfig;
+import com.blackducksoftware.integration.hub.cli.CLIDownloadUtility;
+import com.blackducksoftware.integration.hub.configuration.HubServerConfig;
+import com.blackducksoftware.integration.hub.configuration.HubServerConfigBuilder;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.rest.CredentialsRestConnection;
-import com.blackducksoftware.integration.hub.service.HubResponseService;
+import com.blackducksoftware.integration.hub.service.HubService;
 import com.blackducksoftware.integration.hub.service.HubServicesFactory;
+import com.blackducksoftware.integration.hub.service.ProjectService;
+import com.blackducksoftware.integration.hub.service.SignatureScannerService;
 import com.blackducksoftware.integration.log.IntLogger;
 
 public class HubServiceHelper {
@@ -50,15 +44,10 @@ public class HubServiceHelper {
 
     private HubServicesFactory hubServicesFactory;
 
-    private PolicyStatusDataService policyStatusDataService;
-    private MetaService metaService;
-    private RiskReportDataService riskReportDataService;
-    private CLIDataService cliDataService;
-    private ProjectRequestService projectRequestService;
-    private HubResponseService hubResponseService;
-    private ProjectVersionRequestService projectVersionRequestService;
-    private CLIDownloadService cliDownloadService;
-    private HubVersionRequestService hubVersionRequestService;
+    private ProjectService projectRequestService;
+    private HubService hubResponseService;
+    private SignatureScannerService signatureScannerService;
+    private CLIDownloadUtility cliDownloadUtility;
 
     public HubServiceHelper(final IntLogger logger, final Map<String, String> taskParameters) {
         this.intLogger = logger;
@@ -86,7 +75,7 @@ public class HubServiceHelper {
         hubServerConfigBuilder.setProxyPort(proxyPort);
         hubServerConfigBuilder.setProxyUsername(proxyUsername);
         hubServerConfigBuilder.setProxyPassword(proxyPassword);
-        hubServerConfigBuilder.setAutoImportHttpsCertificates(Boolean.parseBoolean(autoImport));
+        hubServerConfigBuilder.setAlwaysTrustServerCertificate(Boolean.parseBoolean(autoImport));
 
         return hubServerConfigBuilder.build();
     }
@@ -115,85 +104,36 @@ public class HubServiceHelper {
         return hubServicesFactory;
     }
 
-    public PolicyStatusDataService getPolicyStatusDataService() {
-        if (policyStatusDataService == null) {
-            policyStatusDataService = getHubServicesFactory().createPolicyStatusDataService(intLogger);
-        }
-
-        return policyStatusDataService;
-    }
-
-    public MetaService getMetaService() {
-        if (metaService == null) {
-            metaService = getHubServicesFactory().createMetaService(intLogger);
-        }
-
-        return metaService;
-    }
-
-    public RiskReportDataService getRiskReportDataService(final long timeout) {
-        if (riskReportDataService == null) {
-            try {
-                riskReportDataService = getHubServicesFactory().createRiskReportDataService(intLogger, timeout);
-            } catch (final IntegrationException e) {
-                e.printStackTrace();
-                intLogger.error("Error retrieving risk report service");
-            }
-        }
-
-        return riskReportDataService;
-    }
-
-    public RiskReportDataService getRiskReportDataService() {
-        return getRiskReportDataService(getHubServerConfig().getTimeout());
-    }
-
-    public CLIDataService getCliDataService() {
-        if (cliDataService == null) {
-            cliDataService = getHubServicesFactory().createCLIDataService(intLogger);
-        }
-
-        return cliDataService;
-    }
-
-    public ProjectRequestService getProjectRequestService() {
+    public ProjectService getProjectRequestService() {
         if (projectRequestService == null) {
-            projectRequestService = getHubServicesFactory().createProjectRequestService(intLogger);
+            projectRequestService = getHubServicesFactory().createProjectService();
         }
 
         return projectRequestService;
     }
 
-    public HubResponseService getHubResponseService() {
+    public HubService getHubResponseService() {
         if (hubResponseService == null) {
-            hubResponseService = getHubServicesFactory().createHubResponseService();
+            hubResponseService = getHubServicesFactory().createHubService();
         }
 
         return hubResponseService;
     }
 
-    public ProjectVersionRequestService getProjectVersionRequestService() {
-        if (projectVersionRequestService == null) {
-            projectVersionRequestService = getHubServicesFactory().createProjectVersionRequestService(intLogger);
+    public SignatureScannerService getSignatureScannerService() {
+        if (signatureScannerService == null) {
+            signatureScannerService = getHubServicesFactory().createSignatureScannerService();
         }
 
-        return projectVersionRequestService;
+        return signatureScannerService;
     }
 
-    public CLIDownloadService getCliDownloadService() {
-        if (cliDownloadService == null) {
-            cliDownloadService = getHubServicesFactory().createCliDownloadService(intLogger);
+    public CLIDownloadUtility getCliDownloadUtility() {
+        if (cliDownloadUtility == null) {
+            cliDownloadUtility = getHubServicesFactory().createCliDownloadUtility();
         }
 
-        return cliDownloadService;
-    }
-
-    public HubVersionRequestService getHubVersionRequestService() {
-        if (hubVersionRequestService == null) {
-            hubVersionRequestService = getHubServicesFactory().createHubVersionRequestService();
-        }
-
-        return hubVersionRequestService;
+        return cliDownloadUtility;
     }
 
     public void setHubServicesFactory(final HubServicesFactory hubServicesFactory) {
