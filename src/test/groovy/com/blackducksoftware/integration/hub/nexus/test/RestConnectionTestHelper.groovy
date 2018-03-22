@@ -136,7 +136,7 @@ public class RestConnectionTestHelper {
         restConnection.proxyNoHosts = serverConfig.getProxyInfo().getIgnoredProxyHosts()
         restConnection.proxyUsername = serverConfig.getProxyInfo().getUsername()
         restConnection.proxyPassword = serverConfig.getProxyInfo().getDecryptedPassword()
-        restConnection.alwaysTrustServerCertificate = true
+        restConnection.alwaysTrustServerCertificate = serverConfig.alwaysTrustServerCertificate
 
         return restConnection
     }
