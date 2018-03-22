@@ -43,7 +43,7 @@ import com.blackducksoftware.integration.hub.nexus.test.TestEventBus
 
 public class ScanEventManagerTest {
 
-    private static String TEST_TASK_NAME = "IntegationTestTask"
+    public static String TEST_TASK_NAME = "IntegrationTestTask"
 
     private TestEventBus eventBus
     private ScanEventManager eventManager
