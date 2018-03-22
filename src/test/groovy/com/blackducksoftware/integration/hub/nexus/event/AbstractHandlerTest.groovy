@@ -41,6 +41,7 @@ import com.blackducksoftware.integration.hub.api.project.ProjectRequestService
 import com.blackducksoftware.integration.hub.exception.DoesNotExistException
 import com.blackducksoftware.integration.hub.model.request.ProjectRequest
 import com.blackducksoftware.integration.hub.model.view.ProjectView
+import com.blackducksoftware.integration.hub.nexus.event.scan.ScanEventManagerTest
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField
 import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper
 import com.blackducksoftware.integration.hub.nexus.test.TestEventBus
@@ -73,7 +74,7 @@ public abstract class AbstractHandlerTest extends AbstractMavenRepoContentTests 
         try {
             final Slf4jIntLogger intLogger = new Slf4jIntLogger(LoggerFactory.getLogger(getClass()))
             final HubServicesFactory hubServicesFactory = restConnection.createHubServicesFactory(intLogger)
-            final ProjectRequestService projectRequestService = hubServicesFactory.createProjectRequestService(intLogger)
+            final ProjectRequestService projectRequestService = hubServicesFactory.createProjectRequestService()
             final ProjectView projectView = projectRequestService.getProjectByName(projectRequest.getName())
             projectRequestService.deleteHubProject(projectView)
         } catch (final DoesNotExistException ex) {
@@ -102,7 +103,7 @@ public abstract class AbstractHandlerTest extends AbstractMavenRepoContentTests 
         repository.storeItem(resourceStoreRequest, zipFileInputStream, null)
         item = repository.retrieveItem(resourceStoreRequest)
         taskParameters = generateParams()
-        taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, "IntegationTestTask")
+        taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, ScanEventManagerTest.TEST_TASK_NAME)
         projectRequest = createProjectRequest()
         resourceStoreRequest = new ResourceStoreRequest("")
     }

@@ -102,7 +102,7 @@ public class RestConnectionTestHelper {
         builder.setProxyUsername(getProperty(TestingPropertyKey.TEST_PROXY_USER_BASIC))
         builder.setProxyPassword(getProperty(TestingPropertyKey.TEST_PROXY_PASSWORD_BASIC))
         boolean autoImportHttpsCertificates = Boolean.parseBoolean(getProperty(TestingPropertyKey.TEST_AUTO_IMPORT_HTTPS_CERT))
-        builder.setAutoImportHttpsCertificates(autoImportHttpsCertificates)
+        builder.setAlwaysTrustServerCertificate(autoImportHttpsCertificates)
 
         return builder.build()
     }
@@ -136,6 +136,7 @@ public class RestConnectionTestHelper {
         restConnection.proxyNoHosts = serverConfig.getProxyInfo().getIgnoredProxyHosts()
         restConnection.proxyUsername = serverConfig.getProxyInfo().getUsername()
         restConnection.proxyPassword = serverConfig.getProxyInfo().getDecryptedPassword()
+        restConnection.alwaysTrustServerCertificate = serverConfig.alwaysTrustServerCertificate
 
         return restConnection
     }

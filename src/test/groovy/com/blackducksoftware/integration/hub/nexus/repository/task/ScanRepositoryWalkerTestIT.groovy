@@ -47,6 +47,7 @@ import com.blackducksoftware.integration.hub.model.view.ProjectView
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper
 import com.blackducksoftware.integration.hub.nexus.event.ScanEventManager
 import com.blackducksoftware.integration.hub.nexus.event.ScanItemMetaData
+import com.blackducksoftware.integration.hub.nexus.event.scan.ScanEventManagerTest
 import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper
 import com.blackducksoftware.integration.hub.nexus.test.TestEventBus
 import com.blackducksoftware.integration.hub.nexus.test.TestEventLogger
@@ -95,7 +96,7 @@ public class ScanRepositoryWalkerTestIT {
         try {
             final Slf4jIntLogger intLogger = new Slf4jIntLogger(LoggerFactory.getLogger(getClass()))
             final HubServicesFactory hubServicesFactory = restConnection.createHubServicesFactory(intLogger)
-            final ProjectRequestService projectRequestService = hubServicesFactory.createProjectRequestService(intLogger)
+            final ProjectRequestService projectRequestService = hubServicesFactory.createProjectRequestService()
             final ProjectView projectView = projectRequestService.getProjectByName(PROJECT_NAME)
             projectRequestService.deleteHubProject(projectView)
         } catch (final DoesNotExistException ex) {
@@ -127,7 +128,7 @@ public class ScanRepositoryWalkerTestIT {
 
     @Test
     public void processLastModified() throws Exception {
-        taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, "IntegationTestTask")
+        taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, ScanEventManagerTest.TEST_TASK_NAME)
         eventBus = new TestEventBus();
         scanEventManager = new ScanEventManager(eventBus)
         attributes = [ getModified: { -> 102L }] as Attributes
@@ -153,7 +154,7 @@ public class ScanRepositoryWalkerTestIT {
 
     @Test
     public void processScanFailedNoRescan() throws Exception {
-        taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, "IntegationTestTask")
+        taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, ScanEventManagerTest.TEST_TASK_NAME)
         taskParameters.put(TaskField.RESCAN_FAILURES.getParameterKey(), "false")
         eventBus = new TestEventBus();
         scanEventManager = new ScanEventManager(eventBus)
@@ -180,7 +181,7 @@ public class ScanRepositoryWalkerTestIT {
 
     @Test
     public void processScanFailedRescan() throws Exception {
-        taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, "IntegationTestTask")
+        taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, ScanEventManagerTest.TEST_TASK_NAME)
         taskParameters.put(TaskField.RESCAN_FAILURES.getParameterKey(), "true")
         eventBus = new TestEventBus();
         scanEventManager = new ScanEventManager(eventBus)
@@ -207,7 +208,7 @@ public class ScanRepositoryWalkerTestIT {
 
     @Test
     public void processAlwaysScan() throws Exception {
-        taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, "IntegationTestTask")
+        taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, ScanEventManagerTest.TEST_TASK_NAME)
         taskParameters.put(TaskField.ALWAYS_SCAN.getParameterKey(), "true")
         eventBus = new TestEventBus();
         scanEventManager = new ScanEventManager(eventBus)

@@ -86,7 +86,7 @@ public class HubServiceHelper {
         hubServerConfigBuilder.setProxyPort(proxyPort);
         hubServerConfigBuilder.setProxyUsername(proxyUsername);
         hubServerConfigBuilder.setProxyPassword(proxyPassword);
-        hubServerConfigBuilder.setAutoImportHttpsCertificates(Boolean.parseBoolean(autoImport));
+        hubServerConfigBuilder.setAlwaysTrustServerCertificate(Boolean.parseBoolean(autoImport));
 
         return hubServerConfigBuilder.build();
     }
@@ -117,7 +117,7 @@ public class HubServiceHelper {
 
     public PolicyStatusDataService getPolicyStatusDataService() {
         if (policyStatusDataService == null) {
-            policyStatusDataService = getHubServicesFactory().createPolicyStatusDataService(intLogger);
+            policyStatusDataService = getHubServicesFactory().createPolicyStatusDataService();
         }
 
         return policyStatusDataService;
@@ -125,7 +125,7 @@ public class HubServiceHelper {
 
     public MetaService getMetaService() {
         if (metaService == null) {
-            metaService = getHubServicesFactory().createMetaService(intLogger);
+            metaService = getHubServicesFactory().createMetaService();
         }
 
         return metaService;
@@ -134,7 +134,7 @@ public class HubServiceHelper {
     public RiskReportDataService getRiskReportDataService(final long timeout) {
         if (riskReportDataService == null) {
             try {
-                riskReportDataService = getHubServicesFactory().createRiskReportDataService(intLogger, timeout);
+                riskReportDataService = getHubServicesFactory().createRiskReportDataService(timeout);
             } catch (final IntegrationException e) {
                 e.printStackTrace();
                 intLogger.error("Error retrieving risk report service");
@@ -150,7 +150,7 @@ public class HubServiceHelper {
 
     public CLIDataService getCliDataService() {
         if (cliDataService == null) {
-            cliDataService = getHubServicesFactory().createCLIDataService(intLogger);
+            cliDataService = getHubServicesFactory().createCLIDataService();
         }
 
         return cliDataService;
@@ -158,7 +158,7 @@ public class HubServiceHelper {
 
     public ProjectRequestService getProjectRequestService() {
         if (projectRequestService == null) {
-            projectRequestService = getHubServicesFactory().createProjectRequestService(intLogger);
+            projectRequestService = getHubServicesFactory().createProjectRequestService();
         }
 
         return projectRequestService;
@@ -174,7 +174,7 @@ public class HubServiceHelper {
 
     public ProjectVersionRequestService getProjectVersionRequestService() {
         if (projectVersionRequestService == null) {
-            projectVersionRequestService = getHubServicesFactory().createProjectVersionRequestService(intLogger);
+            projectVersionRequestService = getHubServicesFactory().createProjectVersionRequestService();
         }
 
         return projectVersionRequestService;
@@ -182,7 +182,7 @@ public class HubServiceHelper {
 
     public CLIDownloadService getCliDownloadService() {
         if (cliDownloadService == null) {
-            cliDownloadService = getHubServicesFactory().createCliDownloadService(intLogger);
+            cliDownloadService = getHubServicesFactory().createCliDownloadService();
         }
 
         return cliDownloadService;

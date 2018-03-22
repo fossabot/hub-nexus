@@ -33,6 +33,7 @@ import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler
 import org.sonatype.nexus.proxy.walker.Walker
 
 import com.blackducksoftware.integration.hub.nexus.event.ScanEventManager
+import com.blackducksoftware.integration.hub.nexus.event.scan.ScanEventManagerTest
 import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper
 import com.blackducksoftware.integration.hub.nexus.test.TestingPropertyKey
 
@@ -56,7 +57,7 @@ public class ScanTaskTestIT extends AbstractMavenRepoContentTests {
         defaultAttributesHandler = lookup(DefaultAttributesHandler.class)
         scanEventManager = lookup(ScanEventManager.class)
         taskParameters = generateParams()
-        taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, "IntegationTestTask")
+        taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, ScanEventManagerTest.TEST_TASK_NAME)
     }
 
     @Test
