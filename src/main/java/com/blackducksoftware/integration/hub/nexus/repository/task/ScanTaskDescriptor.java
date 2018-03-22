@@ -46,7 +46,7 @@ import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionPha
 public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
     // This ID string must match the class name of the task that actually performs the operation
     public static final String ID = "ScanTask";
-    public static final String PLUGIN_VERSION = "1.0.1-SNAPSHOT";
+    public static final String PLUGIN_VERSION = "1.0.1";
     public static final String BLACKDUCK_DIRECTORY = "blackduck";
     public static final String TASK_NAME = "Hub Repository Scan";
     public static final String DEFAULT_FILE_PATTERNS = "*.war,*.zip,*.tar.gz,*.hpi";
