@@ -48,6 +48,7 @@ import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper
 import com.blackducksoftware.integration.hub.nexus.event.ScanEventManager
 import com.blackducksoftware.integration.hub.nexus.event.ScanItemMetaData
 import com.blackducksoftware.integration.hub.nexus.event.scan.ScanEventManagerTest
+import com.blackducksoftware.integration.hub.nexus.repository.task.walker.ScanRepositoryWalker
 import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper
 import com.blackducksoftware.integration.hub.nexus.test.TestEventBus
 import com.blackducksoftware.integration.hub.nexus.test.TestEventLogger

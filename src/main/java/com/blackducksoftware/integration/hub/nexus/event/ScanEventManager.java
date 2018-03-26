@@ -98,4 +98,5 @@ public class ScanEventManager extends ComponentSupport {
             }
         }
     }
+
 }

@@ -23,34 +23,26 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.apache.commons.lang3.StringUtils;
-import org.sonatype.nexus.proxy.ResourceStoreRequest;
-import org.sonatype.nexus.proxy.attributes.AttributesHandler;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
-import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.repository.Repository;
-import org.sonatype.nexus.proxy.walker.DefaultWalkerContext;
 import org.sonatype.nexus.proxy.walker.Walker;
-import org.sonatype.nexus.proxy.walker.WalkerContext;
 
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
-import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
+import com.blackducksoftware.integration.hub.nexus.repository.task.filter.PolicyRepositoryWalkerStatusFilter;
+import com.blackducksoftware.integration.hub.nexus.repository.task.walker.PolicyRepositoryWalker;
 import com.blackducksoftware.integration.log.Slf4jIntLogger;
 
 @Named(PolicyCheckTaskDescriptor.ID)
 public class PolicyCheckTask extends AbstractHubTask {
-    private final AttributesHandler attributesHandler;
 
     @Inject
     public PolicyCheckTask(final Walker walker, final DefaultAttributesHandler attributesHandler) {
-        super(walker);
-        this.attributesHandler = attributesHandler;
+        super(walker, attributesHandler);
     }
 
     @Override
@@ -63,29 +55,14 @@ public class PolicyCheckTask extends AbstractHubTask {
         try {
             final HubServiceHelper hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), this.getParameters());
             final List<Repository> repositoryList = getRepositoryRegistry().getRepositories();
-            final List<WalkerContext> contextList = new ArrayList<>();
 
-            for (final Repository repository : repositoryList) {
-                contextList.add(createRepositoryWalker(repository, hubServiceHelper));
-            }
-            walkRepositories(contextList);
+            final PolicyRepositoryWalker policyRepositoryWalker = new PolicyRepositoryWalker(getEventBus(), itemAttributesHelper, getParameters(), hubServiceHelper);
+            final PolicyRepositoryWalkerStatusFilter policyRepositoryWalkerStatusFilter = new PolicyRepositoryWalkerStatusFilter(itemAttributesHelper);
+            walkRepositoriesWithFilter(hubServiceHelper, repositoryList, policyRepositoryWalker, policyRepositoryWalkerStatusFilter);
         } catch (final Exception ex) {
             logger.error("Error occurred during task execution {}", ex);
         }
         return null;
-    }
-
-    private WalkerContext createRepositoryWalker(final Repository repository, final HubServiceHelper hubServiceHelper) {
-        final ResourceStoreRequest request = new ResourceStoreRequest(getResourceStorePath(), true, false);
-        if (StringUtils.isBlank(request.getRequestPath())) {
-            request.setRequestPath(RepositoryItemUid.PATH_ROOT);
-        }
-
-        request.setRequestLocalOnly(true);
-        final WalkerContext context = new DefaultWalkerContext(repository, request);
-        getLogger().info("Creating walker for repository {}", repository.getName());
-        context.getProcessors().add(new PolicyRepositoryWalker(getEventBus(), new ItemAttributesHelper(attributesHandler), getParameters(), hubServiceHelper));
-        return context;
     }
 
     @Override

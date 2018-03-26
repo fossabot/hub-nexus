@@ -24,7 +24,6 @@
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -33,20 +32,19 @@ import javax.inject.Named;
 
 import org.apache.commons.lang3.StringUtils;
 import org.sonatype.nexus.proxy.NoSuchRepositoryException;
-import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
-import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.repository.Repository;
-import org.sonatype.nexus.proxy.walker.DefaultWalkerContext;
 import org.sonatype.nexus.proxy.walker.Walker;
-import org.sonatype.nexus.proxy.walker.WalkerContext;
 
 import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.api.nonpublic.HubVersionRequestService;
 import com.blackducksoftware.integration.hub.cli.CLIDownloadService;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.ScanEventManager;
-import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
+import com.blackducksoftware.integration.hub.nexus.repository.task.filter.ScanRepositoryWalkerMarkerFilter;
+import com.blackducksoftware.integration.hub.nexus.repository.task.filter.ScanRepositoryWalkerStatusFilter;
+import com.blackducksoftware.integration.hub.nexus.repository.task.walker.ScanRepositoryMarkerWalker;
+import com.blackducksoftware.integration.hub.nexus.repository.task.walker.ScanRepositoryWalker;
 import com.blackducksoftware.integration.hub.util.HostnameHelper;
 import com.blackducksoftware.integration.log.Slf4jIntLogger;
 import com.blackducksoftware.integration.util.CIEnvironmentVariables;
@@ -54,13 +52,11 @@ import com.blackducksoftware.integration.util.CIEnvironmentVariables;
 @Named(ScanTaskDescriptor.ID)
 public class ScanTask extends AbstractHubTask {
     private static final String ALL_REPO_ID = "all_repo";
-    private final DefaultAttributesHandler attributesHandler;
     private final ScanEventManager eventManager;
 
     @Inject
     public ScanTask(final Walker walker, final DefaultAttributesHandler attributesHandler, final ScanEventManager eventManager) {
-        super(walker);
-        this.attributesHandler = attributesHandler;
+        super(walker, attributesHandler);
         this.eventManager = eventManager;
     }
 
@@ -94,12 +90,17 @@ public class ScanTask extends AbstractHubTask {
                 installCLI(cliInstallDirectory, hubServiceHelper);
                 final String repositoryFieldId = getParameter(TaskField.REPOSITORY_FIELD_ID.getParameterKey());
                 final List<Repository> repositoryList = createRepositoryList(repositoryFieldId);
-                final List<WalkerContext> contextList = new ArrayList<>();
 
-                for (final Repository repository : repositoryList) {
-                    contextList.add(createRepositoryWalker(eventManager, repository, hubServiceHelper));
-                }
-                walkRepositories(contextList);
+                // Create walker for marking items to be scanned
+                final ScanRepositoryWalkerMarkerFilter scanRepositoryWalkerMarkerFilter = new ScanRepositoryWalkerMarkerFilter("", itemAttributesHelper, getParameters());
+                final ScanRepositoryMarkerWalker scanRepositoryMarkerWalker = new ScanRepositoryMarkerWalker(itemAttributesHelper);
+                walkRepositoriesWithFilter(hubServiceHelper, repositoryList, scanRepositoryMarkerWalker, scanRepositoryWalkerMarkerFilter);
+
+                // Create walker for scanning items
+                final ScanRepositoryWalkerStatusFilter scanRepositoryWalkerStatusFilter = new ScanRepositoryWalkerStatusFilter(itemAttributesHelper);
+                final ScanRepositoryWalker scanRepositoryWalker = new ScanRepositoryWalker(getParameters(), eventManager, hubServiceHelper);
+                walkRepositoriesWithFilter(hubServiceHelper, repositoryList, scanRepositoryWalker, scanRepositoryWalkerStatusFilter);
+
             }
         } catch (final Exception ex) {
             logger.error("Error occurred during task execution {}", ex);
@@ -127,20 +128,6 @@ public class ScanTask extends AbstractHubTask {
             }
         }
         return repositoryList;
-    }
-
-    private WalkerContext createRepositoryWalker(final ScanEventManager eventManager, final Repository repository, final HubServiceHelper hubServiceHelper) {
-        final ResourceStoreRequest request = new ResourceStoreRequest(getResourceStorePath(), true, false);
-        if (StringUtils.isBlank(request.getRequestPath())) {
-            request.setRequestPath(RepositoryItemUid.PATH_ROOT);
-        }
-
-        request.setRequestLocalOnly(true);
-        final String fileMatchPatterns = getParameter(TaskField.FILE_PATTERNS.getParameterKey());
-        final WalkerContext context = new DefaultWalkerContext(repository, request);
-        getLogger().info("Creating walker for repository {}", repository.getName());
-        context.getProcessors().add(new ScanRepositoryWalker(fileMatchPatterns, new ItemAttributesHelper(attributesHandler), getParameters(), eventManager, hubServiceHelper));
-        return context;
     }
 
     private void installCLI(final File installDirectory, final HubServiceHelper hubServiceHelper) throws IntegrationException {

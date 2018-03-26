@@ -21,15 +21,12 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.repository.task;
+package com.blackducksoftware.integration.hub.nexus.repository.task.walker;
 
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import org.sonatype.nexus.proxy.item.StorageCollectionItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
-import org.sonatype.nexus.proxy.item.uid.IsHiddenAttribute;
 import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
 import org.sonatype.nexus.proxy.walker.WalkerContext;
 import org.sonatype.sisu.goodies.common.Loggers;
@@ -58,25 +55,10 @@ public class PolicyRepositoryWalker extends AbstractWalkerProcessor {
     @Override
     public void processItem(final WalkerContext context, final StorageItem item) throws Exception {
         try {
-            if (item instanceof StorageCollectionItem) {
-                return; // directory found
-            }
-            if (item.getRepositoryItemUid().getBooleanAttributeValue(IsHiddenAttribute.class)) {
-                return;
-            }
-
-            if (StringUtils.isNotBlank(item.getRemoteUrl())) {
-                logger.info("Item came from a proxied repository, skipping: {}", item);
-                return;
-            }
-
-            final long scanResult = itemAttributesHelper.getScanResult(item);
-            if (scanResult == ItemAttributesHelper.SCAN_STATUS_SUCCESS) {
-                logger.info("Begin Policy check for item {}", item);
-                final ProjectVersionView projectVersionView = getProjectVersion(item);
-                final HubPolicyCheckEvent event = new HubPolicyCheckEvent(item.getRepositoryItemUid().getRepository(), item, taskParameters, context.getResourceStoreRequest(), projectVersionView);
-                eventBus.post(event);
-            }
+            logger.info("Begin Policy check for item {}", item);
+            final ProjectVersionView projectVersionView = getProjectVersion(item);
+            final HubPolicyCheckEvent event = new HubPolicyCheckEvent(item.getRepositoryItemUid().getRepository(), item, taskParameters, context.getResourceStoreRequest(), projectVersionView);
+            eventBus.post(event);
         } catch (final Exception ex) {
             logger.error("Error occurred in walker processor for repository: ", ex);
         }
