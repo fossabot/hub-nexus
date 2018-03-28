@@ -31,6 +31,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.apache.commons.lang3.StringUtils;
+import org.sonatype.nexus.configuration.application.ApplicationConfiguration;
 import org.sonatype.nexus.proxy.NoSuchRepositoryException;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.repository.Repository;
@@ -40,11 +41,10 @@ import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.api.nonpublic.HubVersionRequestService;
 import com.blackducksoftware.integration.hub.cli.CLIDownloadService;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
-import com.blackducksoftware.integration.hub.nexus.event.ScanEventManager;
 import com.blackducksoftware.integration.hub.nexus.repository.task.filter.ScanRepositoryWalkerMarkerFilter;
 import com.blackducksoftware.integration.hub.nexus.repository.task.filter.ScanRepositoryWalkerStatusFilter;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.ScanRepositoryMarkerWalker;
-import com.blackducksoftware.integration.hub.nexus.repository.task.walker.ScanRepositoryWalker;
+import com.blackducksoftware.integration.hub.nexus.repository.task.walker.ScanRepositoryStatusWalker;
 import com.blackducksoftware.integration.hub.util.HostnameHelper;
 import com.blackducksoftware.integration.log.Slf4jIntLogger;
 import com.blackducksoftware.integration.util.CIEnvironmentVariables;
@@ -52,12 +52,12 @@ import com.blackducksoftware.integration.util.CIEnvironmentVariables;
 @Named(ScanTaskDescriptor.ID)
 public class ScanTask extends AbstractHubTask {
     private static final String ALL_REPO_ID = "all_repo";
-    private final ScanEventManager eventManager;
+    private final ApplicationConfiguration appConfiguration;
 
     @Inject
-    public ScanTask(final Walker walker, final DefaultAttributesHandler attributesHandler, final ScanEventManager eventManager) {
+    public ScanTask(final ApplicationConfiguration appConfiguration, final Walker walker, final DefaultAttributesHandler attributesHandler) {
         super(walker, attributesHandler);
-        this.eventManager = eventManager;
+        this.appConfiguration = appConfiguration;
     }
 
     @Override
@@ -75,33 +75,30 @@ public class ScanTask extends AbstractHubTask {
         final HubServiceHelper hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), this.getParameters());
         File blackDuckDirectory = null;
         try {
-            final int pendingEvents = eventManager.pendingEventCount(getName());
-            if (pendingEvents > 0) {
-                logger.info("{} pending events from the last run.  Skipping task execution.", pendingEvents);
-            } else {
-                logger.info("No Pending events for this task.  Start task execution.");
-                blackDuckDirectory = new File(getParameter(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
-                final String cliInstallRootDirectory = String.format("hub%s", String.valueOf(hubServiceHelper.getHubServerConfig().getHubUrl().getHost().hashCode()));
-                final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
-                final File cliInstallDirectory = new File(taskDirectory, "tools");
-                if (!cliInstallDirectory.exists()) {
-                    cliInstallDirectory.mkdirs();
-                }
-                installCLI(cliInstallDirectory, hubServiceHelper);
-                final String repositoryFieldId = getParameter(TaskField.REPOSITORY_FIELD_ID.getParameterKey());
-                final List<Repository> repositoryList = createRepositoryList(repositoryFieldId);
+            logger.info("Start task execution.");
+            addParameter(TaskField.CURRENT_SCANS.getParameterKey(), "0");
+            final String repositoryFieldId = getParameter(TaskField.REPOSITORY_FIELD_ID.getParameterKey());
+            final List<Repository> repositoryList = createRepositoryList(repositoryFieldId);
 
-                // Create walker for marking items to be scanned
-                final ScanRepositoryWalkerMarkerFilter scanRepositoryWalkerMarkerFilter = new ScanRepositoryWalkerMarkerFilter("", itemAttributesHelper, getParameters());
-                final ScanRepositoryMarkerWalker scanRepositoryMarkerWalker = new ScanRepositoryMarkerWalker(itemAttributesHelper);
-                walkRepositoriesWithFilter(hubServiceHelper, repositoryList, scanRepositoryMarkerWalker, scanRepositoryWalkerMarkerFilter);
+            // Walk repo and mark items to scan
+            final String fileMatchPatterns = getParameter(TaskField.FILE_PATTERNS.getParameterKey());
+            final ScanRepositoryWalkerMarkerFilter scanRepositoryWalkerMarkerFilter = new ScanRepositoryWalkerMarkerFilter(fileMatchPatterns, itemAttributesHelper, getParameters());
+            final ScanRepositoryMarkerWalker scanRepositoryMarkerWalker = new ScanRepositoryMarkerWalker(itemAttributesHelper, getParameters());
+            walkRepositoriesWithFilter(hubServiceHelper, repositoryList, scanRepositoryMarkerWalker, scanRepositoryWalkerMarkerFilter);
 
-                // Create walker for scanning items
-                final ScanRepositoryWalkerStatusFilter scanRepositoryWalkerStatusFilter = new ScanRepositoryWalkerStatusFilter(itemAttributesHelper);
-                final ScanRepositoryWalker scanRepositoryWalker = new ScanRepositoryWalker(getParameters(), eventManager, hubServiceHelper);
-                walkRepositoriesWithFilter(hubServiceHelper, repositoryList, scanRepositoryWalker, scanRepositoryWalkerStatusFilter);
-
+            blackDuckDirectory = new File(getParameter(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
+            final String cliInstallRootDirectory = String.format("hub%s", String.valueOf(hubServiceHelper.getHubServerConfig().getHubUrl().getHost().hashCode()));
+            final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
+            final File cliInstallDirectory = new File(taskDirectory, "tools");
+            if (!cliInstallDirectory.exists()) {
+                cliInstallDirectory.mkdirs();
             }
+            installCLI(cliInstallDirectory, hubServiceHelper);
+
+            // Walk repo and scan items that have been marked
+            final ScanRepositoryWalkerStatusFilter scanRepositoryWalkerStatusFilter = new ScanRepositoryWalkerStatusFilter(itemAttributesHelper);
+            final ScanRepositoryStatusWalker scanRepositoryStatusWalker = new ScanRepositoryStatusWalker(appConfiguration, getParameters(), hubServiceHelper, getEventBus(), itemAttributesHelper);
+            walkRepositoriesWithFilter(hubServiceHelper, repositoryList, scanRepositoryStatusWalker, scanRepositoryWalkerStatusFilter);
         } catch (final Exception ex) {
             logger.error("Error occurred during task execution {}", ex);
         }

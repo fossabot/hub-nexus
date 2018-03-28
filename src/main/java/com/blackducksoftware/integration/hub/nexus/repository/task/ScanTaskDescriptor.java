@@ -54,6 +54,7 @@ public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
     public static final String DEFAULT_SCAN_MEMORY = "4096";
     public static final String DEFAULT_WORKING_DIRECTORY = "/sonatype-work";
     public static final String DEFAULT_ARTIFACT_CUTOFF = "2016-01-01T00:00:00.000";
+    public static final String DEfAULT_MAX_SCANS = "500";
 
     private static final String DESCRIPTION_HUB_PROJECT_DISTRIBUTION = "The default distribution setting applied to the project verion if the project version is created. Possible Values: ";
     private static final String DESCRIPTION_HUB_PROJECT_PHASE = "The default phase setting applied to the project verion if the project version is created.  Possible Values: ";
@@ -66,6 +67,7 @@ public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
             + "the cutoff format of \"2016-01-01T00:00:00.000\"";
     private static final String DESCRIPTION_RESCAN_FAILURE = "Re-scan artifacts if the previous scan result was failed";
     private static final String DESCRIPTION_ALWAYS_SCAN = "Always scan artifacts that are not too old and match the file pattern, regardless of previous scan result";
+    private static final String DESCRIPTION_MAX_SCANS = "Maximum number of scans to be allowed during a single task execution.";
 
     private static final String LABEL_DISTRIBUTION = "Distribution";
     private static final String LABEL_FILE_PATTERN_MATCHES = "File Pattern Matches";
@@ -76,6 +78,7 @@ public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
     private static final String LABEL_ARTIFACT_CUTOFF = "Artifact Cutoff Date";
     private static final String LABEL_RESCAN_FAILURE = "Re-scan Failed Attempts";
     private static final String LABEL_ALWAYS_SCAN = "Always Scan Artifacts";
+    private static final String LABEL_MAX_SCANS = "Max Scanned Artifacts";
 
     private final RepoOrGroupComboFormField repoField = new RepoOrGroupComboFormField(TaskField.REPOSITORY_FIELD_ID.getParameterKey(), RepoOrGroupComboFormField.DEFAULT_LABEL, DESCRIPTION_REPO_NAME, FormField.MANDATORY);
     private final StringTextFormField resourceStorePathField = new StringTextFormField(TaskField.REPOSITORY_PATH_FIELD_ID.getParameterKey(), LABEL_REPO_PATH, DESCRIPTION_REPO_PATH, FormField.OPTIONAL);
@@ -87,6 +90,8 @@ public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
             .withInitialValue(DEFAULT_SCAN_MEMORY);
     private final CheckboxFormField rescanFailures = new CheckboxFormField(TaskField.RESCAN_FAILURES.getParameterKey(), LABEL_RESCAN_FAILURE, DESCRIPTION_RESCAN_FAILURE, FormField.OPTIONAL);
     private final CheckboxFormField alwaysRescan = new CheckboxFormField(TaskField.ALWAYS_SCAN.getParameterKey(), LABEL_ALWAYS_SCAN, DESCRIPTION_ALWAYS_SCAN, FormField.OPTIONAL);
+    private final StringTextFormField maxScans = new StringTextFormField(TaskField.MAX_SCANS.getParameterKey(), LABEL_MAX_SCANS, DESCRIPTION_MAX_SCANS, FormField.OPTIONAL)
+            .withInitialValue(DEfAULT_MAX_SCANS);
     private final ApplicationDirectories appDirectories;
 
     @Inject
@@ -111,6 +116,7 @@ public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
         fields.add(scanMemoryField);
         fields.add(rescanFailures);
         fields.add(alwaysRescan);
+        fields.add(maxScans);
         fields.add(filePatternField);
         fields.add(workingDirectoryField);
         fields.add(artifactCutoffField);

@@ -34,12 +34,10 @@ import org.sonatype.nexus.configuration.application.ApplicationConfiguration;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.sisu.goodies.eventbus.EventBus;
 
-import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.application.IntegrationInfo;
 import com.blackducksoftware.integration.hub.nexus.repository.task.ScanTaskDescriptor;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
-import com.blackducksoftware.integration.hub.nexus.scan.ArtifactScanner;
 import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger;
 import com.blackducksoftware.integration.phonehome.enums.ThirdPartyName;
 import com.google.common.eventbus.AllowConcurrentEvents;
@@ -75,12 +73,12 @@ public class HubScanEventHandler extends HubEventHandler {
                 logger.info(String.format("CLI Installation Root Directory for %s: %s", hubServiceHelper.getHubServerConfig().getHubUrl().toString(), cliInstallRootDirectory));
                 final File blackDuckDirectory = new File(event.getTaskParameters().get(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
                 final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
-                final ArtifactScanner scanner = new ArtifactScanner(event, logger, getAttributeHelper(), taskDirectory, hubServiceHelper, phoneHomeInfo);
-                final ProjectVersionView projectVersionView = scanner.scan();
-                if (projectVersionView != null) {
-                    logger.info("Posting policy check event for " + projectVersionView.versionName);
-                    eventBus.post(new HubPolicyCheckEvent(event.getRepository(), event.getItem(), event.getTaskParameters(), event.getRequest(), projectVersionView));
-                }
+                // final ArtifactScanner scanner = new ArtifactScanner(event, logger, getAttributeHelper(), taskDirectory, hubServiceHelper, phoneHomeInfo);
+                // final ProjectVersionView projectVersionView = scanner.scan();
+                // if (projectVersionView != null) {
+                // logger.info("Posting policy check event for " + projectVersionView.versionName);
+                // eventBus.post(new HubPolicyCheckEvent(event.getRepository(), event.getItem(), event.getTaskParameters(), event.getRequest(), projectVersionView));
+                // }
             }
         } catch (final Exception ex) {
             logger.error("Error occurred during scanning", ex);

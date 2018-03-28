@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.item.RepositoryItemUid;
@@ -78,7 +79,9 @@ public abstract class AbstractHubTask extends AbstractNexusRepositoriesPathAware
             try {
                 walker.walk(context);
             } catch (final WalkerException walkerEx) {
-                logger.error("Exception walking repository. ", walkerEx);
+                if (!(walkerEx.getWalkerContext().getStopCause() instanceof ItemNotFoundException)) {
+                    logger.error("Exception walking repository. ", walkerEx);
+                }
             }
         }
     }

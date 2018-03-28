@@ -23,27 +23,40 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task.walker;
 
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
 import org.sonatype.nexus.proxy.walker.WalkerContext;
 import org.sonatype.sisu.goodies.common.Loggers;
 
+import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
 public class ScanRepositoryMarkerWalker extends AbstractWalkerProcessor {
-    private final Logger logger = Loggers.getLogger(getClass());
+    protected final Logger logger = Loggers.getLogger(getClass());
 
     private final ItemAttributesHelper attributesHelper;
+    private final Map<String, String> params;
 
-    public ScanRepositoryMarkerWalker(final ItemAttributesHelper attributesHelper) {
+    public ScanRepositoryMarkerWalker(final ItemAttributesHelper attributesHelper, final Map<String, String> params) {
         this.attributesHelper = attributesHelper;
+        this.params = params;
     }
 
     @Override
     public void processItem(final WalkerContext walkerContext, final StorageItem item) {
-        logger.info("Set item to pending scan");
-        attributesHelper.setScanResult(item, ItemAttributesHelper.SCAN_STATUS_PENDING);
+        final String maxScansString = params.get(TaskField.MAX_SCANS.getParameterKey());
+        final String currentScansString = params.get(TaskField.CURRENT_SCANS.getParameterKey());
+        final int maxScans = Integer.parseInt(maxScansString);
+        int currentScans = Integer.parseInt(currentScansString);
+        if (currentScans < maxScans) {
+            logger.info("Set item to pending {}", item);
+            attributesHelper.setScanResult(item, ItemAttributesHelper.SCAN_STATUS_PENDING);
+            currentScans++;
+            params.put(TaskField.CURRENT_SCANS.getParameterKey(), String.valueOf(currentScans));
+        }
     }
 
 }

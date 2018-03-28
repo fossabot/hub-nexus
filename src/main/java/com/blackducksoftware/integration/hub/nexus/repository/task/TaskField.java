@@ -42,7 +42,9 @@ public enum TaskField {
     WORKING_DIRECTORY("blackduck.hub.nexus.working.directory"),
     OLD_ARTIFACT_CUTOFF("blackduck.hub.nexus.artifact.cutoff"),
     RESCAN_FAILURES("blackduck.hub.nexus.rescan.failures"),
-    ALWAYS_SCAN("blackduck.hub.nexus.rescan.always");
+    ALWAYS_SCAN("blackduck.hub.nexus.rescan.always"),
+    MAX_SCANS("blackduck.hub.nexus.max.scans"),
+    CURRENT_SCANS("blackduck.hub.nexus.current.scans");
 
     private String parameterKey;
 

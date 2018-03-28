@@ -28,6 +28,8 @@ import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.repository.Repository;
@@ -41,22 +43,20 @@ import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.application.IntegrationInfo;
 import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
-import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.scan.HubScanConfig;
 
 public class ArtifactScanner {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final boolean HUB_SCAN_DRY_RUN = false;
-    private final HubEventLogger logger;
     private final HubScanEvent event;
     private final ItemAttributesHelper attributesHelper;
     private final HubServiceHelper hubServiceHelper;
     private final File scanInstallDirectory;
     private final IntegrationInfo phoneHomeInfo;
 
-    public ArtifactScanner(final HubScanEvent event, final HubEventLogger logger, final ItemAttributesHelper attributesHelper, final File scanInstallDirectory, final HubServiceHelper hubserviceHelper, final IntegrationInfo phoneHomeInfo) {
+    public ArtifactScanner(final HubScanEvent event, final ItemAttributesHelper attributesHelper, final File scanInstallDirectory, final HubServiceHelper hubserviceHelper, final IntegrationInfo phoneHomeInfo) {
         this.event = event;
-        this.logger = logger;
         this.attributesHelper = attributesHelper;
         this.scanInstallDirectory = scanInstallDirectory;
         this.phoneHomeInfo = phoneHomeInfo;
