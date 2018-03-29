@@ -25,6 +25,7 @@ package com.blackducksoftware.integration.hub.nexus.repository.task.walker;
 
 import java.util.Map;
 
+import org.h2.util.StringUtils;
 import org.slf4j.Logger;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
@@ -47,11 +48,17 @@ public class ScanRepositoryMarkerWalker extends AbstractWalkerProcessor {
 
     @Override
     public void processItem(final WalkerContext walkerContext, final StorageItem item) {
+        boolean shouldProcess = true;
+        int currentScans = 0;
         final String maxScansString = params.get(TaskField.MAX_SCANS.getParameterKey());
-        final String currentScansString = params.get(TaskField.CURRENT_SCANS.getParameterKey());
-        final int maxScans = Integer.parseInt(maxScansString);
-        int currentScans = Integer.parseInt(currentScansString);
-        if (currentScans < maxScans) {
+        if (!StringUtils.isNullOrEmpty(maxScansString)) {
+            final String currentScansString = params.get(TaskField.CURRENT_SCANS.getParameterKey());
+            final int maxScans = Integer.parseInt(maxScansString);
+            currentScans = Integer.parseInt(currentScansString);
+            shouldProcess = currentScans < maxScans;
+        }
+
+        if (shouldProcess) {
             logger.info("Set item to pending {}", item);
             attributesHelper.setScanResult(item, ItemAttributesHelper.SCAN_STATUS_PENDING);
             currentScans++;
