@@ -23,14 +23,8 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task
 
-import org.junit.runner.RunWith
-import org.mockito.runners.MockitoJUnitRunner
-import org.powermock.core.classloader.annotations.PrepareForTest
-
-import com.blackducksoftware.integration.hub.nexus.repository.task.walker.ScanRepositoryStatusWalker
-
-@RunWith(MockitoJUnitRunner.class)
-@PrepareForTest(ScanRepositoryStatusWalker.class)
+//@RunWith(MockitoJUnitRunner.class)
+//@PrepareForTest(ScanRepositoryWalker.class)
 public class ScanRepositoryWalkerTestIT {
 
     //    private final static String PARENT_PATH="/test/0.0.1-SNAPSHOT"

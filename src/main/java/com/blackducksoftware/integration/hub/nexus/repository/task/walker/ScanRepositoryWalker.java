@@ -26,6 +26,7 @@ package com.blackducksoftware.integration.hub.nexus.repository.task.walker;
 import java.io.File;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.sonatype.nexus.configuration.application.ApplicationConfiguration;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
@@ -48,6 +49,7 @@ import com.blackducksoftware.integration.hub.nexus.application.IntegrationInfo;
 import com.blackducksoftware.integration.hub.nexus.event.HubPolicyCheckEvent;
 import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent;
 import com.blackducksoftware.integration.hub.nexus.event.ScanItemMetaData;
+import com.blackducksoftware.integration.hub.nexus.exception.MaxScansException;
 import com.blackducksoftware.integration.hub.nexus.repository.task.ScanTaskDescriptor;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.scan.ArtifactScanner;
@@ -56,7 +58,7 @@ import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder;
 import com.blackducksoftware.integration.phonehome.enums.ThirdPartyName;
 
-public class ScanRepositoryStatusWalker extends AbstractWalkerProcessor {
+public class ScanRepositoryWalker extends AbstractWalkerProcessor {
     private final Logger logger = Loggers.getLogger(getClass());
     private final ApplicationConfiguration appConfiguration;
     private final Map<String, String> taskParameters;
@@ -64,7 +66,7 @@ public class ScanRepositoryStatusWalker extends AbstractWalkerProcessor {
     private final EventBus eventBus;
     private final ItemAttributesHelper itemAttributesHelper;
 
-    public ScanRepositoryStatusWalker(final ApplicationConfiguration appConfiguration, final Map<String, String> taskParameters, final HubServiceHelper hubServicesHelper, final EventBus eventBus,
+    public ScanRepositoryWalker(final ApplicationConfiguration appConfiguration, final Map<String, String> taskParameters, final HubServiceHelper hubServicesHelper, final EventBus eventBus,
             final ItemAttributesHelper itemAttributesHelper) {
         this.appConfiguration = appConfiguration;
         this.taskParameters = taskParameters;
@@ -75,6 +77,26 @@ public class ScanRepositoryStatusWalker extends AbstractWalkerProcessor {
 
     @Override
     public void processItem(final WalkerContext context, final StorageItem item) throws Exception {
+        boolean shouldProcess = true;
+        final String currentScansString = taskParameters.get(TaskField.CURRENT_SCANS.getParameterKey());
+        int currentScans = Integer.parseInt(currentScansString);
+        final String maxScansString = taskParameters.get(TaskField.MAX_SCANS.getParameterKey());
+        if (!StringUtils.isEmpty(maxScansString)) {
+            final int maxScans = Integer.parseInt(maxScansString);
+            shouldProcess = currentScans <= maxScans;
+        }
+
+        if (shouldProcess) {
+            logger.info("Scanning item number " + currentScans);
+            processItem(item);
+            currentScans++;
+            taskParameters.put(TaskField.CURRENT_SCANS.getParameterKey(), String.valueOf(currentScans));
+        } else {
+            context.stop(new MaxScansException(currentScans - 1));
+        }
+    }
+
+    public void processItem(final StorageItem item) {
         try {
             logger.info("Item pending scan {}", item);
             final String distribution = taskParameters.get(TaskField.DISTRIBUTION.getParameterKey());
@@ -84,47 +106,33 @@ public class ScanRepositoryStatusWalker extends AbstractWalkerProcessor {
             // the walker has already restricted the items to find. Now for scanning to work create a request that is for the repository root because the item path is relative to the repository root
             final ResourceStoreRequest eventRequest = new ResourceStoreRequest(RepositoryItemUid.PATH_ROOT, true, false);
             final ScanItemMetaData scanItem = new ScanItemMetaData(item, eventRequest, taskParameters, projectRequest);
-            final HubScanEvent scanEvent = processItem(scanItem);
-            if (!scanEvent.isProcessed()) {
-                scanItem(scanEvent);
-            } else {
-                logger.info("Item already scanned, skipping");
-            }
+            final HubScanEvent scanEvent = processMetaData(scanItem);
+            scanItem(scanEvent);
         } catch (final Exception ex) {
-            logger.error("Error occurred in walker processor for repository: ", ex);
+            itemAttributesHelper.setScanResult(item, ItemAttributesHelper.SCAN_STATUS_FAILED);
+            logger.error("Error occurred during scanning", ex);
+        } finally {
+            logger.info("Finished handling scan event");
         }
     }
 
-    public HubScanEvent processItem(final ScanItemMetaData data) throws InterruptedException {
+    public HubScanEvent processMetaData(final ScanItemMetaData data) throws InterruptedException {
         final HubScanEvent event = new HubScanEvent(data.getItem().getRepositoryItemUid().getRepository(), data.getItem(), data.getTaskParameters(), data.getRequest(), data.getProjectRequest());
         return event;
     }
 
     public void scanItem(final HubScanEvent event) {
-        try {
-            logger.info("Begin handling scan event");
-            final IntegrationInfo phoneHomeInfo = new IntegrationInfo(ThirdPartyName.NEXUS, appConfiguration.getConfigurationModel().getNexusVersion(), ScanTaskDescriptor.PLUGIN_VERSION);
-            final String cliInstallRootDirectory = String.format("hub%s", String.valueOf(hubServiceHelper.getHubServerConfig().getHubUrl().getHost().hashCode()));
-            logger.info(String.format("CLI Installation Root Directory for %s: %s", hubServiceHelper.getHubServerConfig().getHubUrl().toString(), cliInstallRootDirectory));
-            final File blackDuckDirectory = new File(event.getTaskParameters().get(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
-            final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
-            final ArtifactScanner scanner = new ArtifactScanner(event, itemAttributesHelper, taskDirectory, hubServiceHelper, phoneHomeInfo);
-            final ProjectVersionView projectVersionView = scanner.scan();
-            if (projectVersionView != null) {
-                logger.info("Posting policy check event for " + projectVersionView.versionName);
-                eventBus.post(new HubPolicyCheckEvent(event.getRepository(), event.getItem(), event.getTaskParameters(), event.getRequest(), projectVersionView));
-                event.setProcessed(true);
-                final String currentScansString = taskParameters.get(TaskField.CURRENT_SCANS.getParameterKey());
-                int currentScans = Integer.parseInt(currentScansString);
-                currentScans--;
-                taskParameters.put(TaskField.CURRENT_SCANS.getParameterKey(), String.valueOf(currentScans));
-                logger.info("Pending scans left {}", currentScans);
-            }
-        } catch (final Exception ex) {
-            event.setProcessed(false);
-            logger.error("Error occurred during scanning", ex);
-        } finally {
-            logger.info("Finished handling scan event");
+        logger.info("Begin handling scan event");
+        final IntegrationInfo phoneHomeInfo = new IntegrationInfo(ThirdPartyName.NEXUS, appConfiguration.getConfigurationModel().getNexusVersion(), ScanTaskDescriptor.PLUGIN_VERSION);
+        final String cliInstallRootDirectory = String.format("hub%s", String.valueOf(hubServiceHelper.getHubServerConfig().getHubUrl().getHost().hashCode()));
+        logger.info(String.format("CLI Installation Root Directory for %s: %s", hubServiceHelper.getHubServerConfig().getHubUrl().toString(), cliInstallRootDirectory));
+        final File blackDuckDirectory = new File(event.getTaskParameters().get(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
+        final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
+        final ArtifactScanner scanner = new ArtifactScanner(event, itemAttributesHelper, taskDirectory, hubServiceHelper, phoneHomeInfo);
+        final ProjectVersionView projectVersionView = scanner.scan();
+        if (projectVersionView != null) {
+            logger.info("Posting policy check event for " + projectVersionView.versionName);
+            eventBus.post(new HubPolicyCheckEvent(event.getRepository(), event.getItem(), event.getTaskParameters(), event.getRequest(), projectVersionView));
         }
     }
 

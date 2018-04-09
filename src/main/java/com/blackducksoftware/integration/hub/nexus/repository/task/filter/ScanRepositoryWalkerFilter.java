@@ -35,11 +35,11 @@ import org.sonatype.nexus.proxy.walker.WalkerContext;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
-public class ScanRepositoryWalkerMarkerFilter extends RepositoryWalkerFilter {
+public class ScanRepositoryWalkerFilter extends RepositoryWalkerFilter {
     private final String fileMatchPatterns;
     private final Map<String, String> taskParameters;
 
-    public ScanRepositoryWalkerMarkerFilter(final String fileMatchPatterns, final ItemAttributesHelper itemAttributesHelper, final Map<String, String> taskParameters) {
+    public ScanRepositoryWalkerFilter(final String fileMatchPatterns, final ItemAttributesHelper itemAttributesHelper, final Map<String, String> taskParameters) {
         super(itemAttributesHelper);
         this.fileMatchPatterns = fileMatchPatterns;
         this.taskParameters = taskParameters;
@@ -59,14 +59,10 @@ public class ScanRepositoryWalkerMarkerFilter extends RepositoryWalkerFilter {
                     return false;
                 }
 
-                final String alwaysScanString = taskParameters.get(TaskField.ALWAYS_SCAN.getParameterKey());
-                final boolean alwaysScan = Boolean.parseBoolean(alwaysScanString);
-                if (alwaysScan) {
-                    return true;
-                }
-
                 if (isModifiedSinceScan(item)) {
-                    return wasScanSuccessful(item);
+                    final String alwaysScanString = taskParameters.get(TaskField.ALWAYS_SCAN.getParameterKey());
+                    final boolean alwaysScan = Boolean.parseBoolean(alwaysScanString);
+                    return alwaysScan || wasScanSuccessful(item);
                 } else {
                     return true;
                 }

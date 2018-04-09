@@ -28,15 +28,14 @@ import org.sonatype.nexus.proxy.walker.WalkerContext;
 
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
-public class ScanRepositoryWalkerStatusFilter extends RepositoryWalkerFilter {
+public class PolicyRepositoryWalkerFilter extends RepositoryWalkerFilter {
 
-    public ScanRepositoryWalkerStatusFilter(final ItemAttributesHelper itemAttributesHelper) {
+    public PolicyRepositoryWalkerFilter(final ItemAttributesHelper itemAttributesHelper) {
         super(itemAttributesHelper);
     }
 
     @Override
     public boolean shouldProcess(final WalkerContext context, final StorageItem item) {
-        return super.shouldProcess(context, item) && (ItemAttributesHelper.SCAN_STATUS_PENDING == itemAttributesHelper.getScanResult(item));
+        return super.shouldProcess(context, item) && ItemAttributesHelper.SCAN_STATUS_SUCCESS == itemAttributesHelper.getScanResult(item);
     }
-
 }

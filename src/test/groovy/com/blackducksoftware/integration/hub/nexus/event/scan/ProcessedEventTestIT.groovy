@@ -28,7 +28,6 @@ import org.junit.Test
 
 import com.blackducksoftware.integration.hub.nexus.event.AbstractHandlerTest
 import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent
-import com.blackducksoftware.integration.hub.nexus.event.HubScanEventHandler
 
 public class ProcessedEventTestIT extends AbstractHandlerTest {
 
@@ -40,9 +39,6 @@ public class ProcessedEventTestIT extends AbstractHandlerTest {
     @Test
     public void testProcessedEvent() {
         final HubScanEvent event = new HubScanEvent(getRepository(), getItem(), getTaskParameters(), getResourceStoreRequest(), getProjectRequest())
-        event.setProcessed(true)
-        final HubScanEventHandler eventHandler = new HubScanEventHandler(getAppConfiguration(), getEventBus(), getAttributesHandler(), getEventManager())
-        eventHandler.handle(event)
         Assert.assertFalse(getEventBus().hasEvents())
     }
 }

@@ -33,7 +33,7 @@ import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.walker.Walker;
 
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
-import com.blackducksoftware.integration.hub.nexus.repository.task.filter.PolicyRepositoryWalkerStatusFilter;
+import com.blackducksoftware.integration.hub.nexus.repository.task.filter.PolicyRepositoryWalkerFilter;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.PolicyRepositoryWalker;
 import com.blackducksoftware.integration.log.Slf4jIntLogger;
 
@@ -57,8 +57,8 @@ public class PolicyCheckTask extends AbstractHubTask {
             final List<Repository> repositoryList = getRepositoryRegistry().getRepositories();
 
             final PolicyRepositoryWalker policyRepositoryWalker = new PolicyRepositoryWalker(getEventBus(), itemAttributesHelper, getParameters(), hubServiceHelper);
-            final PolicyRepositoryWalkerStatusFilter policyRepositoryWalkerStatusFilter = new PolicyRepositoryWalkerStatusFilter(itemAttributesHelper);
-            walkRepositoriesWithFilter(hubServiceHelper, repositoryList, policyRepositoryWalker, policyRepositoryWalkerStatusFilter);
+            final PolicyRepositoryWalkerFilter policyRepositoryWalkerFilter = new PolicyRepositoryWalkerFilter(itemAttributesHelper);
+            walkRepositoriesWithFilter(hubServiceHelper, repositoryList, policyRepositoryWalker, policyRepositoryWalkerFilter);
         } catch (final Exception ex) {
             logger.error("Error occurred during task execution {}", ex);
         }

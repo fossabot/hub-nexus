@@ -27,7 +27,6 @@ import org.sonatype.nexus.events.Event
 
 import com.blackducksoftware.integration.hub.nexus.event.AbstractHandlerTest
 import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent
-import com.blackducksoftware.integration.hub.nexus.event.HubScanEventHandler
 import com.blackducksoftware.integration.hub.nexus.event.ScanItemMetaData
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField
 
@@ -41,13 +40,10 @@ public abstract class AbstractPolicyCheckTest extends AbstractHandlerTest {
         getTaskParameters().put(TaskField.HUB_SCAN_MEMORY.getParameterKey(), "4096")
         getTaskParameters().put(TaskField.HUB_TIMEOUT.getParameterKey(), "300")
 
-        final HubScanEventHandler scanEventHandler = new HubScanEventHandler(getAppConfiguration(), getEventBus(), getAttributesHandler(), getEventManager())
         final ScanItemMetaData data = new ScanItemMetaData(getItem(), getResourceStoreRequest(), getTaskParameters(), getProjectRequest())
-        getEventManager().processItem(data)
         for (final Event<?> event : getEventBus().getEvents()) {
             if (event instanceof HubScanEvent) {
                 final HubScanEvent scanEvent = (HubScanEvent) event
-                scanEventHandler.handle(scanEvent)
             }
         }
     }

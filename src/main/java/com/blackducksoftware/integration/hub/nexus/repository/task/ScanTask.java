@@ -41,10 +41,8 @@ import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.api.nonpublic.HubVersionRequestService;
 import com.blackducksoftware.integration.hub.cli.CLIDownloadService;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
-import com.blackducksoftware.integration.hub.nexus.repository.task.filter.ScanRepositoryWalkerMarkerFilter;
-import com.blackducksoftware.integration.hub.nexus.repository.task.filter.ScanRepositoryWalkerStatusFilter;
-import com.blackducksoftware.integration.hub.nexus.repository.task.walker.ScanRepositoryMarkerWalker;
-import com.blackducksoftware.integration.hub.nexus.repository.task.walker.ScanRepositoryStatusWalker;
+import com.blackducksoftware.integration.hub.nexus.repository.task.filter.ScanRepositoryWalkerFilter;
+import com.blackducksoftware.integration.hub.nexus.repository.task.walker.ScanRepositoryWalker;
 import com.blackducksoftware.integration.hub.util.HostnameHelper;
 import com.blackducksoftware.integration.log.Slf4jIntLogger;
 import com.blackducksoftware.integration.util.CIEnvironmentVariables;
@@ -76,16 +74,6 @@ public class ScanTask extends AbstractHubTask {
         File blackDuckDirectory = null;
         try {
             logger.info("Start task execution.");
-            addParameter(TaskField.CURRENT_SCANS.getParameterKey(), "0");
-            final String repositoryFieldId = getParameter(TaskField.REPOSITORY_FIELD_ID.getParameterKey());
-            final List<Repository> repositoryList = createRepositoryList(repositoryFieldId);
-
-            // Walk repo and mark items to scan
-            final String fileMatchPatterns = getParameter(TaskField.FILE_PATTERNS.getParameterKey());
-            final ScanRepositoryWalkerMarkerFilter scanRepositoryWalkerMarkerFilter = new ScanRepositoryWalkerMarkerFilter(fileMatchPatterns, itemAttributesHelper, getParameters());
-            final ScanRepositoryMarkerWalker scanRepositoryMarkerWalker = new ScanRepositoryMarkerWalker(itemAttributesHelper, getParameters());
-            walkRepositoriesWithFilter(hubServiceHelper, repositoryList, scanRepositoryMarkerWalker, scanRepositoryWalkerMarkerFilter);
-
             blackDuckDirectory = new File(getParameter(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
             final String cliInstallRootDirectory = String.format("hub%s", String.valueOf(hubServiceHelper.getHubServerConfig().getHubUrl().getHost().hashCode()));
             final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
@@ -95,10 +83,14 @@ public class ScanTask extends AbstractHubTask {
             }
             installCLI(cliInstallDirectory, hubServiceHelper);
 
-            // Walk repo and scan items that have been marked
-            final ScanRepositoryWalkerStatusFilter scanRepositoryWalkerStatusFilter = new ScanRepositoryWalkerStatusFilter(itemAttributesHelper);
-            final ScanRepositoryStatusWalker scanRepositoryStatusWalker = new ScanRepositoryStatusWalker(appConfiguration, getParameters(), hubServiceHelper, getEventBus(), itemAttributesHelper);
-            walkRepositoriesWithFilter(hubServiceHelper, repositoryList, scanRepositoryStatusWalker, scanRepositoryWalkerStatusFilter);
+            addParameter(TaskField.CURRENT_SCANS.getParameterKey(), "1");
+            final String repositoryFieldId = getParameter(TaskField.REPOSITORY_FIELD_ID.getParameterKey());
+            final List<Repository> repositoryList = createRepositoryList(repositoryFieldId);
+
+            final String fileMatchPatterns = getParameter(TaskField.FILE_PATTERNS.getParameterKey());
+            final ScanRepositoryWalkerFilter scanRepositoryWalkerFilter = new ScanRepositoryWalkerFilter(fileMatchPatterns, itemAttributesHelper, getParameters());
+            final ScanRepositoryWalker scanRepositoryWalker = new ScanRepositoryWalker(appConfiguration, getParameters(), hubServiceHelper, getEventBus(), itemAttributesHelper);
+            walkRepositoriesWithFilter(hubServiceHelper, repositoryList, scanRepositoryWalker, scanRepositoryWalkerFilter);
         } catch (final Exception ex) {
             logger.error("Error occurred during task execution {}", ex);
         }

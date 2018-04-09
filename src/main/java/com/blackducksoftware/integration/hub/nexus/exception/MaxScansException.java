@@ -21,21 +21,14 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.repository.task.filter;
+package com.blackducksoftware.integration.hub.nexus.exception;
 
-import org.sonatype.nexus.proxy.item.StorageItem;
-import org.sonatype.nexus.proxy.walker.WalkerContext;
+import com.blackducksoftware.integration.exception.IntegrationException;
 
-import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
+public class MaxScansException extends IntegrationException {
+    private static final long serialVersionUID = -4689077396469997050L;
 
-public class PolicyRepositoryWalkerStatusFilter extends RepositoryWalkerFilter {
-
-    public PolicyRepositoryWalkerStatusFilter(final ItemAttributesHelper itemAttributesHelper) {
-        super(itemAttributesHelper);
-    }
-
-    @Override
-    public boolean shouldProcess(final WalkerContext context, final StorageItem item) {
-        return super.shouldProcess(context, item) && ItemAttributesHelper.SCAN_STATUS_SUCCESS == itemAttributesHelper.getScanResult(item);
+    public MaxScansException(final int maxScans) {
+        super("Reached max scans of " + maxScans);
     }
 }
