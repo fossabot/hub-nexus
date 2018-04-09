@@ -24,15 +24,12 @@
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
 import java.io.File;
-import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.sonatype.nexus.configuration.application.ApplicationConfiguration;
-import org.sonatype.nexus.proxy.NoSuchRepositoryException;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
-import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
 import org.sonatype.nexus.proxy.walker.Walker;
 
@@ -89,12 +86,6 @@ public class ScanTask extends AbstractHubTask {
             cliInstallDirectory.mkdirs();
         }
         installCLI(cliInstallDirectory, hubServiceHelper);
-    }
-
-    @Override
-    public List<Repository> getRepositoryList() throws NoSuchRepositoryException {
-        final String repositoryFieldId = getParameter(TaskField.REPOSITORY_FIELD_ID.getParameterKey());
-        return createRepositoryList(repositoryFieldId);
     }
 
     @Override

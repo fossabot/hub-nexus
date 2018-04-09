@@ -23,14 +23,10 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
-import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.sonatype.nexus.proxy.NoSuchRepositoryException;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
-import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
 import org.sonatype.nexus.proxy.walker.Walker;
 
@@ -59,11 +55,6 @@ public class PolicyCheckTask extends AbstractHubTask {
     @Override
     protected String getMessage() {
         return "HUB-NEXUS-PLUGIN-POLICY-CHECK: Search for successfully scanned artifacts and check their policy";
-    }
-
-    @Override
-    public List<Repository> getRepositoryList() throws NoSuchRepositoryException {
-        return createRepositoryList(ALL_REPO_ID);
     }
 
     @Override

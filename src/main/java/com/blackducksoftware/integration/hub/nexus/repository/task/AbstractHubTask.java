@@ -24,8 +24,8 @@
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Vector;
 
 import org.apache.commons.lang3.StringUtils;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
@@ -56,13 +56,17 @@ public abstract class AbstractHubTask extends AbstractNexusRepositoriesPathAware
         itemAttributesHelper = new ItemAttributesHelper(attributesHandler);
     }
 
+    public abstract AbstractWalkerProcessor getRepositoryWalker();
+
+    public abstract RepositoryWalkerFilter getRepositoryWalkerFilter();
+
     @Override
     protected Object doRun() throws Exception {
         try {
             final HubServiceHelper hubServiceHelper = getHubServiceHelper();
 
             initTask();
-            final List<Repository> repositoryList = getRepositoryList();
+            final List<Repository> repositoryList = createRepositoryList();
             final AbstractWalkerProcessor repositoryWalker = getRepositoryWalker();
             final RepositoryWalkerFilter repositoryWalkerFilter = getRepositoryWalkerFilter();
 
@@ -81,11 +85,13 @@ public abstract class AbstractHubTask extends AbstractNexusRepositoriesPathAware
         // Override if needed
     }
 
-    public abstract List<Repository> getRepositoryList() throws NoSuchRepositoryException;
-
-    public abstract AbstractWalkerProcessor getRepositoryWalker();
-
-    public abstract RepositoryWalkerFilter getRepositoryWalkerFilter();
+    private List<Repository> createRepositoryList() throws NoSuchRepositoryException {
+        final String repositoryFieldId = getParameter(TaskField.REPOSITORY_FIELD_ID.getParameterKey());
+        if (StringUtils.isNotBlank(repositoryFieldId) && !ALL_REPO_ID.equals(repositoryFieldId)) {
+            return Arrays.asList(getRepositoryRegistry().getRepository(repositoryFieldId));
+        }
+        return getRepositoryRegistry().getRepositories();
+    }
 
     public void walkRepositoriesWithFilter(final HubServiceHelper hubServiceHelper, final List<Repository> repositoryList, final AbstractWalkerProcessor repositoryWalker, final RepositoryWalkerFilter repositoryWalkerFilter) {
         final List<WalkerContext> contextList = new ArrayList<>();
@@ -119,18 +125,6 @@ public abstract class AbstractHubTask extends AbstractNexusRepositoriesPathAware
                 }
             }
         }
-    }
-
-    protected List<Repository> createRepositoryList(final String repositoryFieldId) throws NoSuchRepositoryException {
-        List<Repository> repositoryList = new Vector<>();
-        if (StringUtils.isNotBlank(repositoryFieldId)) {
-            if (repositoryFieldId.equals(ALL_REPO_ID)) {
-                repositoryList = getRepositoryRegistry().getRepositories();
-            } else {
-                repositoryList.add(getRepositoryRegistry().getRepository(repositoryFieldId));
-            }
-        }
-        return repositoryList;
     }
 
 }
