@@ -41,7 +41,6 @@ import org.sonatype.sisu.goodies.common.Loggers;
 public class ItemAttributesHelper {
     public static final long SCAN_STATUS_FAILED = 0;
     public static final long SCAN_STATUS_SUCCESS = 1;
-    public static final long SCAN_STATUS_PENDING = 2;
     public static final String BLACK_DUCK_SCAN_TIME_PROPERTY_NAME = "scanTime";
     public static final String BLACK_DUCK_SCAN_RESULT_PROPERTY_NAME = "scanResult";
     public static final String BLACK_DUCK_PROJECT_VERSION_URL_PROPERTY_NAME = "apiUrl";

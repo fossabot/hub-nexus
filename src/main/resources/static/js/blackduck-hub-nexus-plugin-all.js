@@ -164,14 +164,10 @@ Ext.extend(Sonatype.repoServer.HubTab, Ext.Panel, {
 							this.find('name', 'policyStatus')[0].setRawValue(infoResp.policyStatus);
 							this.find('name', 'scanTime')[0].setRawValue(dateTime);
 							var scanStatus = infoResp.scanStatus;
-							var statusString = "Pending";
+							var statusString = "Failed";
 							if (scanStatus == '1') {
 								statusString = "Success";
-							} else if (scanStatus == '2') {
-								statusString = "Pending";
-							} else {
-								statusString = "Failed";
-							}
+							} 
 							this.find('name', 'scanResult')[0].setRawValue(statusString);
 
 							artifactContainer.showTab(this);
