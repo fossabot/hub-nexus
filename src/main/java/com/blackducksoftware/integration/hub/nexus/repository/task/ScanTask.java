@@ -25,31 +25,29 @@ package com.blackducksoftware.integration.hub.nexus.repository.task;
 
 import java.io.File;
 import java.util.List;
-import java.util.Vector;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.apache.commons.lang3.StringUtils;
 import org.sonatype.nexus.configuration.application.ApplicationConfiguration;
 import org.sonatype.nexus.proxy.NoSuchRepositoryException;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.repository.Repository;
+import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
 import org.sonatype.nexus.proxy.walker.Walker;
 
 import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.api.nonpublic.HubVersionRequestService;
 import com.blackducksoftware.integration.hub.cli.CLIDownloadService;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
+import com.blackducksoftware.integration.hub.nexus.repository.task.filter.RepositoryWalkerFilter;
 import com.blackducksoftware.integration.hub.nexus.repository.task.filter.ScanRepositoryWalkerFilter;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.ScanRepositoryWalker;
 import com.blackducksoftware.integration.hub.util.HostnameHelper;
-import com.blackducksoftware.integration.log.Slf4jIntLogger;
 import com.blackducksoftware.integration.util.CIEnvironmentVariables;
 
 @Named(ScanTaskDescriptor.ID)
 public class ScanTask extends AbstractHubTask {
-    private static final String ALL_REPO_ID = "all_repo";
     private final ApplicationConfiguration appConfiguration;
 
     @Inject
@@ -69,35 +67,6 @@ public class ScanTask extends AbstractHubTask {
     }
 
     @Override
-    protected Object doRun() throws Exception {
-        final HubServiceHelper hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), this.getParameters());
-        File blackDuckDirectory = null;
-        try {
-            logger.info("Start task execution.");
-            blackDuckDirectory = new File(getParameter(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
-            final String cliInstallRootDirectory = String.format("hub%s", String.valueOf(hubServiceHelper.getHubServerConfig().getHubUrl().getHost().hashCode()));
-            final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
-            final File cliInstallDirectory = new File(taskDirectory, "tools");
-            if (!cliInstallDirectory.exists()) {
-                cliInstallDirectory.mkdirs();
-            }
-            installCLI(cliInstallDirectory, hubServiceHelper);
-
-            addParameter(TaskField.CURRENT_SCANS.getParameterKey(), "1");
-            final String repositoryFieldId = getParameter(TaskField.REPOSITORY_FIELD_ID.getParameterKey());
-            final List<Repository> repositoryList = createRepositoryList(repositoryFieldId);
-
-            final String fileMatchPatterns = getParameter(TaskField.FILE_PATTERNS.getParameterKey());
-            final ScanRepositoryWalkerFilter scanRepositoryWalkerFilter = new ScanRepositoryWalkerFilter(fileMatchPatterns, itemAttributesHelper, getParameters());
-            final ScanRepositoryWalker scanRepositoryWalker = new ScanRepositoryWalker(appConfiguration, getParameters(), hubServiceHelper, getEventBus(), itemAttributesHelper);
-            walkRepositoriesWithFilter(hubServiceHelper, repositoryList, scanRepositoryWalker, scanRepositoryWalkerFilter);
-        } catch (final Exception ex) {
-            logger.error("Error occurred during task execution {}", ex);
-        }
-        return null;
-    }
-
-    @Override
     protected String getAction() {
         return "BLACKDUCK_HUB_SCAN";
     }
@@ -107,16 +76,36 @@ public class ScanTask extends AbstractHubTask {
         return "HUB-NEXUS-PLUGIN-SCAN: Searching for artifacts to scan in the repository";
     }
 
-    private List<Repository> createRepositoryList(final String repositoryFieldId) throws NoSuchRepositoryException {
-        List<Repository> repositoryList = new Vector<>();
-        if (StringUtils.isNotBlank(repositoryFieldId)) {
-            if (repositoryFieldId.equals(ALL_REPO_ID)) {
-                repositoryList = getRepositoryRegistry().getRepositories();
-            } else {
-                repositoryList.add(getRepositoryRegistry().getRepository(repositoryFieldId));
-            }
+    @Override
+    public void initTask() throws Exception {
+        logger.info("Start task execution.");
+        addParameter(TaskField.CURRENT_SCANS.getParameterKey(), "1");
+        final HubServiceHelper hubServiceHelper = getHubServiceHelper();
+        final File blackDuckDirectory = new File(getParameter(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
+        final String cliInstallRootDirectory = String.format("hub%s", String.valueOf(hubServiceHelper.getHubServerConfig().getHubUrl().getHost().hashCode()));
+        final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
+        final File cliInstallDirectory = new File(taskDirectory, "tools");
+        if (!cliInstallDirectory.exists()) {
+            cliInstallDirectory.mkdirs();
         }
-        return repositoryList;
+        installCLI(cliInstallDirectory, hubServiceHelper);
+    }
+
+    @Override
+    public List<Repository> getRepositoryList() throws NoSuchRepositoryException {
+        final String repositoryFieldId = getParameter(TaskField.REPOSITORY_FIELD_ID.getParameterKey());
+        return createRepositoryList(repositoryFieldId);
+    }
+
+    @Override
+    public AbstractWalkerProcessor getRepositoryWalker() {
+        return new ScanRepositoryWalker(appConfiguration, getParameters(), getHubServiceHelper(), getEventBus(), itemAttributesHelper);
+    }
+
+    @Override
+    public RepositoryWalkerFilter getRepositoryWalkerFilter() {
+        final String fileMatchPatterns = getParameter(TaskField.FILE_PATTERNS.getParameterKey());
+        return new ScanRepositoryWalkerFilter(fileMatchPatterns, itemAttributesHelper, getParameters());
     }
 
     private void installCLI(final File installDirectory, final HubServiceHelper hubServiceHelper) throws IntegrationException {

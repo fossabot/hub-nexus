@@ -28,14 +28,15 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.sonatype.nexus.proxy.NoSuchRepositoryException;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.repository.Repository;
+import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
 import org.sonatype.nexus.proxy.walker.Walker;
 
-import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.repository.task.filter.PolicyRepositoryWalkerFilter;
+import com.blackducksoftware.integration.hub.nexus.repository.task.filter.RepositoryWalkerFilter;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.PolicyRepositoryWalker;
-import com.blackducksoftware.integration.log.Slf4jIntLogger;
 
 @Named(PolicyCheckTaskDescriptor.ID)
 public class PolicyCheckTask extends AbstractHubTask {
@@ -51,21 +52,6 @@ public class PolicyCheckTask extends AbstractHubTask {
     }
 
     @Override
-    protected Object doRun() throws Exception {
-        try {
-            final HubServiceHelper hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), this.getParameters());
-            final List<Repository> repositoryList = getRepositoryRegistry().getRepositories();
-
-            final PolicyRepositoryWalker policyRepositoryWalker = new PolicyRepositoryWalker(getEventBus(), itemAttributesHelper, getParameters(), hubServiceHelper);
-            final PolicyRepositoryWalkerFilter policyRepositoryWalkerFilter = new PolicyRepositoryWalkerFilter(itemAttributesHelper);
-            walkRepositoriesWithFilter(hubServiceHelper, repositoryList, policyRepositoryWalker, policyRepositoryWalkerFilter);
-        } catch (final Exception ex) {
-            logger.error("Error occurred during task execution {}", ex);
-        }
-        return null;
-    }
-
-    @Override
     protected String getAction() {
         return "BLACKDUCK_HUB_POLICY_CHECK";
     }
@@ -73,6 +59,21 @@ public class PolicyCheckTask extends AbstractHubTask {
     @Override
     protected String getMessage() {
         return "HUB-NEXUS-PLUGIN-POLICY-CHECK: Search for successfully scanned artifacts and check their policy";
+    }
+
+    @Override
+    public List<Repository> getRepositoryList() throws NoSuchRepositoryException {
+        return createRepositoryList(ALL_REPO_ID);
+    }
+
+    @Override
+    public AbstractWalkerProcessor getRepositoryWalker() {
+        return new PolicyRepositoryWalker(getEventBus(), itemAttributesHelper, getParameters(), getHubServiceHelper());
+    }
+
+    @Override
+    public RepositoryWalkerFilter getRepositoryWalkerFilter() {
+        return new PolicyRepositoryWalkerFilter(itemAttributesHelper);
     }
 
 }

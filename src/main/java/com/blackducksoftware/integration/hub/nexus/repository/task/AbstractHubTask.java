@@ -25,9 +25,11 @@ package com.blackducksoftware.integration.hub.nexus.repository.task;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 import org.apache.commons.lang3.StringUtils;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
+import org.sonatype.nexus.proxy.NoSuchRepositoryException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.item.RepositoryItemUid;
@@ -42,8 +44,10 @@ import org.sonatype.nexus.scheduling.AbstractNexusRepositoriesPathAwareTask;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.repository.task.filter.RepositoryWalkerFilter;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
+import com.blackducksoftware.integration.log.Slf4jIntLogger;
 
 public abstract class AbstractHubTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
+    protected static final String ALL_REPO_ID = "all_repo";
     private final Walker walker;
     protected ItemAttributesHelper itemAttributesHelper;
 
@@ -52,11 +56,42 @@ public abstract class AbstractHubTask extends AbstractNexusRepositoriesPathAware
         itemAttributesHelper = new ItemAttributesHelper(attributesHandler);
     }
 
-    public void walkRepositoriesWithFilter(final HubServiceHelper hubServiceHelper, final List<Repository> repositoryList, final AbstractWalkerProcessor repositoryWalker, final RepositoryWalkerFilter scanRepositoryWalkerFilter) {
+    @Override
+    protected Object doRun() throws Exception {
+        try {
+            final HubServiceHelper hubServiceHelper = getHubServiceHelper();
+
+            initTask();
+            final List<Repository> repositoryList = getRepositoryList();
+            final AbstractWalkerProcessor repositoryWalker = getRepositoryWalker();
+            final RepositoryWalkerFilter repositoryWalkerFilter = getRepositoryWalkerFilter();
+
+            walkRepositoriesWithFilter(hubServiceHelper, repositoryList, repositoryWalker, repositoryWalkerFilter);
+        } catch (final Exception ex) {
+            logger.error("Error occurred during task execution {}", ex);
+        }
+        return null;
+    }
+
+    protected HubServiceHelper getHubServiceHelper() {
+        return new HubServiceHelper(new Slf4jIntLogger(logger), this.getParameters());
+    }
+
+    public void initTask() throws Exception {
+        // Override if needed
+    }
+
+    public abstract List<Repository> getRepositoryList() throws NoSuchRepositoryException;
+
+    public abstract AbstractWalkerProcessor getRepositoryWalker();
+
+    public abstract RepositoryWalkerFilter getRepositoryWalkerFilter();
+
+    public void walkRepositoriesWithFilter(final HubServiceHelper hubServiceHelper, final List<Repository> repositoryList, final AbstractWalkerProcessor repositoryWalker, final RepositoryWalkerFilter repositoryWalkerFilter) {
         final List<WalkerContext> contextList = new ArrayList<>();
 
         for (final Repository repository : repositoryList) {
-            contextList.add(createRepositoryWalker(repository, hubServiceHelper, repositoryWalker, scanRepositoryWalkerFilter));
+            contextList.add(createRepositoryWalker(repository, hubServiceHelper, repositoryWalker, repositoryWalkerFilter));
         }
         walkRepositories(contextList);
     }
@@ -84,6 +119,18 @@ public abstract class AbstractHubTask extends AbstractNexusRepositoriesPathAware
                 }
             }
         }
+    }
+
+    protected List<Repository> createRepositoryList(final String repositoryFieldId) throws NoSuchRepositoryException {
+        List<Repository> repositoryList = new Vector<>();
+        if (StringUtils.isNotBlank(repositoryFieldId)) {
+            if (repositoryFieldId.equals(ALL_REPO_ID)) {
+                repositoryList = getRepositoryRegistry().getRepositories();
+            } else {
+                repositoryList.add(getRepositoryRegistry().getRepository(repositoryFieldId));
+            }
+        }
+        return repositoryList;
     }
 
 }
