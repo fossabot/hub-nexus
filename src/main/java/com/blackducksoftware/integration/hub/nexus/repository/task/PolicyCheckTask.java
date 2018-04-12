@@ -28,18 +28,23 @@ import javax.inject.Named;
 
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
-import org.sonatype.nexus.proxy.walker.Walker;
+import org.sonatype.nexus.proxy.walker.DefaultStoreWalkerFilter;
 
+import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
+import com.blackducksoftware.integration.hub.nexus.event.TaskEventManager;
 import com.blackducksoftware.integration.hub.nexus.repository.task.filter.PolicyRepositoryWalkerFilter;
-import com.blackducksoftware.integration.hub.nexus.repository.task.filter.RepositoryWalkerFilter;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.PolicyRepositoryWalker;
+import com.blackducksoftware.integration.hub.nexus.util.ScanAttributesHelper;
+import com.blackducksoftware.integration.log.Slf4jIntLogger;
 
 @Named(PolicyCheckTaskDescriptor.ID)
-public class PolicyCheckTask extends AbstractHubTask {
+public class PolicyCheckTask extends AbstractWalkerHubTask {
+    private final TaskEventManager taskEventManager;
 
     @Inject
-    public PolicyCheckTask(final Walker walker, final DefaultAttributesHandler attributesHandler) {
+    public PolicyCheckTask(final TaskWalker walker, final DefaultAttributesHandler attributesHandler, final TaskEventManager taskEventManager) {
         super(walker, attributesHandler);
+        this.taskEventManager = taskEventManager;
     }
 
     @Override
@@ -59,11 +64,12 @@ public class PolicyCheckTask extends AbstractHubTask {
 
     @Override
     public AbstractWalkerProcessor getRepositoryWalker() {
-        return new PolicyRepositoryWalker(getEventBus(), itemAttributesHelper, getParameters(), getHubServiceHelper());
+        final HubServiceHelper hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), this.getParameters());
+        return new PolicyRepositoryWalker(itemAttributesHelper, new ScanAttributesHelper(getParameters()), hubServiceHelper, taskEventManager);
     }
 
     @Override
-    public RepositoryWalkerFilter getRepositoryWalkerFilter() {
+    public DefaultStoreWalkerFilter getRepositoryWalkerFilter() {
         return new PolicyRepositoryWalkerFilter(itemAttributesHelper);
     }
 

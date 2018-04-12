@@ -39,6 +39,7 @@ import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.model.view.VersionBomPolicyStatusView;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.HubPolicyCheckEvent;
+import com.blackducksoftware.integration.hub.nexus.event.TaskEventManager;
 import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger;
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
@@ -48,32 +49,36 @@ import com.google.common.eventbus.Subscribe;
 public class HubPolicyCheckEventHandler extends HubEventHandler {
 
     @Inject
-    public HubPolicyCheckEventHandler(final AttributesHandler attributesHandler) {
-        super(attributesHandler);
+    public HubPolicyCheckEventHandler(final AttributesHandler attributesHandler, final TaskEventManager taskEventManager) {
+        super(attributesHandler, taskEventManager);
     }
 
     @AllowConcurrentEvents
     @Subscribe
     public void handle(final HubPolicyCheckEvent event) {
-        final HubEventLogger logger = new HubEventLogger(event, LoggerFactory.getLogger(getClass()));
-        try {
-            logger.info("Begin checking policy event");
-            final StorageItem item = event.getItem();
+        if (!event.isProcessed()) {
+            final HubEventLogger logger = new HubEventLogger(event, LoggerFactory.getLogger(getClass()));
+            try {
+                logger.info("Begin checking policy event");
+                final StorageItem item = event.getItem();
 
-            final ProjectVersionView projectVersionView = event.getProjectVersionView();
-            final Map<String, String> taskParameters = event.getTaskParameters();
-            final HubServiceHelper hubServiceHelper = createServiceHelper(logger, taskParameters);
-            if (hubServiceHelper != null) {
-                final VersionBomPolicyStatusView versionBomPolicyStatusView = hubServiceHelper.getPolicyStatusDataService().getPolicyStatusForVersion(projectVersionView);
-                final PolicyStatusDescription policyCheckResults = new PolicyStatusDescription(versionBomPolicyStatusView);
-                getAttributeHelper().setPolicyStatus(item, policyCheckResults.getPolicyStatusMessage());
-                final String overallStatus = transformOverallStatus(versionBomPolicyStatusView.overallStatus.toString());
-                getAttributeHelper().setOverallPolicyStatus(item, overallStatus);
+                final ProjectVersionView projectVersionView = event.getProjectVersionView();
+                final Map<String, String> taskParameters = event.getTaskParameters();
+                final HubServiceHelper hubServiceHelper = createServiceHelper(logger, taskParameters);
+                if (hubServiceHelper != null) {
+                    final VersionBomPolicyStatusView versionBomPolicyStatusView = hubServiceHelper.getPolicyStatusDataService().getPolicyStatusForVersion(projectVersionView);
+                    final PolicyStatusDescription policyCheckResults = new PolicyStatusDescription(versionBomPolicyStatusView);
+                    getAttributeHelper().setPolicyStatus(item, policyCheckResults.getPolicyStatusMessage());
+                    final String overallStatus = transformOverallStatus(versionBomPolicyStatusView.overallStatus.toString());
+                    getAttributeHelper().setOverallPolicyStatus(item, overallStatus);
+                    getTaskEventManager().markScanEventProcessed(event);
+                }
+            } catch (final Exception ex) {
+                logger.error("Error occurred checking policy", ex);
+                event.setProcessed(false);
+            } finally {
+                logger.info("Finished checking policy event");
             }
-        } catch (final Exception ex) {
-            logger.error("Error occurred checking policy", ex);
-        } finally {
-            logger.info("Finished checking policy event");
         }
     }
 

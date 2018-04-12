@@ -31,24 +31,25 @@ import javax.inject.Named;
 import org.sonatype.nexus.configuration.application.ApplicationConfiguration;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
-import org.sonatype.nexus.proxy.walker.Walker;
+import org.sonatype.nexus.proxy.walker.DefaultStoreWalkerFilter;
 
 import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.api.nonpublic.HubVersionRequestService;
 import com.blackducksoftware.integration.hub.cli.CLIDownloadService;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
-import com.blackducksoftware.integration.hub.nexus.repository.task.filter.RepositoryWalkerFilter;
 import com.blackducksoftware.integration.hub.nexus.repository.task.filter.ScanRepositoryWalkerFilter;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.ScanRepositoryWalker;
+import com.blackducksoftware.integration.hub.nexus.util.ScanAttributesHelper;
 import com.blackducksoftware.integration.hub.util.HostnameHelper;
+import com.blackducksoftware.integration.log.Slf4jIntLogger;
 import com.blackducksoftware.integration.util.CIEnvironmentVariables;
 
 @Named(ScanTaskDescriptor.ID)
-public class ScanTask extends AbstractHubTask {
+public class ScanTask extends AbstractWalkerHubTask {
     private final ApplicationConfiguration appConfiguration;
 
     @Inject
-    public ScanTask(final ApplicationConfiguration appConfiguration, final Walker walker, final DefaultAttributesHandler attributesHandler) {
+    public ScanTask(final ApplicationConfiguration appConfiguration, final TaskWalker walker, final DefaultAttributesHandler attributesHandler) {
         super(walker, attributesHandler);
         this.appConfiguration = appConfiguration;
     }
@@ -77,7 +78,7 @@ public class ScanTask extends AbstractHubTask {
     public void initTask() throws Exception {
         logger.info("Start task execution.");
         addParameter(TaskField.CURRENT_SCANS.getParameterKey(), "1");
-        final HubServiceHelper hubServiceHelper = getHubServiceHelper();
+        final HubServiceHelper hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), this.getParameters());
         final File blackDuckDirectory = new File(getParameter(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
         final String cliInstallRootDirectory = String.format("hub%s", String.valueOf(hubServiceHelper.getHubServerConfig().getHubUrl().getHost().hashCode()));
         final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
@@ -90,11 +91,11 @@ public class ScanTask extends AbstractHubTask {
 
     @Override
     public AbstractWalkerProcessor getRepositoryWalker() {
-        return new ScanRepositoryWalker(appConfiguration, getParameters(), getHubServiceHelper(), getEventBus(), itemAttributesHelper);
+        return new ScanRepositoryWalker(appConfiguration, new ScanAttributesHelper(getParameters()), getEventBus(), itemAttributesHelper);
     }
 
     @Override
-    public RepositoryWalkerFilter getRepositoryWalkerFilter() {
+    public DefaultStoreWalkerFilter getRepositoryWalkerFilter() {
         final String fileMatchPatterns = getParameter(TaskField.FILE_PATTERNS.getParameterKey());
         return new ScanRepositoryWalkerFilter(fileMatchPatterns, itemAttributesHelper, getParameters());
     }

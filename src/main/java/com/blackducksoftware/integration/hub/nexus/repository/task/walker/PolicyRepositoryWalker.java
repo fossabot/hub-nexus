@@ -23,33 +23,32 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task.walker;
 
-import java.util.Map;
-
 import org.slf4j.Logger;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
 import org.sonatype.nexus.proxy.walker.WalkerContext;
 import org.sonatype.sisu.goodies.common.Loggers;
-import org.sonatype.sisu.goodies.eventbus.EventBus;
 
 import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.HubPolicyCheckEvent;
+import com.blackducksoftware.integration.hub.nexus.event.TaskEventManager;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
+import com.blackducksoftware.integration.hub.nexus.util.ScanAttributesHelper;
 
 public class PolicyRepositoryWalker extends AbstractWalkerProcessor {
     private final Logger logger = Loggers.getLogger(getClass());
-    private final EventBus eventBus;
     private final ItemAttributesHelper itemAttributesHelper;
-    private final Map<String, String> taskParameters;
+    private final ScanAttributesHelper scanAttributesHelper;
     private final HubServiceHelper hubServiceHelper;
+    private final TaskEventManager taskEventManager;
 
-    public PolicyRepositoryWalker(final EventBus eventBus, final ItemAttributesHelper itemAttributesHelper, final Map<String, String> taskParameters, final HubServiceHelper hubServiceHelper) {
+    public PolicyRepositoryWalker(final ItemAttributesHelper itemAttributesHelper, final ScanAttributesHelper scanAttributesHelper, final HubServiceHelper hubServiceHelper, final TaskEventManager taskEventManager) {
         this.itemAttributesHelper = itemAttributesHelper;
-        this.eventBus = eventBus;
-        this.taskParameters = taskParameters;
+        this.scanAttributesHelper = scanAttributesHelper;
         this.hubServiceHelper = hubServiceHelper;
+        this.taskEventManager = taskEventManager;
     }
 
     @Override
@@ -57,8 +56,9 @@ public class PolicyRepositoryWalker extends AbstractWalkerProcessor {
         try {
             logger.info("Begin Policy check for item {}", item);
             final ProjectVersionView projectVersionView = getProjectVersion(item);
-            final HubPolicyCheckEvent event = new HubPolicyCheckEvent(item.getRepositoryItemUid().getRepository(), item, taskParameters, context.getResourceStoreRequest(), projectVersionView);
-            eventBus.post(event);
+            final HubPolicyCheckEvent event = new HubPolicyCheckEvent(item.getRepositoryItemUid().getRepository(), item, scanAttributesHelper.getScanAttributes(), context.getResourceStoreRequest(), projectVersionView);
+
+            taskEventManager.processEvent(event);
         } catch (final Exception ex) {
             logger.error("Error occurred in walker processor for repository: ", ex);
         }

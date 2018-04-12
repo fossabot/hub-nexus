@@ -47,7 +47,7 @@ public class ItemAttributesHelper {
     public static final String BLACK_DUCK_PROJECT_VERSION_UI_URL_PROPERTY_NAME = "uiUrl";
     public static final String BLACK_DUCK_POLICY_STATUS_PROPERTY_NAME = "policyStatus";
     public static final String BLACK_DUCK_OVERALL_POLICY_STATUS_PROPERTY_NAME = "overallPolicyStatus";
-    public static final String BLACKDUCK = "blackduck-";
+    public static final String BLACKDUCK_PREFIX = "blackduck-";
     private final AttributesHandler attributesHandler;
     private final Logger logger = Loggers.getLogger(getClass());
 
@@ -57,7 +57,7 @@ public class ItemAttributesHelper {
     }
 
     private String keyName(final String key) {
-        return BLACKDUCK.concat(key);
+        return BLACKDUCK_PREFIX.concat(key);
     }
 
     public void addAttribute(final String key, final String value, final StorageItem item) {
@@ -85,7 +85,7 @@ public class ItemAttributesHelper {
 
     public boolean contains(String key, final StorageItem item) {
         final Attributes attList = item.getRepositoryItemAttributes();
-        if (!key.contains(BLACKDUCK)) {
+        if (!key.contains(BLACKDUCK_PREFIX)) {
             key = keyName(key);
         }
         if (attList.containsKey(key)) {
@@ -99,7 +99,7 @@ public class ItemAttributesHelper {
         final Set<String> keys = attList.asMap().keySet();
 
         for (final String key : keys) {
-            if (key.startsWith(BLACKDUCK)) {
+            if (key.startsWith(BLACKDUCK_PREFIX)) {
                 logger.debug("Removing key " + key);
                 attList.remove(key);
             }

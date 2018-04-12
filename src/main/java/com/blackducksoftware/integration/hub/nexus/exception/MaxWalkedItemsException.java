@@ -25,10 +25,10 @@ package com.blackducksoftware.integration.hub.nexus.exception;
 
 import com.blackducksoftware.integration.exception.IntegrationException;
 
-public class MaxScansException extends IntegrationException {
+public class MaxWalkedItemsException extends IntegrationException {
     private static final long serialVersionUID = -4689077396469997050L;
 
-    public MaxScansException(final int maxScans) {
-        super("Reached max scans of " + maxScans);
+    public MaxWalkedItemsException(final int maxWalkedItems) {
+        super("Reached max walked items of " + maxWalkedItems);
     }
 }

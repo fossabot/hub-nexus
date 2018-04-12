@@ -44,7 +44,9 @@ public enum TaskField {
     RESCAN_FAILURES("blackduck.hub.nexus.rescan.failures"),
     ALWAYS_SCAN("blackduck.hub.nexus.rescan.always"),
     MAX_SCANS("blackduck.hub.nexus.max.scans"),
-    CURRENT_SCANS("blackduck.hub.nexus.current.scans");
+    CURRENT_SCANS("blackduck.hub.nexus.current.scans"),
+    MAX_POLICY_CHECKS("blackduck.hub.nexus.max.policy.check"),
+    CURRENT_POLICY_CHECKS("blackduck.hub.nexus.current.policy.check");
 
     private String parameterKey;
 

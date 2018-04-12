@@ -36,6 +36,7 @@ public class HubEvent extends AbstractEvent<Repository> {
     private final Map<String, String> taskParameters;
     private final ResourceStoreRequest request;
     private final UUID eventId;
+    private boolean processed;
 
     public HubEvent(final Repository repository, final StorageItem item, final Map<String, String> taskParameters, final ResourceStoreRequest request) {
         super(repository);
@@ -43,6 +44,7 @@ public class HubEvent extends AbstractEvent<Repository> {
         this.taskParameters = taskParameters;
         this.request = request;
         this.eventId = UUID.randomUUID();
+        processed = false;
     }
 
     public UUID getEventId() {
@@ -64,4 +66,13 @@ public class HubEvent extends AbstractEvent<Repository> {
     public Map<String, String> getTaskParameters() {
         return taskParameters;
     }
+
+    public boolean isProcessed() {
+        return processed;
+    }
+
+    public void setProcessed(final boolean processed) {
+        this.processed = processed;
+    }
+
 }

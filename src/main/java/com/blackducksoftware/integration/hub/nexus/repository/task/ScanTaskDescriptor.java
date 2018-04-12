@@ -54,6 +54,7 @@ public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
     public static final String DEFAULT_SCAN_MEMORY = "4096";
     public static final String DEFAULT_WORKING_DIRECTORY = "/sonatype-work";
     public static final String DEFAULT_ARTIFACT_CUTOFF = "2016-01-01T00:00:00.000";
+    public static final String DEFAULT_MAX_SCANS = "100";
 
     private static final String DESCRIPTION_HUB_PROJECT_DISTRIBUTION = "The default distribution setting applied to the project verion if the project version is created. Possible Values: ";
     private static final String DESCRIPTION_HUB_PROJECT_PHASE = "The default phase setting applied to the project verion if the project version is created.  Possible Values: ";
@@ -89,7 +90,8 @@ public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
             .withInitialValue(DEFAULT_SCAN_MEMORY);
     private final CheckboxFormField rescanFailures = new CheckboxFormField(TaskField.RESCAN_FAILURES.getParameterKey(), LABEL_RESCAN_FAILURE, DESCRIPTION_RESCAN_FAILURE, FormField.OPTIONAL);
     private final CheckboxFormField alwaysRescan = new CheckboxFormField(TaskField.ALWAYS_SCAN.getParameterKey(), LABEL_ALWAYS_SCAN, DESCRIPTION_ALWAYS_SCAN, FormField.OPTIONAL);
-    private final StringTextFormField maxScans = new StringTextFormField(TaskField.MAX_SCANS.getParameterKey(), LABEL_MAX_SCANS, DESCRIPTION_MAX_SCANS, FormField.OPTIONAL);
+    private final StringTextFormField maxScans = new StringTextFormField(TaskField.MAX_SCANS.getParameterKey(), LABEL_MAX_SCANS, DESCRIPTION_MAX_SCANS, FormField.OPTIONAL)
+            .withInitialValue(DEFAULT_MAX_SCANS);
     private final ApplicationDirectories appDirectories;
 
     @Inject
