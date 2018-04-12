@@ -53,7 +53,7 @@ public class InViolationPolicyCheckEventIT extends AbstractPolicyCheckTest {
                 Assert.assertNotNull(overallStatus)
                 Assert.assertNotNull(policyMessage)
                 Assert.assertEquals("In Violation", overallStatus)
-                Assert.assertEquals("The Hub found: 1 components in violation, 0 components in violation, but overridden, and 19 components not in violation.", policyMessage)
+                Assert.assertEquals("The Hub found: 1 components in violation, 0 components in violation, but overridden, and 20 components not in violation.", policyMessage)
             }
         }
     }
