@@ -29,8 +29,8 @@ import org.sonatype.nexus.events.Event
 
 import com.blackducksoftware.integration.hub.nexus.event.AbstractHandlerTest
 import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent
-import com.blackducksoftware.integration.hub.nexus.event.HubScanEventHandler
 import com.blackducksoftware.integration.hub.nexus.event.ScanItemMetaData
+import com.blackducksoftware.integration.hub.nexus.event.handler.HubScanEventHandler
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
 

@@ -23,14 +23,40 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.inject.Named;
 import javax.inject.Singleton;
+
+import org.sonatype.nexus.formfields.FormField;
+import org.sonatype.nexus.formfields.StringTextFormField;
 
 @Named
 @Singleton
 public class PolicyCheckTaskDescriptor extends AbstractHubTaskDescriptor {
     public static final String ID = "PolicyCheckTask";
     public static final String TASK_NAME = "Hub Policy Check";
+
+    public static final String DEFAULT_MAX_PARALLEL_POLICY_CHECKS = "100";
+
+    public static final String LABEL_MAX_PARALLEL_POLICY_CHECKS = "Max Parallel Policy checks";
+
+    public static final String DESCRIPTION_MAX_PARALLEL_POLICY_CHECKS = "Maximum number of policy checks to make at the same time. Decrease this value to increase performance. 0 or blank will perform this task synchronously.";
+
+    private final StringTextFormField policyCheckParallel = new StringTextFormField(TaskField.MAX_PARALLEL_SCANS.getParameterKey(), LABEL_MAX_PARALLEL_POLICY_CHECKS, DESCRIPTION_MAX_PARALLEL_POLICY_CHECKS, FormField.OPTIONAL)
+            .withInitialValue(DEFAULT_MAX_PARALLEL_POLICY_CHECKS);
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public List<FormField> formFields() {
+        final List<FormField> fields = new ArrayList<>();
+
+        fields.addAll(super.formFields());
+        fields.add(policyCheckParallel);
+
+        return fields;
+    }
 
     @Override
     public String getId() {

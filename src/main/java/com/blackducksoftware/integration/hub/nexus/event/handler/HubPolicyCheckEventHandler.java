@@ -21,7 +21,7 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.event;
+package com.blackducksoftware.integration.hub.nexus.event.handler;
 
 import java.util.Map;
 
@@ -38,6 +38,8 @@ import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStat
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.model.view.VersionBomPolicyStatusView;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
+import com.blackducksoftware.integration.hub.nexus.event.HubPolicyCheckEvent;
+import com.blackducksoftware.integration.hub.nexus.event.TaskEventManager;
 import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger;
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
@@ -47,8 +49,8 @@ import com.google.common.eventbus.Subscribe;
 public class HubPolicyCheckEventHandler extends HubEventHandler {
 
     @Inject
-    public HubPolicyCheckEventHandler(final AttributesHandler attributesHandler) {
-        super(attributesHandler);
+    public HubPolicyCheckEventHandler(final AttributesHandler attributesHandler, final TaskEventManager taskEventManager) {
+        super(attributesHandler, taskEventManager);
     }
 
     @AllowConcurrentEvents
@@ -73,6 +75,7 @@ public class HubPolicyCheckEventHandler extends HubEventHandler {
             logger.error("Error occurred checking policy", ex);
         } finally {
             logger.info("Finished checking policy event");
+            getTaskEventManager().markScanEventProcessed(event);
         }
     }
 

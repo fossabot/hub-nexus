@@ -44,6 +44,6 @@ public class PolicyCheckTaskDescriptorTest {
     @Test
     public void formFieldsTest() {
         final PolicyCheckTaskDescriptor taskDesc = new PolicyCheckTaskDescriptor()
-        assertTrue(taskDesc.formFields().size() == 9)
+        assertTrue(taskDesc.formFields().size() == 10)
     }
 }

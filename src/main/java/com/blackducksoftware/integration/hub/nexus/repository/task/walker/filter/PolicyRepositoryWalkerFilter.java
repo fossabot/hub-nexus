@@ -21,28 +21,21 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.repository.task
+package com.blackducksoftware.integration.hub.nexus.repository.task.walker.filter;
 
-import org.junit.Assert
-import org.junit.Test
+import org.sonatype.nexus.proxy.item.StorageItem;
+import org.sonatype.nexus.proxy.walker.WalkerContext;
 
-public class ScanTaskDescriptorTest {
+import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
-    @Test
-    public void getIdTest() {
-        final ScanTaskDescriptor taskDesc = new ScanTaskDescriptor(null)
-        Assert.assertEquals("ScanTask", taskDesc.getId())
+public class PolicyRepositoryWalkerFilter extends RepositoryWalkerFilter {
+
+    public PolicyRepositoryWalkerFilter(final ItemAttributesHelper itemAttributesHelper) {
+        super(itemAttributesHelper);
     }
 
-    @Test
-    public void getNameTest() {
-        final ScanTaskDescriptor taskDesc = new ScanTaskDescriptor(null)
-        Assert.assertEquals("Hub Repository Scan", taskDesc.getName())
-    }
-
-    @Test
-    public void formFieldsTest() {
-        final ScanTaskDescriptor taskDesc = new ScanTaskDescriptor(null)
-        Assert.assertTrue(taskDesc.formFields().size() == 20)
+    @Override
+    public boolean shouldProcess(final WalkerContext context, final StorageItem item) {
+        return super.shouldProcess(context, item) && ItemAttributesHelper.SCAN_STATUS_SUCCESS == itemAttributesHelper.getScanResult(item);
     }
 }

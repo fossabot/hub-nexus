@@ -21,7 +21,7 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.event;
+package com.blackducksoftware.integration.hub.nexus.event.handler;
 
 import java.io.File;
 
@@ -37,6 +37,9 @@ import org.sonatype.sisu.goodies.eventbus.EventBus;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.application.IntegrationInfo;
+import com.blackducksoftware.integration.hub.nexus.event.HubPolicyCheckEvent;
+import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent;
+import com.blackducksoftware.integration.hub.nexus.event.TaskEventManager;
 import com.blackducksoftware.integration.hub.nexus.repository.task.ScanTaskDescriptor;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.scan.ArtifactScanner;
@@ -50,14 +53,12 @@ import com.google.common.eventbus.Subscribe;
 public class HubScanEventHandler extends HubEventHandler {
     private final ApplicationConfiguration appConfiguration;
     private final EventBus eventBus;
-    private final ScanEventManager eventManager;
 
     @Inject
-    public HubScanEventHandler(final ApplicationConfiguration appConfiguration, final EventBus eventBus, final DefaultAttributesHandler attributesHandler, final ScanEventManager eventManager) {
-        super(attributesHandler);
+    public HubScanEventHandler(final ApplicationConfiguration appConfiguration, final EventBus eventBus, final DefaultAttributesHandler attributesHandler, final TaskEventManager eventManager) {
+        super(attributesHandler, eventManager);
         this.appConfiguration = appConfiguration;
         this.eventBus = eventBus;
-        this.eventManager = eventManager;
     }
 
     @AllowConcurrentEvents
@@ -85,7 +86,7 @@ public class HubScanEventHandler extends HubEventHandler {
         } catch (final Exception ex) {
             logger.error("Error occurred during scanning", ex);
         } finally {
-            eventManager.markScanEventProcessed(event);
+            getTaskEventManager().markScanEventProcessed(event);
             logger.info("Finished handling scan event");
         }
     }

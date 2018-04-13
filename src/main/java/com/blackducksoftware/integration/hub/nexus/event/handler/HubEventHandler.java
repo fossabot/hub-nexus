@@ -21,7 +21,7 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.event;
+package com.blackducksoftware.integration.hub.nexus.event.handler;
 
 import java.util.Map;
 
@@ -31,18 +31,25 @@ import org.sonatype.nexus.proxy.attributes.AttributesHandler;
 import org.sonatype.sisu.goodies.common.ComponentSupport;
 
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
+import com.blackducksoftware.integration.hub.nexus.event.TaskEventManager;
 import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
 public abstract class HubEventHandler extends ComponentSupport implements EventSubscriber, Asynchronous {
     private final ItemAttributesHelper attributeHelper;
+    private final TaskEventManager taskEventManager;
 
-    public HubEventHandler(final AttributesHandler attributesHandler) {
+    public HubEventHandler(final AttributesHandler attributesHandler, final TaskEventManager taskEventManager) {
         this.attributeHelper = new ItemAttributesHelper(attributesHandler);
+        this.taskEventManager = taskEventManager;
     }
 
     public ItemAttributesHelper getAttributeHelper() {
         return attributeHelper;
+    }
+
+    public TaskEventManager getTaskEventManager() {
+        return taskEventManager;
     }
 
     public HubServiceHelper createServiceHelper(final HubEventLogger logger, final Map<String, String> taskParameters) {

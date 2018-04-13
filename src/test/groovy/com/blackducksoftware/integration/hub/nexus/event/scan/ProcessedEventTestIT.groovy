@@ -28,7 +28,7 @@ import org.junit.Test
 
 import com.blackducksoftware.integration.hub.nexus.event.AbstractHandlerTest
 import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent
-import com.blackducksoftware.integration.hub.nexus.event.HubScanEventHandler
+import com.blackducksoftware.integration.hub.nexus.event.handler.HubScanEventHandler
 
 public class ProcessedEventTestIT extends AbstractHandlerTest {
 

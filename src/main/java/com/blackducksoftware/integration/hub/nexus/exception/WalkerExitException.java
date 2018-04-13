@@ -21,30 +21,14 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.repository.task;
+package com.blackducksoftware.integration.hub.nexus.exception;
 
-import java.util.List;
+import com.blackducksoftware.integration.exception.IntegrationException;
 
-import org.sonatype.nexus.proxy.walker.Walker;
-import org.sonatype.nexus.proxy.walker.WalkerContext;
-import org.sonatype.nexus.proxy.walker.WalkerException;
-import org.sonatype.nexus.scheduling.AbstractNexusRepositoriesPathAwareTask;
+public class WalkerExitException extends IntegrationException {
+    private static final long serialVersionUID = -6028175891316505262L;
 
-public abstract class AbstractHubTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
-    private final Walker walker;
-
-    public AbstractHubTask(final Walker walker) {
-        this.walker = walker;
+    public WalkerExitException(final String message) {
+        super(message);
     }
-
-    public void walkRepositories(final List<WalkerContext> contextList) {
-        for (final WalkerContext context : contextList) {
-            try {
-                walker.walk(context);
-            } catch (final WalkerException walkerEx) {
-                logger.error("Exception walking repository. ", walkerEx);
-            }
-        }
-    }
-
 }

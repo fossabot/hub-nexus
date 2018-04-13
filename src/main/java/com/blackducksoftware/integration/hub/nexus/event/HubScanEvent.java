@@ -32,21 +32,11 @@ import org.sonatype.nexus.proxy.repository.Repository;
 import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
 
 public class HubScanEvent extends HubEvent {
-    private boolean processed;
     private ProjectRequest projectRequest;
 
     public HubScanEvent(final Repository repository, final StorageItem item, final Map<String, String> taskParameters, final ResourceStoreRequest request, final ProjectRequest projectRequest) {
         super(repository, item, taskParameters, request);
-        this.processed = false;
         this.setProjectRequest(projectRequest);
-    }
-
-    public boolean isProcessed() {
-        return processed;
-    }
-
-    public void setProcessed(final boolean processed) {
-        this.processed = processed;
     }
 
     public ProjectRequest getProjectRequest() {

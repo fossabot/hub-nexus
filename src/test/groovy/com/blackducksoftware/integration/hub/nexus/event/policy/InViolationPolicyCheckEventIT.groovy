@@ -28,7 +28,7 @@ import org.junit.Test
 import org.sonatype.nexus.events.Event
 
 import com.blackducksoftware.integration.hub.nexus.event.HubPolicyCheckEvent
-import com.blackducksoftware.integration.hub.nexus.event.HubPolicyCheckEventHandler
+import com.blackducksoftware.integration.hub.nexus.event.handler.HubPolicyCheckEventHandler
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
 
 public class InViolationPolicyCheckEventIT extends AbstractPolicyCheckTest {

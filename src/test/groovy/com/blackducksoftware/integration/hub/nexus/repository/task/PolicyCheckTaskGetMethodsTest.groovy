@@ -31,13 +31,13 @@ public class PolicyCheckTaskGetMethodsTest {
 
     @Test
     public void testGetAction( ) {
-        PolicyCheckTask policyCheckTask = new PolicyCheckTask(null, null)
+        PolicyCheckTask policyCheckTask = new PolicyCheckTask(null, null, null)
         assertEquals("BLACKDUCK_HUB_POLICY_CHECK", policyCheckTask.getAction())
     }
 
     @Test
     public void testGetMessage() {
-        PolicyCheckTask policyCheckTask = new PolicyCheckTask(null, null)
+        PolicyCheckTask policyCheckTask = new PolicyCheckTask(null, null, null)
         assertEquals("HUB-NEXUS-PLUGIN-POLICY-CHECK: Search for successfully scanned artifacts and check their policy", policyCheckTask.getMessage())
     }
 }

@@ -32,7 +32,7 @@ import org.sonatype.nexus.AbstractMavenRepoContentTests
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler
 import org.sonatype.nexus.proxy.walker.Walker
 
-import com.blackducksoftware.integration.hub.nexus.event.ScanEventManager
+import com.blackducksoftware.integration.hub.nexus.event.TaskEventManager
 import com.blackducksoftware.integration.hub.nexus.event.scan.ScanEventManagerTest
 import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper
 import com.blackducksoftware.integration.hub.nexus.test.TestingPropertyKey
@@ -40,7 +40,7 @@ import com.blackducksoftware.integration.hub.nexus.test.TestingPropertyKey
 public class ScanTaskTestIT extends AbstractMavenRepoContentTests {
     private Walker walker
     private DefaultAttributesHandler defaultAttributesHandler
-    private ScanEventManager scanEventManager
+    private TaskEventManager taskEventManager
     private RestConnectionTestHelper restConnection
     private Map<String, String> taskParameters
 
@@ -55,15 +55,15 @@ public class ScanTaskTestIT extends AbstractMavenRepoContentTests {
     public void init() throws Exception {
         walker = lookup(Walker.class)
         defaultAttributesHandler = lookup(DefaultAttributesHandler.class)
-        scanEventManager = lookup(ScanEventManager.class)
+        taskEventManager = lookup(TaskEventManager.class)
         taskParameters = generateParams()
-        taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, ScanEventManagerTest.TEST_TASK_NAME)
+        taskParameters.put(TaskEventManager.PARAMETER_KEY_TASK_NAME, ScanEventManagerTest.TEST_TASK_NAME)
     }
 
     @Test
     public void doRunTest() throws Exception {
 
-        final ScanTask scanTask = new ScanTask(walker, defaultAttributesHandler, scanEventManager)
+        final ScanTask scanTask = new ScanTask(walker, defaultAttributesHandler, taskEventManager)
         final ScanTask spyScanTask = Mockito.spy(scanTask)
 
         Mockito.when(spyScanTask.getParameters()).thenReturn(taskParameters)

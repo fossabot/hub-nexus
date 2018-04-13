@@ -32,7 +32,7 @@ import com.blackducksoftware.integration.hub.model.view.ProjectVersionView
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper
 import com.blackducksoftware.integration.hub.nexus.application.IntegrationInfo
 import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent
-import com.blackducksoftware.integration.hub.nexus.event.ScanEventManager
+import com.blackducksoftware.integration.hub.nexus.event.TaskEventManager
 import com.blackducksoftware.integration.hub.nexus.event.policy.AbstractPolicyCheckTest
 import com.blackducksoftware.integration.hub.nexus.repository.task.ScanTaskDescriptor
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField
@@ -45,7 +45,7 @@ import com.blackducksoftware.integration.phonehome.enums.ThirdPartyName
 
 public class ArtifactScannerTestIT extends AbstractPolicyCheckTest {
     private RestConnectionTestHelper restConnection
-    private ScanEventManager scanEventManager
+    private TaskEventManager taskEventManager
     private Map<String, String> taskParams
     private TestEventLogger testEventLogger;
 
@@ -79,7 +79,7 @@ public class ArtifactScannerTestIT extends AbstractPolicyCheckTest {
 
     @Before
     public void init() throws Exception {
-        scanEventManager = lookup(ScanEventManager.class)
+        taskEventManager = lookup(TaskEventManager.class)
         taskParams = generateParams()
     }
 

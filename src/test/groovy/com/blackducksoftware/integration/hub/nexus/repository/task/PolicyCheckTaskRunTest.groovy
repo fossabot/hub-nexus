@@ -32,17 +32,23 @@ import org.junit.Test
 import org.sonatype.nexus.proxy.registry.RepositoryRegistry
 import org.sonatype.nexus.proxy.repository.Repository
 
+import com.blackducksoftware.integration.hub.nexus.repository.task.walker.TaskWalker
 import com.blackducksoftware.integration.hub.nexus.test.TestEventBus
 import com.blackducksoftware.integration.hub.nexus.test.TestWalker
 
+import groovy.transform.TypeChecked
+
+@TypeChecked
 public class PolicyCheckTaskRunTest {
     private TestWalker walker
     private TestEventBus eventBus
+    private TaskWalker taskWalker
 
     @Before
     public void initTest() {
         walker = new TestWalker()
         eventBus = new TestEventBus()
+        taskWalker = new TaskWalker(walker)
     }
 
     private List<Repository> createRepositoryList(int count) {
@@ -60,7 +66,7 @@ public class PolicyCheckTaskRunTest {
         int count = 2
         List<Repository> repositoryList = createRepositoryList(count)
         RepositoryRegistry registry = [ getRepositories: { -> repositoryList }] as RepositoryRegistry
-        PolicyCheckTask policyCheckTask = new PolicyCheckTask(walker,null)
+        PolicyCheckTask policyCheckTask = new PolicyCheckTask(taskWalker,null, null)
         policyCheckTask.setRepositoryRegistry(registry)
         policyCheckTask.setEventBus(eventBus)
         RepositoryRegistry repositoryRegistry = policyCheckTask.getRepositoryRegistry()
@@ -74,7 +80,7 @@ public class PolicyCheckTaskRunTest {
         int count = 0
         List<Repository> repositoryList = createRepositoryList(count)
         RepositoryRegistry registry = [ getRepositories: { -> repositoryList }] as RepositoryRegistry
-        PolicyCheckTask policyCheckTask = new PolicyCheckTask(walker,null)
+        PolicyCheckTask policyCheckTask = new PolicyCheckTask(taskWalker,null, null)
         policyCheckTask.setRepositoryRegistry(registry)
         policyCheckTask.setEventBus(eventBus)
         RepositoryRegistry repositoryRegistry = policyCheckTask.getRepositoryRegistry()

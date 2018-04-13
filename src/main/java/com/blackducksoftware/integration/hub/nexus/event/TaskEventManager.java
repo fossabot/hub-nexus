@@ -37,14 +37,14 @@ import org.sonatype.sisu.goodies.eventbus.EventBus;
 
 @Named
 @Singleton
-public class ScanEventManager extends ComponentSupport {
+public class TaskEventManager extends ComponentSupport {
     public static final String PARAMETER_KEY_TASK_NAME = ".name";
-    private final Logger logger = LoggerFactory.getLogger(ScanEventManager.class);
+    private final Logger logger = LoggerFactory.getLogger(TaskEventManager.class);
     private final EventBus eventBus;
-    private final Map<String, Map<String, HubScanEvent>> taskScanEventMap;
+    private final Map<String, Map<String, HubEvent>> taskScanEventMap;
 
     @Inject
-    public ScanEventManager(final EventBus eventBus) {
+    public TaskEventManager(final EventBus eventBus) {
         this.eventBus = eventBus;
         this.taskScanEventMap = new ConcurrentHashMap<>();
     }
@@ -53,12 +53,12 @@ public class ScanEventManager extends ComponentSupport {
         if (!taskScanEventMap.containsKey(taskName)) {
             return 0;
         } else {
-            final Map<String, HubScanEvent> eventMap = taskScanEventMap.get(taskName);
+            final Map<String, HubEvent> eventMap = taskScanEventMap.get(taskName);
             return eventMap.size();
         }
     }
 
-    public void markScanEventProcessed(final HubScanEvent event) {
+    public void markScanEventProcessed(final HubEvent event) {
         if (event.getTaskParameters() != null) {
             final String taskName = event.getTaskParameters().get(PARAMETER_KEY_TASK_NAME);
             final String eventId = event.getEventId().toString();
@@ -68,34 +68,39 @@ public class ScanEventManager extends ComponentSupport {
 
     private void markEventProcessed(final String taskName, final String eventId) {
         if (taskScanEventMap.containsKey(taskName)) {
-            final Map<String, HubScanEvent> eventMap = taskScanEventMap.get(taskName);
+            final Map<String, HubEvent> eventMap = taskScanEventMap.get(taskName);
             if (eventMap.containsKey(eventId)) {
-                final HubScanEvent event = eventMap.remove(eventId);
+                final HubEvent event = eventMap.remove(eventId);
                 event.setProcessed(true);
             }
         }
     }
 
-    public void processItem(final ScanItemMetaData data) throws InterruptedException {
-        final HubScanEvent event = new HubScanEvent(data.getItem().getRepositoryItemUid().getRepository(), data.getItem(), data.getTaskParameters(), data.getRequest(), data.getProjectRequest());
-        logger.debug("Posting event {} onto the event bus", event.getEventId());
-        addNewEvent(event);
-    }
-
-    private void addNewEvent(final HubScanEvent event) {
+    public boolean processItem(final HubEvent event, final int maxEvents) {
         if (event.getTaskParameters() != null) {
             final String taskName = event.getTaskParameters().get(PARAMETER_KEY_TASK_NAME);
-            Map<String, HubScanEvent> eventMap;
             if (taskName != null) {
-                if (taskScanEventMap.containsKey(taskName)) {
-                    eventMap = taskScanEventMap.get(taskName);
-                } else {
-                    eventMap = new ConcurrentHashMap<>(1000);
-                    taskScanEventMap.put(taskName, eventMap);
+                final int pendingEvents = pendingEventCount(taskName);
+                if (pendingEvents <= maxEvents) {
+                    logger.info("Adding event to event bus. Currently have {} pending events.", pendingEvents + 1);
+                    addNewEvent(event, taskName);
+                    return true;
                 }
-                eventMap.put(event.getEventId().toString(), event);
-                eventBus.post(event);
             }
         }
+
+        return false;
+    }
+
+    private void addNewEvent(final HubEvent event, final String taskName) {
+        Map<String, HubEvent> eventMap;
+        if (taskScanEventMap.containsKey(taskName)) {
+            eventMap = taskScanEventMap.get(taskName);
+        } else {
+            eventMap = new ConcurrentHashMap<>(1000);
+            taskScanEventMap.put(taskName, eventMap);
+        }
+        eventMap.put(event.getEventId().toString(), event);
+        eventBus.post(event);
     }
 }
