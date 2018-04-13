@@ -30,12 +30,10 @@ import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
 import org.sonatype.nexus.proxy.walker.DefaultStoreWalkerFilter;
 
-import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.TaskEventManager;
 import com.blackducksoftware.integration.hub.nexus.repository.task.filter.PolicyRepositoryWalkerFilter;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.PolicyRepositoryWalker;
 import com.blackducksoftware.integration.hub.nexus.util.ScanAttributesHelper;
-import com.blackducksoftware.integration.log.Slf4jIntLogger;
 
 @Named(PolicyCheckTaskDescriptor.ID)
 public class PolicyCheckTask extends AbstractWalkerHubTask {
@@ -64,8 +62,7 @@ public class PolicyCheckTask extends AbstractWalkerHubTask {
 
     @Override
     public AbstractWalkerProcessor getRepositoryWalker() {
-        final HubServiceHelper hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), this.getParameters());
-        return new PolicyRepositoryWalker(itemAttributesHelper, new ScanAttributesHelper(getParameters()), hubServiceHelper, taskEventManager);
+        return new PolicyRepositoryWalker(itemAttributesHelper, new ScanAttributesHelper(getParameters()), getHubServiceHelper(), taskEventManager);
     }
 
     @Override

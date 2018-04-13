@@ -36,8 +36,12 @@ import org.sonatype.nexus.proxy.walker.Walker
 import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper
 import com.blackducksoftware.integration.hub.nexus.test.TestingPropertyKey
 
+import groovy.transform.TypeChecked
+
+@TypeChecked
 public class ScanTaskTestIT extends AbstractMavenRepoContentTests {
     private Walker walker
+    private TaskWalker taskWalker
     private DefaultAttributesHandler defaultAttributesHandler
     private RestConnectionTestHelper restConnection
     private Map<String, String> taskParameters
@@ -53,6 +57,7 @@ public class ScanTaskTestIT extends AbstractMavenRepoContentTests {
     @Before
     public void init() throws Exception {
         walker = lookup(Walker.class)
+        taskWalker = new TaskWalker(walker)
         defaultAttributesHandler = lookup(DefaultAttributesHandler.class)
         applicationConfiguration = lookup(ApplicationConfiguration.class)
         taskParameters = generateParams()
@@ -61,7 +66,7 @@ public class ScanTaskTestIT extends AbstractMavenRepoContentTests {
     @Test
     public void doRunTest() throws Exception {
 
-        final ScanTask scanTask = new ScanTask(applicationConfiguration, walker, defaultAttributesHandler)
+        final ScanTask scanTask = new ScanTask(applicationConfiguration, taskWalker, defaultAttributesHandler)
         final ScanTask spyScanTask = Mockito.spy(scanTask)
 
         Mockito.when(spyScanTask.getParameters()).thenReturn(taskParameters)

@@ -34,16 +34,27 @@ import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
 import org.sonatype.nexus.proxy.walker.DefaultStoreWalkerFilter;
 import org.sonatype.nexus.scheduling.AbstractNexusRepositoriesPathAwareTask;
 
+import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
+import com.blackducksoftware.integration.log.Slf4jIntLogger;
 
 public abstract class AbstractWalkerHubTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
     protected static final String ALL_REPO_ID = "all_repo";
     protected ItemAttributesHelper itemAttributesHelper;
     protected TaskWalker taskWalker;
+    private HubServiceHelper hubServiceHelper;
 
     public AbstractWalkerHubTask(final TaskWalker taskWalker, final DefaultAttributesHandler attributesHandler) {
         this.taskWalker = taskWalker;
         itemAttributesHelper = new ItemAttributesHelper(attributesHandler);
+    }
+
+    protected HubServiceHelper getHubServiceHelper() {
+        if (hubServiceHelper == null) {
+            hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), getParameters());
+        }
+
+        return hubServiceHelper;
     }
 
     private List<Repository> createRepositoryList() {

@@ -94,7 +94,7 @@ public class TaskEventManager {
             addNewEvent(event, taskName, pendingEvents);
             return true;
         } else {
-            logger.info("Too many items on event bus, skipping current item.");
+            logger.info("Too many items on event bus.");
         }
 
         return false;

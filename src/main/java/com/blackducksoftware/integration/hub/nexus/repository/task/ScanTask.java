@@ -36,12 +36,10 @@ import org.sonatype.nexus.proxy.walker.DefaultStoreWalkerFilter;
 import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.api.nonpublic.HubVersionRequestService;
 import com.blackducksoftware.integration.hub.cli.CLIDownloadService;
-import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.repository.task.filter.ScanRepositoryWalkerFilter;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.ScanRepositoryWalker;
 import com.blackducksoftware.integration.hub.nexus.util.ScanAttributesHelper;
 import com.blackducksoftware.integration.hub.util.HostnameHelper;
-import com.blackducksoftware.integration.log.Slf4jIntLogger;
 import com.blackducksoftware.integration.util.CIEnvironmentVariables;
 
 @Named(ScanTaskDescriptor.ID)
@@ -78,20 +76,19 @@ public class ScanTask extends AbstractWalkerHubTask {
     public void initTask() throws Exception {
         logger.info("Start task execution.");
         addParameter(TaskField.CURRENT_SCANS.getParameterKey(), "1");
-        final HubServiceHelper hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), this.getParameters());
         final File blackDuckDirectory = new File(getParameter(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
-        final String cliInstallRootDirectory = String.format("hub%s", String.valueOf(hubServiceHelper.getHubServerConfig().getHubUrl().getHost().hashCode()));
+        final String cliInstallRootDirectory = String.format("hub%s", String.valueOf(getHubServiceHelper().getHubServerConfig().getHubUrl().getHost().hashCode()));
         final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
         final File cliInstallDirectory = new File(taskDirectory, "tools");
         if (!cliInstallDirectory.exists()) {
             cliInstallDirectory.mkdirs();
         }
-        installCLI(cliInstallDirectory, hubServiceHelper);
+        installCLI(cliInstallDirectory);
     }
 
     @Override
     public AbstractWalkerProcessor getRepositoryWalker() {
-        return new ScanRepositoryWalker(appConfiguration, new ScanAttributesHelper(getParameters()), getEventBus(), itemAttributesHelper);
+        return new ScanRepositoryWalker(appConfiguration, new ScanAttributesHelper(getParameters()), getEventBus(), itemAttributesHelper, getHubServiceHelper());
     }
 
     @Override
@@ -100,14 +97,14 @@ public class ScanTask extends AbstractWalkerHubTask {
         return new ScanRepositoryWalkerFilter(fileMatchPatterns, itemAttributesHelper, getParameters());
     }
 
-    private void installCLI(final File installDirectory, final HubServiceHelper hubServiceHelper) throws IntegrationException {
+    private void installCLI(final File installDirectory) throws IntegrationException {
         final String localHostName = HostnameHelper.getMyHostname();
         logger.info("Installing CLI to the following location: " + localHostName + ": " + installDirectory);
         final CIEnvironmentVariables ciEnvironmentVariables = new CIEnvironmentVariables();
         ciEnvironmentVariables.putAll(System.getenv());
-        final HubVersionRequestService hubVersionRequestService = hubServiceHelper.getHubVersionRequestService();
-        final CLIDownloadService cliDownloadService = hubServiceHelper.getCliDownloadService();
+        final HubVersionRequestService hubVersionRequestService = getHubServiceHelper().getHubVersionRequestService();
+        final CLIDownloadService cliDownloadService = getHubServiceHelper().getCliDownloadService();
         final String hubVersion = hubVersionRequestService.getHubVersion();
-        cliDownloadService.performInstallation(installDirectory, ciEnvironmentVariables, hubServiceHelper.getHubServerConfig().getHubUrl().toString(), hubVersion, localHostName);
+        cliDownloadService.performInstallation(installDirectory, ciEnvironmentVariables, getHubServiceHelper().getHubServerConfig().getHubUrl().toString(), hubVersion, localHostName);
     }
 }

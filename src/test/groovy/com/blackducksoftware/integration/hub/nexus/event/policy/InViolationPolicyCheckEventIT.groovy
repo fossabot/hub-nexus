@@ -28,6 +28,7 @@ import org.junit.Test
 import org.sonatype.nexus.events.Event
 
 import com.blackducksoftware.integration.hub.nexus.event.HubPolicyCheckEvent
+import com.blackducksoftware.integration.hub.nexus.event.TaskEventManager
 import com.blackducksoftware.integration.hub.nexus.event.handler.HubPolicyCheckEventHandler
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
 
@@ -40,7 +41,8 @@ public class InViolationPolicyCheckEventIT extends AbstractPolicyCheckTest {
 
     @Test
     public void testHandleEvent() throws Exception {
-        final HubPolicyCheckEventHandler policyEventHandler = new HubPolicyCheckEventHandler(getAttributesHandler())
+        TaskEventManager taskEventManager = new TaskEventManager(eventBus)
+        final HubPolicyCheckEventHandler policyEventHandler = new HubPolicyCheckEventHandler(getAttributesHandler(), taskEventManager)
 
         for (final Event<?> event : getEventBus().getEvents()) {
             if (event instanceof HubPolicyCheckEvent) {
@@ -53,7 +55,7 @@ public class InViolationPolicyCheckEventIT extends AbstractPolicyCheckTest {
                 Assert.assertNotNull(overallStatus)
                 Assert.assertNotNull(policyMessage)
                 Assert.assertEquals("In Violation", overallStatus)
-                Assert.assertEquals("The Hub found: 1 components in violation, 0 components in violation, but overridden, and 19 components not in violation.", policyMessage)
+                Assert.assertEquals("The Hub found: 1 components in violation, 0 components in violation, but overridden, and 20 components not in violation.", policyMessage)
             }
         }
     }

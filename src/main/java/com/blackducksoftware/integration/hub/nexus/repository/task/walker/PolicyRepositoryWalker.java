@@ -23,6 +23,8 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task.walker;
 
+import java.util.concurrent.TimeUnit;
+
 import org.slf4j.Logger;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
@@ -34,10 +36,12 @@ import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.HubPolicyCheckEvent;
 import com.blackducksoftware.integration.hub.nexus.event.TaskEventManager;
+import com.blackducksoftware.integration.hub.nexus.exception.MaxWalkedItemsException;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.nexus.util.ScanAttributesHelper;
 
 public class PolicyRepositoryWalker extends AbstractWalkerProcessor {
+    private static final int MAX_POLICY_CHECKS = 15;
     private final Logger logger = Loggers.getLogger(getClass());
     private final ItemAttributesHelper itemAttributesHelper;
     private final ScanAttributesHelper scanAttributesHelper;
@@ -58,7 +62,17 @@ public class PolicyRepositoryWalker extends AbstractWalkerProcessor {
             final ProjectVersionView projectVersionView = getProjectVersion(item);
             final HubPolicyCheckEvent event = new HubPolicyCheckEvent(item.getRepositoryItemUid().getRepository(), item, scanAttributesHelper.getScanAttributes(), context.getResourceStoreRequest(), projectVersionView);
 
-            taskEventManager.processEvent(event);
+            int currentAttempts = 0;
+            while (!taskEventManager.processEvent(event) && (currentAttempts < MAX_POLICY_CHECKS)) {
+                logger.warn("Attempting to push to event bus again...");
+                currentAttempts++;
+                TimeUnit.SECONDS.sleep(1);
+            }
+
+            if (currentAttempts == MAX_POLICY_CHECKS) {
+                logger.warn("Tried processing event too many times, exiting task.");
+                context.stop(new MaxWalkedItemsException(MAX_POLICY_CHECKS));
+            }
         } catch (final Exception ex) {
             logger.error("Error occurred in walker processor for repository: ", ex);
         }

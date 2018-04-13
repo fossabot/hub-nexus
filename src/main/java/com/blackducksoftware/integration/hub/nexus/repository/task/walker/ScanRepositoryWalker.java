@@ -55,7 +55,6 @@ import com.blackducksoftware.integration.hub.nexus.scan.NameVersionNode;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.nexus.util.ScanAttributesHelper;
 import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder;
-import com.blackducksoftware.integration.log.Slf4jIntLogger;
 import com.blackducksoftware.integration.phonehome.enums.ThirdPartyName;
 
 public class ScanRepositoryWalker extends AbstractWalkerProcessor {
@@ -64,17 +63,19 @@ public class ScanRepositoryWalker extends AbstractWalkerProcessor {
     private final ScanAttributesHelper scanAttributesHelper;
     private final EventBus eventBus;
     private final ItemAttributesHelper itemAttributesHelper;
+    private final HubServiceHelper hubServiceHelper;
 
     public ScanRepositoryWalker(final ApplicationConfiguration appConfiguration, final ScanAttributesHelper scanAttributesHelper, final EventBus eventBus,
-            final ItemAttributesHelper itemAttributesHelper) {
+            final ItemAttributesHelper itemAttributesHelper, final HubServiceHelper hubServiceHelper) {
         this.appConfiguration = appConfiguration;
         this.eventBus = eventBus;
         this.itemAttributesHelper = itemAttributesHelper;
         this.scanAttributesHelper = scanAttributesHelper;
+        this.hubServiceHelper = hubServiceHelper;
     }
 
     @Override
-    public void processItem(final WalkerContext context, final StorageItem item) throws Exception {
+    public final void processItem(final WalkerContext context, final StorageItem item) throws Exception {
         boolean shouldProcess = true;
         int currentScans = scanAttributesHelper.getCurrentScans();
         final int maxScans = scanAttributesHelper.getIntegerAttribute(TaskField.MAX_SCANS);
@@ -92,13 +93,12 @@ public class ScanRepositoryWalker extends AbstractWalkerProcessor {
         }
     }
 
-    public void processItem(final StorageItem item) {
+    private void processItem(final StorageItem item) {
         try {
             logger.info("Item pending scan {}", item);
             final String distribution = scanAttributesHelper.getStringAttribute(TaskField.DISTRIBUTION);
             final String phase = scanAttributesHelper.getStringAttribute(TaskField.PHASE);
             final ProjectRequest projectRequest = createProjectRequest(distribution, phase, item);
-            final HubServiceHelper hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), scanAttributesHelper.getScanAttributes());
             createProjectAndVersion(projectRequest, hubServiceHelper);
             // the walker has already restricted the items to find. Now for scanning to work create a request that is for the repository root because the item path is relative to the repository root
             final ResourceStoreRequest eventRequest = new ResourceStoreRequest(RepositoryItemUid.PATH_ROOT, true, false);
@@ -113,12 +113,12 @@ public class ScanRepositoryWalker extends AbstractWalkerProcessor {
         }
     }
 
-    public HubScanEvent processMetaData(final ScanItemMetaData data) throws InterruptedException {
+    private HubScanEvent processMetaData(final ScanItemMetaData data) throws InterruptedException {
         final HubScanEvent event = new HubScanEvent(data.getItem().getRepositoryItemUid().getRepository(), data.getItem(), data.getTaskParameters(), data.getRequest(), data.getProjectRequest());
         return event;
     }
 
-    public void scanItem(final HubScanEvent event, final HubServiceHelper hubServiceHelper) {
+    private void scanItem(final HubScanEvent event, final HubServiceHelper hubServiceHelper) {
         logger.info("Begin handling scan event");
         final IntegrationInfo phoneHomeInfo = new IntegrationInfo(ThirdPartyName.NEXUS, appConfiguration.getConfigurationModel().getNexusVersion(), ScanTaskDescriptor.PLUGIN_VERSION);
         final String cliInstallRootDirectory = String.format("hub%s", String.valueOf(hubServiceHelper.getHubServerConfig().getHubUrl().getHost().hashCode()));
@@ -133,7 +133,7 @@ public class ScanRepositoryWalker extends AbstractWalkerProcessor {
         }
     }
 
-    public ProjectRequest createProjectRequest(final String distribution, final String phase, final StorageItem item) {
+    private ProjectRequest createProjectRequest(final String distribution, final String phase, final StorageItem item) {
         final ProjectRequestBuilder builder = new ProjectRequestBuilder();
         final NameVersionNode nameVersion = generateProjectNameVersion(item);
         builder.setProjectName(nameVersion.getName());
