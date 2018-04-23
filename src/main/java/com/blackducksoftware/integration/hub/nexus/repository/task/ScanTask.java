@@ -90,8 +90,10 @@ public class ScanTask extends AbstractHubWalkerTask {
     @Override
     public AbstractWalkerProcessor getRepositoryWalker() {
         final ScanAttributesHelper scanAttributesHelper = new ScanAttributesHelper(getParameters());
-        final int maxParrallelScans = scanAttributesHelper.getIntegerAttribute(TaskField.MAX_PARALLEL_SCANS);
-        return new ScanRepositoryWalker(new ScanAttributesHelper(getParameters()), taskEventManager, getHubServiceHelper(), maxParrallelScans);
+        final int maxParallelScans = scanAttributesHelper.getIntegerAttribute(TaskField.MAX_PARALLEL_SCANS);
+        logger.info("Max parallel scans {}", maxParallelScans);
+
+        return new ScanRepositoryWalker(new ScanAttributesHelper(getParameters()), taskEventManager, getHubServiceHelper(), maxParallelScans);
     }
 
     @Override
@@ -110,4 +112,5 @@ public class ScanTask extends AbstractHubWalkerTask {
         final String hubVersion = hubVersionRequestService.getHubVersion();
         cliDownloadService.performInstallation(installDirectory, ciEnvironmentVariables, getHubServiceHelper().getHubServerConfig().getHubUrl().toString(), hubVersion, localHostName);
     }
+
 }

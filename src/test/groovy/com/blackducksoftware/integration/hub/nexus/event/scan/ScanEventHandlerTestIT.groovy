@@ -49,7 +49,7 @@ public class ScanEventHandlerTestIT extends AbstractHandlerTest {
 
         final HubScanEventHandler eventHandler = new HubScanEventHandler(getAppConfiguration(), getEventBus(), getAttributesHandler(), getEventManager())
         final ScanItemMetaData data = new ScanItemMetaData(getItem(), getResourceStoreRequest(), getTaskParameters(), getProjectRequest())
-        getEventManager().processItem(data)
+        getEventManager().addNewEvent(processItem(data))
         for (final Event<?> event : getEventBus().getEvents()) {
             if (event instanceof HubScanEvent) {
                 final HubScanEvent scanEvent = (HubScanEvent) event

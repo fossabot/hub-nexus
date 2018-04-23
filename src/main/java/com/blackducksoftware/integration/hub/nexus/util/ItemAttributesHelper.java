@@ -60,7 +60,7 @@ public class ItemAttributesHelper {
         return BLACKDUCK.concat(key);
     }
 
-    public void addAttribute(final String key, final String value, final StorageItem item) {
+    public synchronized void addAttribute(final String key, final String value, final StorageItem item) {
         item.getRepositoryItemAttributes().put(keyName(key), value);
         try {
             attributesHandler.storeAttributes(item);

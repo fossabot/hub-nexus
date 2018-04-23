@@ -118,6 +118,11 @@ public abstract class AbstractHandlerTest extends AbstractMavenRepoContentTests 
         return builder.build()
     }
 
+    protected HubScanEvent processItem(final ScanItemMetaData data) {
+        final HubScanEvent event = new HubScanEvent(data.getItem().getRepositoryItemUid().getRepository(), data.getItem(), data.getTaskParameters(), data.getRequest(), data.getProjectRequest());
+        return event;
+    }
+
     @Override
     protected boolean runWithSecurityDisabled() {
         return true

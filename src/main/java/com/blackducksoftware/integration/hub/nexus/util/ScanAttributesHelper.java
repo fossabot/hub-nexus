@@ -24,7 +24,6 @@
 package com.blackducksoftware.integration.hub.nexus.util;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -34,7 +33,7 @@ public class ScanAttributesHelper {
     Map<String, String> scanAttributes;
 
     public ScanAttributesHelper(final Map<String, String> scanAttributes) {
-        this.scanAttributes = new ConcurrentHashMap<>(scanAttributes);
+        this.scanAttributes = scanAttributes;
     }
 
     public final int getIntegerAttribute(final String key) {

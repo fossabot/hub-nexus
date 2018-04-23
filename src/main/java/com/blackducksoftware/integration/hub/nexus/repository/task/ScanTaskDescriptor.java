@@ -134,7 +134,7 @@ public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
     }
 
     private StringTextFormField createDistributionField() {
-        final String possibleValues = StringUtils.join(ProjectVersionDistributionEnum.values(), ",");
+        final String possibleValues = StringUtils.join(ProjectVersionDistributionEnum.values(), ", ");
         final String description = DESCRIPTION_HUB_PROJECT_DISTRIBUTION.concat(possibleValues);
         final StringTextFormField distributionFormField = new StringTextFormField(TaskField.DISTRIBUTION.getParameterKey(), LABEL_DISTRIBUTION, description, FormField.OPTIONAL)
                 .withInitialValue(ProjectVersionDistributionEnum.EXTERNAL.name());
@@ -142,7 +142,7 @@ public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
     }
 
     private StringTextFormField createPhaseField() {
-        final String possibleValues = StringUtils.join(ProjectVersionPhaseEnum.values(), ",");
+        final String possibleValues = StringUtils.join(ProjectVersionPhaseEnum.values(), ", ");
         final String description = DESCRIPTION_HUB_PROJECT_PHASE.concat(possibleValues);
         final StringTextFormField phaseFormField = new StringTextFormField(TaskField.PHASE.getParameterKey(), LABEL_PHASE, description, FormField.OPTIONAL).withInitialValue(ProjectVersionPhaseEnum.DEVELOPMENT.name());
         return phaseFormField;

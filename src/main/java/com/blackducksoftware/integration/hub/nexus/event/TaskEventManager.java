@@ -76,31 +76,25 @@ public class TaskEventManager extends ComponentSupport {
         }
     }
 
-    public boolean processItem(final HubEvent event, final int maxEvents) {
-        if (event.getTaskParameters() != null) {
-            final String taskName = event.getTaskParameters().get(PARAMETER_KEY_TASK_NAME);
-            if (taskName != null) {
-                final int pendingEvents = pendingEventCount(taskName);
-                if (pendingEvents <= maxEvents) {
-                    logger.info("Adding event to event bus. Currently have {} pending events.", pendingEvents + 1);
-                    addNewEvent(event, taskName);
-                    return true;
-                }
-            }
-        }
-
-        return false;
+    public boolean hasEventSpace(final String taskName, final int maxEvents) {
+        final int pendingEvents = pendingEventCount(taskName);
+        logger.info("Eventbus currently has {} pending events", pendingEvents);
+        return pendingEvents <= maxEvents;
     }
 
-    private void addNewEvent(final HubEvent event, final String taskName) {
-        Map<String, HubEvent> eventMap;
-        if (taskScanEventMap.containsKey(taskName)) {
-            eventMap = taskScanEventMap.get(taskName);
-        } else {
-            eventMap = new ConcurrentHashMap<>(1000);
-            taskScanEventMap.put(taskName, eventMap);
+    public void addNewEvent(final HubEvent event) {
+        logger.info("Adding event to event bus");
+        if (event.getTaskParameters() != null) {
+            Map<String, HubEvent> eventMap;
+            final String taskName = event.getTaskParameters().get(PARAMETER_KEY_TASK_NAME);
+            if (taskScanEventMap.containsKey(taskName)) {
+                eventMap = taskScanEventMap.get(taskName);
+            } else {
+                eventMap = new ConcurrentHashMap<>(1000);
+                taskScanEventMap.put(taskName, eventMap);
+            }
+            eventMap.put(event.getEventId().toString(), event);
+            eventBus.post(event);
         }
-        eventMap.put(event.getEventId().toString(), event);
-        eventBus.post(event);
     }
 }

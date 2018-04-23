@@ -50,7 +50,7 @@ import com.google.common.eventbus.Subscribe;
 
 @Named
 @Singleton
-public class HubScanEventHandler extends HubEventHandler {
+public class HubScanEventHandler extends HubEventHandler<HubScanEvent> {
     private final ApplicationConfiguration appConfiguration;
     private final EventBus eventBus;
 
@@ -63,6 +63,7 @@ public class HubScanEventHandler extends HubEventHandler {
 
     @AllowConcurrentEvents
     @Subscribe
+    @Override
     public void handle(final HubScanEvent event) {
         final HubEventLogger logger = new HubEventLogger(event, LoggerFactory.getLogger(getClass()));
         try {
@@ -81,6 +82,8 @@ public class HubScanEventHandler extends HubEventHandler {
                 if (projectVersionView != null) {
                     logger.info("Posting policy check event for " + projectVersionView.versionName);
                     eventBus.post(new HubPolicyCheckEvent(event.getRepository(), event.getItem(), event.getTaskParameters(), event.getRequest(), projectVersionView));
+                } else {
+                    logger.error("Scanned event was null");
                 }
             }
         } catch (final Exception ex) {

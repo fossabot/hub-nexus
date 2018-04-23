@@ -40,7 +40,7 @@ public class NotInViolationPolicyCheckEventTestIT extends AbstractPolicyCheckTes
 
     @Test
     public void testHandleEvent() throws Exception {
-        final HubPolicyCheckEventHandler policyEventHandler = new HubPolicyCheckEventHandler(getAttributesHandler())
+        final HubPolicyCheckEventHandler policyEventHandler = new HubPolicyCheckEventHandler(getAttributesHandler(), getEventManager())
 
         for (final Event<?> event : getEventBus().getEvents()) {
             if (event instanceof HubPolicyCheckEvent) {

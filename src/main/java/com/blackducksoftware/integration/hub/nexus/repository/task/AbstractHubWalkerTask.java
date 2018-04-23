@@ -23,12 +23,14 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.sonatype.nexus.proxy.NoSuchRepositoryException;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
+import org.sonatype.nexus.proxy.repository.ProxyRepository;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
 import org.sonatype.nexus.proxy.walker.DefaultStoreWalkerFilter;
@@ -58,7 +60,8 @@ public abstract class AbstractHubWalkerTask extends AbstractNexusRepositoriesPat
         return hubServiceHelper;
     }
 
-    private List<Repository> createRepositoryList() {
+    protected List<Repository> createRepositoryList() {
+        final List<Repository> repoExcludingProxies = new ArrayList<>();
         final String repositoryFieldId = getParameter(TaskField.REPOSITORY_FIELD_ID.getParameterKey());
         if (StringUtils.isNotBlank(repositoryFieldId) && !ALL_REPO_ID.equals(repositoryFieldId)) {
             try {
@@ -68,7 +71,13 @@ public abstract class AbstractHubWalkerTask extends AbstractNexusRepositoriesPat
                 return Arrays.asList();
             }
         }
-        return getRepositoryRegistry().getRepositories();
+
+        for (final Repository repository : getRepositoryRegistry().getRepositories()) {
+            if (!repository.getRepositoryKind().isFacetAvailable(ProxyRepository.class)) {
+                repoExcludingProxies.add(repository);
+            }
+        }
+        return repoExcludingProxies;
     }
 
     @Override

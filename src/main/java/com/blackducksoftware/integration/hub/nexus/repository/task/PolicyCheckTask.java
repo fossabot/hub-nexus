@@ -23,10 +23,15 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
+import org.sonatype.nexus.proxy.repository.GroupRepository;
+import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
 import org.sonatype.nexus.proxy.walker.DefaultStoreWalkerFilter;
 
@@ -62,9 +67,23 @@ public class PolicyCheckTask extends AbstractHubWalkerTask {
     }
 
     @Override
+    protected List<Repository> createRepositoryList() {
+        final List<Repository> repositoryList = new ArrayList<>();
+        final List<Repository> allRepositoryList = super.createRepositoryList();
+        for (final Repository repository : allRepositoryList) {
+            if (!repository.getRepositoryKind().isFacetAvailable(GroupRepository.class)) {
+                repositoryList.add(repository);
+            }
+        }
+
+        return repositoryList;
+    }
+
+    @Override
     protected AbstractWalkerProcessor getRepositoryWalker() {
         final ScanAttributesHelper scanAttributesHelper = new ScanAttributesHelper(getParameters());
         final int maxParallelPolicyChecks = scanAttributesHelper.getIntegerAttribute(TaskField.MAX_PARALLEL_POLICY_CHECKS);
+        logger.info("Max parrallel policy checks {}", maxParallelPolicyChecks);
         return new PolicyRepositoryWalker(taskEventManager, itemAttributesHelper, scanAttributesHelper, getHubServiceHelper(), maxParallelPolicyChecks);
     }
 

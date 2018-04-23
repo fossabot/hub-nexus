@@ -46,7 +46,7 @@ import com.google.common.eventbus.Subscribe;
 
 @Named
 @Singleton
-public class HubPolicyCheckEventHandler extends HubEventHandler {
+public class HubPolicyCheckEventHandler extends HubEventHandler<HubPolicyCheckEvent> {
 
     @Inject
     public HubPolicyCheckEventHandler(final AttributesHandler attributesHandler, final TaskEventManager taskEventManager) {
@@ -55,12 +55,12 @@ public class HubPolicyCheckEventHandler extends HubEventHandler {
 
     @AllowConcurrentEvents
     @Subscribe
+    @Override
     public void handle(final HubPolicyCheckEvent event) {
         final HubEventLogger logger = new HubEventLogger(event, LoggerFactory.getLogger(getClass()));
         try {
             logger.info("Begin checking policy event");
             final StorageItem item = event.getItem();
-
             final ProjectVersionView projectVersionView = event.getProjectVersionView();
             final Map<String, String> taskParameters = event.getTaskParameters();
             final HubServiceHelper hubServiceHelper = createServiceHelper(logger, taskParameters);
@@ -86,4 +86,5 @@ public class HubPolicyCheckEventHandler extends HubEventHandler {
         statusMessage = StringUtils.capitaliseAllWords(statusMessage);
         return statusMessage;
     }
+
 }

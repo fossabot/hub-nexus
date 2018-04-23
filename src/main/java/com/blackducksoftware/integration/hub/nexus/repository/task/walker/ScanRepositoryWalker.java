@@ -36,7 +36,6 @@ import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.model.view.ProjectView;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
-import com.blackducksoftware.integration.hub.nexus.event.HubEvent;
 import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent;
 import com.blackducksoftware.integration.hub.nexus.event.ScanItemMetaData;
 import com.blackducksoftware.integration.hub.nexus.event.TaskEventManager;
@@ -45,7 +44,7 @@ import com.blackducksoftware.integration.hub.nexus.scan.NameVersionNode;
 import com.blackducksoftware.integration.hub.nexus.util.ScanAttributesHelper;
 import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder;
 
-public class ScanRepositoryWalker extends RepositoryWalkerProcessor {
+public class ScanRepositoryWalker extends RepositoryWalkerProcessor<HubScanEvent> {
     private final HubServiceHelper hubServiceHelper;
 
     public ScanRepositoryWalker(final ScanAttributesHelper scanAttributesHelper, final TaskEventManager taskEventManager, final HubServiceHelper hubServiceHelper, final int maxParallelScans) {
@@ -54,7 +53,7 @@ public class ScanRepositoryWalker extends RepositoryWalkerProcessor {
     }
 
     @Override
-    public HubEvent createEvent(final WalkerContext context, final StorageItem item) throws IntegrationException {
+    public HubScanEvent createEvent(final WalkerContext context, final StorageItem item) throws IntegrationException {
         final String distribution = scanAttributesHelper.getStringAttribute(TaskField.DISTRIBUTION);
         final String phase = scanAttributesHelper.getStringAttribute(TaskField.PHASE);
         final ProjectRequest projectRequest = createProjectRequest(distribution, phase, item);

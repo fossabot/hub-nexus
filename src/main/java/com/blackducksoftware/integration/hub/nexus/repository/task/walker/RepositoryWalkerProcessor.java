@@ -23,8 +23,6 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task.walker;
 
-import java.util.concurrent.TimeUnit;
-
 import org.slf4j.Logger;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
@@ -33,11 +31,9 @@ import org.sonatype.sisu.goodies.common.Loggers;
 
 import com.blackducksoftware.integration.hub.nexus.event.HubEvent;
 import com.blackducksoftware.integration.hub.nexus.event.TaskEventManager;
-import com.blackducksoftware.integration.hub.nexus.exception.WalkerExitException;
-import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.util.ScanAttributesHelper;
 
-public abstract class RepositoryWalkerProcessor extends AbstractWalkerProcessor {
+public abstract class RepositoryWalkerProcessor<E extends HubEvent> extends AbstractWalkerProcessor {
     private final Logger logger = Loggers.getLogger(getClass());
     protected final ScanAttributesHelper scanAttributesHelper;
     protected final TaskEventManager taskEventManager;
@@ -53,25 +49,19 @@ public abstract class RepositoryWalkerProcessor extends AbstractWalkerProcessor 
     public void processItem(final WalkerContext context, final StorageItem item) throws Exception {
         try {
             logger.info("Item pending scan {}", item);
-            final HubEvent hubEvent = createEvent(context, item);
+            final E hubEvent = createEvent(context, item);
 
-            final long startTime = System.currentTimeMillis();
-            final long timeoutInSeconds = scanAttributesHelper.getIntegerAttribute(TaskField.HUB_TIMEOUT);
-            final long timeoutInMillis = TimeUnit.SECONDS.toMillis(timeoutInSeconds);
-            long activeTime = 0;
-            while (!taskEventManager.processItem(hubEvent, maxParallelEvents) && (activeTime < timeoutInMillis)) {
-                final long currentTime = System.currentTimeMillis();
-                activeTime = currentTime - startTime;
+            final String taskName = hubEvent.getTaskParameters().get(TaskEventManager.PARAMETER_KEY_TASK_NAME);
+            while (!taskEventManager.hasEventSpace(taskName, maxParallelEvents)) {
+                logger.info("Waiting for space on event bus");
+                Thread.sleep(5000);
             }
-
-            if (activeTime >= timeoutInMillis) {
-                context.stop(new WalkerExitException("Repository walker timed out"));
-            }
+            taskEventManager.addNewEvent(hubEvent);
         } catch (final Exception ex) {
             logger.error("Error occurred in walker processor for repository: ", ex);
         }
     }
 
-    public abstract HubEvent createEvent(WalkerContext context, StorageItem item) throws Exception;
+    public abstract E createEvent(WalkerContext context, StorageItem item) throws Exception;
 
 }
