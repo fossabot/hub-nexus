@@ -27,7 +27,6 @@ import org.junit.Before
 import org.sonatype.nexus.proxy.repository.Repository
 
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.TaskWalker
-import com.blackducksoftware.integration.hub.nexus.test.TestEventBus
 import com.blackducksoftware.integration.hub.nexus.test.TestWalker
 
 import groovy.transform.TypeChecked
@@ -35,13 +34,11 @@ import groovy.transform.TypeChecked
 @TypeChecked
 public class PolicyCheckTaskRunTest {
     private TestWalker walker
-    private TestEventBus eventBus
     private TaskWalker taskWalker
 
     @Before
     public void initTest() {
         walker = new TestWalker()
-        eventBus = new TestEventBus()
         taskWalker = new TaskWalker(walker)
     }
 

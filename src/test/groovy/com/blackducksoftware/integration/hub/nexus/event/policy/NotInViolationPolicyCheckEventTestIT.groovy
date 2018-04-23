@@ -23,14 +23,6 @@
  */
 package com.blackducksoftware.integration.hub.nexus.event.policy
 
-import org.junit.Assert
-import org.junit.Test
-import org.sonatype.nexus.events.Event
-
-import com.blackducksoftware.integration.hub.nexus.event.HubPolicyCheckEvent
-import com.blackducksoftware.integration.hub.nexus.event.handler.HubPolicyCheckEventHandler
-import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
-
 public class NotInViolationPolicyCheckEventTestIT extends AbstractPolicyCheckTest {
 
     @Override
@@ -38,23 +30,23 @@ public class NotInViolationPolicyCheckEventTestIT extends AbstractPolicyCheckTes
         return "src/test/resources/repo1/aa-1.2.3.zip"
     }
 
-    @Test
-    public void testHandleEvent() throws Exception {
-        final HubPolicyCheckEventHandler policyEventHandler = new HubPolicyCheckEventHandler(getAttributesHandler(), getEventManager())
-
-        for (final Event<?> event : getEventBus().getEvents()) {
-            if (event instanceof HubPolicyCheckEvent) {
-                final HubPolicyCheckEvent scanEvent = (HubPolicyCheckEvent) event
-                policyEventHandler.handle(scanEvent)
-                Assert.assertTrue(getEventBus().hasEvents())
-                final ItemAttributesHelper itemAttributesHelper = new ItemAttributesHelper(getAttributesHandler())
-                final String overallStatus = itemAttributesHelper.getOverallPolicyStatus(getItem())
-                final String policyMessage = itemAttributesHelper.getPolicyStatus(getItem())
-                Assert.assertNotNull(overallStatus)
-                Assert.assertNotNull(policyMessage)
-                Assert.assertEquals("Not In Violation", overallStatus)
-                Assert.assertEquals("The Hub found: 0 components in violation, 0 components in violation, but overridden, and 1 components not in violation.", policyMessage)
-            }
-        }
-    }
+    //    @Test
+    //    public void testHandleEvent() throws Exception {
+    //        final HubPolicyCheckEventHandler policyEventHandler = new HubPolicyCheckEventHandler(getAttributesHandler(), getEventManager())
+    //
+    //        for (final Event<?> event : getEventBus().getEvents()) {
+    //            if (event instanceof HubPolicyCheckEvent) {
+    //                final HubPolicyCheckEvent scanEvent = (HubPolicyCheckEvent) event
+    //                policyEventHandler.handle(scanEvent)
+    //                Assert.assertTrue(getEventBus().hasEvents())
+    //                final ItemAttributesHelper itemAttributesHelper = new ItemAttributesHelper(getAttributesHandler())
+    //                final String overallStatus = itemAttributesHelper.getOverallPolicyStatus(getItem())
+    //                final String policyMessage = itemAttributesHelper.getPolicyStatus(getItem())
+    //                Assert.assertNotNull(overallStatus)
+    //                Assert.assertNotNull(policyMessage)
+    //                Assert.assertEquals("Not In Violation", overallStatus)
+    //                Assert.assertEquals("The Hub found: 0 components in violation, 0 components in violation, but overridden, and 1 components not in violation.", policyMessage)
+    //            }
+    //        }
+    //    }
 }

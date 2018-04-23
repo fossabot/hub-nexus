@@ -25,6 +25,9 @@ package com.blackducksoftware.integration.hub.nexus.repository.task;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -35,7 +38,6 @@ import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
 import org.sonatype.nexus.proxy.walker.DefaultStoreWalkerFilter;
 
-import com.blackducksoftware.integration.hub.nexus.event.TaskEventManager;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.PolicyRepositoryWalker;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.TaskWalker;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.filter.PolicyRepositoryWalkerFilter;
@@ -43,12 +45,11 @@ import com.blackducksoftware.integration.hub.nexus.util.ScanAttributesHelper;
 
 @Named(PolicyCheckTaskDescriptor.ID)
 public class PolicyCheckTask extends AbstractHubWalkerTask {
-    private final TaskEventManager taskEventManager;
+    private ExecutorService executorService;
 
     @Inject
-    public PolicyCheckTask(final TaskWalker walker, final DefaultAttributesHandler attributesHandler, final TaskEventManager taskEventManager) {
+    public PolicyCheckTask(final TaskWalker walker, final DefaultAttributesHandler attributesHandler) {
         super(walker, attributesHandler);
-        this.taskEventManager = taskEventManager;
     }
 
     @Override
@@ -82,14 +83,47 @@ public class PolicyCheckTask extends AbstractHubWalkerTask {
     @Override
     protected AbstractWalkerProcessor getRepositoryWalker() {
         final ScanAttributesHelper scanAttributesHelper = new ScanAttributesHelper(getParameters());
-        final int maxParallelPolicyChecks = scanAttributesHelper.getIntegerAttribute(TaskField.MAX_PARALLEL_POLICY_CHECKS);
+        int maxParallelPolicyChecks = scanAttributesHelper.getIntegerAttribute(TaskField.MAX_PARALLEL_POLICY_CHECKS);
+
+        if (maxParallelPolicyChecks <= 0) {
+            maxParallelPolicyChecks = 1;
+        } else if (maxParallelPolicyChecks > Runtime.getRuntime().availableProcessors()) {
+            maxParallelPolicyChecks = Runtime.getRuntime().availableProcessors();
+        }
+
         logger.info("Max parrallel policy checks {}", maxParallelPolicyChecks);
-        return new PolicyRepositoryWalker(taskEventManager, itemAttributesHelper, scanAttributesHelper, getHubServiceHelper(), maxParallelPolicyChecks);
+
+        executorService = Executors.newFixedThreadPool(maxParallelPolicyChecks);
+
+        return new PolicyRepositoryWalker(executorService, itemAttributesHelper, scanAttributesHelper, getHubServiceHelper());
     }
 
     @Override
     protected DefaultStoreWalkerFilter getRepositoryWalkerFilter() {
         return new PolicyRepositoryWalkerFilter(itemAttributesHelper);
+    }
+
+    @Override
+    protected void afterRun() throws Exception {
+        super.afterRun();
+        if (executorService != null) {
+            shutdownAndAwaitTermination(executorService);
+        }
+    }
+
+    private void shutdownAndAwaitTermination(final ExecutorService pool) {
+        pool.shutdown();
+        try {
+            if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
+                pool.shutdownNow();
+                if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
+                    logger.error("Threads did not terminate properly");
+                }
+            }
+        } catch (final InterruptedException ie) {
+            pool.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 
 }

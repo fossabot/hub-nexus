@@ -33,8 +33,6 @@ import org.sonatype.nexus.configuration.application.ApplicationConfiguration
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler
 import org.sonatype.nexus.proxy.walker.Walker
 
-import com.blackducksoftware.integration.hub.nexus.event.TaskEventManager
-import com.blackducksoftware.integration.hub.nexus.event.scan.ScanEventManagerTest
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.TaskWalker
 import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper
 import com.blackducksoftware.integration.hub.nexus.test.TestingPropertyKey
@@ -43,7 +41,6 @@ public class ScanTaskTestIT extends AbstractMavenRepoContentTests {
     private Walker walker
     private TaskWalker taskWalker
     private DefaultAttributesHandler defaultAttributesHandler
-    private TaskEventManager taskEventManager
     private RestConnectionTestHelper restConnection
     private Map<String, String> taskParameters
     private ApplicationConfiguration applicationConfiguration
@@ -61,15 +58,13 @@ public class ScanTaskTestIT extends AbstractMavenRepoContentTests {
         walker = lookup(Walker.class)
         taskWalker = new TaskWalker(walker)
         defaultAttributesHandler = lookup(DefaultAttributesHandler.class)
-        taskEventManager = lookup(TaskEventManager.class)
         taskParameters = generateParams()
-        taskParameters.put(TaskEventManager.PARAMETER_KEY_TASK_NAME, ScanEventManagerTest.TEST_TASK_NAME)
     }
 
     @Test
     public void doRunTest() throws Exception {
 
-        final ScanTask scanTask = new ScanTask(applicationConfiguration, taskWalker, defaultAttributesHandler, taskEventManager)
+        final ScanTask scanTask = new ScanTask(applicationConfiguration, taskWalker, defaultAttributesHandler)
         final ScanTask spyScanTask = Mockito.spy(scanTask)
 
         Mockito.when(spyScanTask.getParameters()).thenReturn(taskParameters)

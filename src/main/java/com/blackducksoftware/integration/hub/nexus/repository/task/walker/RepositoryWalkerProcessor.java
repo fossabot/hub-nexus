@@ -23,45 +23,47 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task.walker;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
+
 import org.slf4j.Logger;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
 import org.sonatype.nexus.proxy.walker.WalkerContext;
 import org.sonatype.sisu.goodies.common.Loggers;
 
+import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.nexus.event.HubEvent;
-import com.blackducksoftware.integration.hub.nexus.event.TaskEventManager;
-import com.blackducksoftware.integration.hub.nexus.util.ScanAttributesHelper;
+import com.blackducksoftware.integration.hub.nexus.event.handler.HubEventHandler;
 
 public abstract class RepositoryWalkerProcessor<E extends HubEvent> extends AbstractWalkerProcessor {
     private final Logger logger = Loggers.getLogger(getClass());
-    protected final ScanAttributesHelper scanAttributesHelper;
-    protected final TaskEventManager taskEventManager;
-    protected final int maxParallelEvents;
+    protected final ExecutorService executorService;
 
-    public RepositoryWalkerProcessor(final ScanAttributesHelper scanAttributesHelper, final TaskEventManager taskEventManager, final int maxParallelEvents) {
-        this.scanAttributesHelper = scanAttributesHelper;
-        this.taskEventManager = taskEventManager;
-        this.maxParallelEvents = maxParallelEvents;
+    public RepositoryWalkerProcessor(final ExecutorService executorService) {
+        this.executorService = executorService;
     }
 
     @Override
     public void processItem(final WalkerContext context, final StorageItem item) throws Exception {
         try {
             logger.info("Item pending scan {}", item);
-            final E hubEvent = createEvent(context, item);
-
-            final String taskName = hubEvent.getTaskParameters().get(TaskEventManager.PARAMETER_KEY_TASK_NAME);
-            while (!taskEventManager.hasEventSpace(taskName, maxParallelEvents)) {
-                logger.info("Waiting for space on event bus");
-                Thread.sleep(5000);
+            final HubEventHandler<E> hubEventHandler = getHubEventHandler(context, item);
+            boolean runTask = true;
+            while (runTask) {
+                try {
+                    executorService.execute(hubEventHandler);
+                    runTask = false;
+                } catch (final RejectedExecutionException e) {
+                    logger.info("Waiting for open thread");
+                    Thread.sleep(5000);
+                }
             }
-            taskEventManager.addNewEvent(hubEvent);
-        } catch (final Exception ex) {
+        } catch (final IntegrationException ex) {
             logger.error("Error occurred in walker processor for repository: ", ex);
         }
     }
 
-    public abstract E createEvent(WalkerContext context, StorageItem item) throws Exception;
+    public abstract HubEventHandler<E> getHubEventHandler(final WalkerContext context, final StorageItem item) throws IntegrationException;
 
 }

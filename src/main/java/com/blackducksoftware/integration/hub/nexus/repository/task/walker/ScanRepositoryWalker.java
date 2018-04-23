@@ -23,6 +23,8 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task.walker;
 
+import java.util.concurrent.ExecutorService;
+
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.item.StorageItem;
@@ -38,21 +40,35 @@ import com.blackducksoftware.integration.hub.model.view.ProjectView;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent;
 import com.blackducksoftware.integration.hub.nexus.event.ScanItemMetaData;
-import com.blackducksoftware.integration.hub.nexus.event.TaskEventManager;
+import com.blackducksoftware.integration.hub.nexus.event.handler.HubEventHandler;
+import com.blackducksoftware.integration.hub.nexus.event.handler.HubScanEventHandler;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.scan.NameVersionNode;
+import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.nexus.util.ScanAttributesHelper;
 import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder;
 
 public class ScanRepositoryWalker extends RepositoryWalkerProcessor<HubScanEvent> {
     private final HubServiceHelper hubServiceHelper;
+    private final ItemAttributesHelper itemAttributesHelper;
+    private final ScanAttributesHelper scanAttributesHelper;
+    private final String nexusVersion;
 
-    public ScanRepositoryWalker(final ScanAttributesHelper scanAttributesHelper, final TaskEventManager taskEventManager, final HubServiceHelper hubServiceHelper, final int maxParallelScans) {
-        super(scanAttributesHelper, taskEventManager, maxParallelScans);
+    public ScanRepositoryWalker(final ExecutorService executorService, final ScanAttributesHelper scanAttributesHelper, final HubServiceHelper hubServiceHelper, final ItemAttributesHelper itemAttributesHelper, final String nexusVersion) {
+        super(executorService);
         this.hubServiceHelper = hubServiceHelper;
+        this.itemAttributesHelper = itemAttributesHelper;
+        this.scanAttributesHelper = scanAttributesHelper;
+        this.nexusVersion = nexusVersion;
     }
 
     @Override
+    public HubEventHandler<HubScanEvent> getHubEventHandler(final WalkerContext context, final StorageItem item) throws IntegrationException {
+        final HubScanEvent event = createEvent(context, item);
+        final HubScanEventHandler hubScanEventHandler = new HubScanEventHandler(executorService, nexusVersion, itemAttributesHelper, event, hubServiceHelper);
+        return hubScanEventHandler;
+    }
+
     public HubScanEvent createEvent(final WalkerContext context, final StorageItem item) throws IntegrationException {
         final String distribution = scanAttributesHelper.getStringAttribute(TaskField.DISTRIBUTION);
         final String phase = scanAttributesHelper.getStringAttribute(TaskField.PHASE);

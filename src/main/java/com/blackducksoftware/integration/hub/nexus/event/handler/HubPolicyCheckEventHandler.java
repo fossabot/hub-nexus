@@ -23,15 +23,12 @@
  */
 package com.blackducksoftware.integration.hub.nexus.event.handler;
 
-import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.LoggerFactory;
-import org.sonatype.nexus.proxy.attributes.AttributesHandler;
 import org.sonatype.nexus.proxy.item.StorageItem;
 
 import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDescription;
@@ -39,31 +36,34 @@ import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.model.view.VersionBomPolicyStatusView;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.HubPolicyCheckEvent;
-import com.blackducksoftware.integration.hub.nexus.event.TaskEventManager;
 import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger;
-import com.google.common.eventbus.AllowConcurrentEvents;
-import com.google.common.eventbus.Subscribe;
+import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
 @Named
 @Singleton
 public class HubPolicyCheckEventHandler extends HubEventHandler<HubPolicyCheckEvent> {
 
     @Inject
-    public HubPolicyCheckEventHandler(final AttributesHandler attributesHandler, final TaskEventManager taskEventManager) {
-        super(attributesHandler, taskEventManager);
+    public HubPolicyCheckEventHandler(final ItemAttributesHelper itemAttributesHelper, final HubPolicyCheckEvent event, final HubServiceHelper hubServiceHelper) {
+        super(itemAttributesHelper, event, hubServiceHelper);
     }
 
-    @AllowConcurrentEvents
-    @Subscribe
+    private String transformOverallStatus(final String overallStatus) {
+        String statusMessage = overallStatus;
+        statusMessage = StringUtils.replace(overallStatus, "_", " ");
+        statusMessage = StringUtils.lowerCase(statusMessage);
+        statusMessage = StringUtils.capitaliseAllWords(statusMessage);
+        return statusMessage;
+    }
+
     @Override
-    public void handle(final HubPolicyCheckEvent event) {
-        final HubEventLogger logger = new HubEventLogger(event, LoggerFactory.getLogger(getClass()));
+    public void run() {
+        final HubEventLogger logger = new HubEventLogger(getEvent(), LoggerFactory.getLogger(getClass()));
         try {
             logger.info("Begin checking policy event");
-            final StorageItem item = event.getItem();
-            final ProjectVersionView projectVersionView = event.getProjectVersionView();
-            final Map<String, String> taskParameters = event.getTaskParameters();
-            final HubServiceHelper hubServiceHelper = createServiceHelper(logger, taskParameters);
+            final StorageItem item = getEvent().getItem();
+            final ProjectVersionView projectVersionView = getEvent().getProjectVersionView();
+            final HubServiceHelper hubServiceHelper = getHubServiceHelper();
             if (hubServiceHelper != null) {
                 final VersionBomPolicyStatusView versionBomPolicyStatusView = hubServiceHelper.getPolicyStatusDataService().getPolicyStatusForVersion(projectVersionView);
                 final PolicyStatusDescription policyCheckResults = new PolicyStatusDescription(versionBomPolicyStatusView);
@@ -75,16 +75,7 @@ public class HubPolicyCheckEventHandler extends HubEventHandler<HubPolicyCheckEv
             logger.error("Error occurred checking policy", ex);
         } finally {
             logger.info("Finished checking policy event");
-            getTaskEventManager().markScanEventProcessed(event);
         }
-    }
-
-    private String transformOverallStatus(final String overallStatus) {
-        String statusMessage = overallStatus;
-        statusMessage = StringUtils.replace(overallStatus, "_", " ");
-        statusMessage = StringUtils.lowerCase(statusMessage);
-        statusMessage = StringUtils.capitaliseAllWords(statusMessage);
-        return statusMessage;
     }
 
 }

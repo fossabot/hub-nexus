@@ -66,7 +66,7 @@ public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
             + "the cutoff format of \"2016-01-01T00:00:00.000\"";
     private static final String DESCRIPTION_RESCAN_FAILURE = "Re-scan artifacts if the previous scan result was failed";
     private static final String DESCRIPTION_ALWAYS_SCAN = "Always scan artifacts that are not too old and match the file pattern, regardless of previous scan result";
-    private static final String DESCRIPTION_MAX_PARALLEL_SCANS = "Number of scans to run in parallel. If set, you will run scans at the same time increasing speed but potentially slowing down Nexus";
+    private static final String DESCRIPTION_MAX_PARALLEL_SCANS = "Upper bound of threads created to use for scans.";
 
     private static final String LABEL_DISTRIBUTION = "Distribution";
     private static final String LABEL_FILE_PATTERN_MATCHES = "File Pattern Matches";

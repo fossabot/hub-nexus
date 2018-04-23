@@ -40,7 +40,7 @@ public class PolicyCheckTaskDescriptor extends AbstractHubTaskDescriptor {
 
     public static final String LABEL_MAX_PARALLEL_POLICY_CHECKS = "Max Parallel Policy checks";
 
-    public static final String DESCRIPTION_MAX_PARALLEL_POLICY_CHECKS = "Maximum number of policy checks to make at the same time. Decrease this value to increase performance. 0 or blank will perform this task synchronously.";
+    public static final String DESCRIPTION_MAX_PARALLEL_POLICY_CHECKS = "Upper bound of threads created to use for policy checking.";
 
     private final StringTextFormField policyCheckParallel = new StringTextFormField(TaskField.MAX_PARALLEL_POLICY_CHECKS.getParameterKey(), LABEL_MAX_PARALLEL_POLICY_CHECKS, DESCRIPTION_MAX_PARALLEL_POLICY_CHECKS, FormField.OPTIONAL);
 

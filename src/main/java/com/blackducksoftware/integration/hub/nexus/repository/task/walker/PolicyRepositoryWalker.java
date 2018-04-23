@@ -23,6 +23,8 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task.walker;
 
+import java.util.concurrent.ExecutorService;
+
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.walker.WalkerContext;
 
@@ -30,24 +32,33 @@ import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.HubPolicyCheckEvent;
-import com.blackducksoftware.integration.hub.nexus.event.TaskEventManager;
+import com.blackducksoftware.integration.hub.nexus.event.handler.HubEventHandler;
+import com.blackducksoftware.integration.hub.nexus.event.handler.HubPolicyCheckEventHandler;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.nexus.util.ScanAttributesHelper;
 
 public class PolicyRepositoryWalker extends RepositoryWalkerProcessor<HubPolicyCheckEvent> {
     private final ItemAttributesHelper itemAttributesHelper;
     private final HubServiceHelper hubServiceHelper;
+    private final ScanAttributesHelper scanAttributesHelper;
 
-    public PolicyRepositoryWalker(final TaskEventManager taskEventManager, final ItemAttributesHelper itemAttributesHelper, final ScanAttributesHelper scanAttributeHelper,
-            final HubServiceHelper hubServiceHelper,
-            final int maxParallelEvents) {
-        super(scanAttributeHelper, taskEventManager, maxParallelEvents);
+    public PolicyRepositoryWalker(final ExecutorService executorService, final ItemAttributesHelper itemAttributesHelper, final ScanAttributesHelper scanAttributesHelper,
+            final HubServiceHelper hubServiceHelper) {
+        super(executorService);
+        this.scanAttributesHelper = scanAttributesHelper;
         this.itemAttributesHelper = itemAttributesHelper;
         this.hubServiceHelper = hubServiceHelper;
     }
 
     @Override
-    public HubPolicyCheckEvent createEvent(final WalkerContext context, final StorageItem item) throws Exception {
+    public HubEventHandler<HubPolicyCheckEvent> getHubEventHandler(final WalkerContext context, final StorageItem item) throws IntegrationException {
+        final HubPolicyCheckEvent event = createEvent(context, item);
+        final HubPolicyCheckEventHandler hubPolicyCheckEventHandler = new HubPolicyCheckEventHandler(itemAttributesHelper, event, hubServiceHelper);
+
+        return hubPolicyCheckEventHandler;
+    }
+
+    public HubPolicyCheckEvent createEvent(final WalkerContext context, final StorageItem item) throws IntegrationException {
         final ProjectVersionView projectVersionView = getProjectVersion(item);
         final HubPolicyCheckEvent event = new HubPolicyCheckEvent(item.getRepositoryItemUid().getRepository(), item, scanAttributesHelper.getScanAttributes(), context.getResourceStoreRequest(), projectVersionView);
         return event;

@@ -24,6 +24,9 @@
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
 import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -36,7 +39,6 @@ import org.sonatype.nexus.proxy.walker.DefaultStoreWalkerFilter;
 import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.api.nonpublic.HubVersionRequestService;
 import com.blackducksoftware.integration.hub.cli.CLIDownloadService;
-import com.blackducksoftware.integration.hub.nexus.event.TaskEventManager;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.ScanRepositoryWalker;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.TaskWalker;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.filter.ScanRepositoryWalkerFilter;
@@ -46,12 +48,13 @@ import com.blackducksoftware.integration.util.CIEnvironmentVariables;
 
 @Named(ScanTaskDescriptor.ID)
 public class ScanTask extends AbstractHubWalkerTask {
-    private final TaskEventManager taskEventManager;
+    private ExecutorService executorService;
+    private final ApplicationConfiguration appConfiguration;
 
     @Inject
-    public ScanTask(final ApplicationConfiguration appConfiguration, final TaskWalker walker, final DefaultAttributesHandler attributesHandler, final TaskEventManager taskEventManager) {
+    public ScanTask(final ApplicationConfiguration appConfiguration, final TaskWalker walker, final DefaultAttributesHandler attributesHandler) {
         super(walker, attributesHandler);
-        this.taskEventManager = taskEventManager;
+        this.appConfiguration = appConfiguration;
     }
 
     @Override
@@ -90,10 +93,18 @@ public class ScanTask extends AbstractHubWalkerTask {
     @Override
     public AbstractWalkerProcessor getRepositoryWalker() {
         final ScanAttributesHelper scanAttributesHelper = new ScanAttributesHelper(getParameters());
-        final int maxParallelScans = scanAttributesHelper.getIntegerAttribute(TaskField.MAX_PARALLEL_SCANS);
+        int maxParallelScans = scanAttributesHelper.getIntegerAttribute(TaskField.MAX_PARALLEL_SCANS);
+
+        if (maxParallelScans <= 0) {
+            maxParallelScans = 1;
+        } else if (maxParallelScans > Runtime.getRuntime().availableProcessors()) {
+            maxParallelScans = Runtime.getRuntime().availableProcessors();
+        }
         logger.info("Max parallel scans {}", maxParallelScans);
 
-        return new ScanRepositoryWalker(new ScanAttributesHelper(getParameters()), taskEventManager, getHubServiceHelper(), maxParallelScans);
+        executorService = Executors.newFixedThreadPool(maxParallelScans);
+
+        return new ScanRepositoryWalker(executorService, new ScanAttributesHelper(getParameters()), getHubServiceHelper(), itemAttributesHelper, appConfiguration.getConfigurationModel().getNexusVersion());
     }
 
     @Override
@@ -111,6 +122,29 @@ public class ScanTask extends AbstractHubWalkerTask {
         final CLIDownloadService cliDownloadService = getHubServiceHelper().getCliDownloadService();
         final String hubVersion = hubVersionRequestService.getHubVersion();
         cliDownloadService.performInstallation(installDirectory, ciEnvironmentVariables, getHubServiceHelper().getHubServerConfig().getHubUrl().toString(), hubVersion, localHostName);
+    }
+
+    @Override
+    protected void afterRun() throws Exception {
+        super.afterRun();
+        if (executorService != null) {
+            shutdownAndAwaitTermination(executorService);
+        }
+    }
+
+    private void shutdownAndAwaitTermination(final ExecutorService pool) {
+        pool.shutdown();
+        try {
+            if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
+                pool.shutdownNow();
+                if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
+                    logger.error("Threads did not terminate properly");
+                }
+            }
+        } catch (final InterruptedException ie) {
+            pool.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 
 }
