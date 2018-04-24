@@ -23,8 +23,6 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task.walker;
 
-import java.util.concurrent.ExecutorService;
-
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.item.StorageItem;
@@ -45,6 +43,7 @@ import com.blackducksoftware.integration.hub.nexus.event.handler.HubScanEventHan
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.scan.NameVersionNode;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
+import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor;
 import com.blackducksoftware.integration.hub.nexus.util.ScanAttributesHelper;
 import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder;
 
@@ -52,20 +51,18 @@ public class ScanRepositoryWalker extends RepositoryWalkerProcessor<HubScanEvent
     private final HubServiceHelper hubServiceHelper;
     private final ItemAttributesHelper itemAttributesHelper;
     private final ScanAttributesHelper scanAttributesHelper;
-    private final String nexusVersion;
 
-    public ScanRepositoryWalker(final ExecutorService executorService, final ScanAttributesHelper scanAttributesHelper, final HubServiceHelper hubServiceHelper, final ItemAttributesHelper itemAttributesHelper, final String nexusVersion) {
-        super(executorService);
+    public ScanRepositoryWalker(final ParallelEventProcessor parallelEventProcessor, final ScanAttributesHelper scanAttributesHelper, final HubServiceHelper hubServiceHelper, final ItemAttributesHelper itemAttributesHelper) {
+        super(parallelEventProcessor);
         this.hubServiceHelper = hubServiceHelper;
         this.itemAttributesHelper = itemAttributesHelper;
         this.scanAttributesHelper = scanAttributesHelper;
-        this.nexusVersion = nexusVersion;
     }
 
     @Override
     public HubEventHandler<HubScanEvent> getHubEventHandler(final WalkerContext context, final StorageItem item) throws IntegrationException {
         final HubScanEvent event = createEvent(context, item);
-        final HubScanEventHandler hubScanEventHandler = new HubScanEventHandler(executorService, nexusVersion, itemAttributesHelper, event, hubServiceHelper);
+        final HubScanEventHandler hubScanEventHandler = new HubScanEventHandler(parallelEventProcessor, itemAttributesHelper, event, hubServiceHelper);
         return hubScanEventHandler;
     }
 

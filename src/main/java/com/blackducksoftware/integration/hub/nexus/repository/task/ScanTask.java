@@ -24,14 +24,10 @@
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
 import java.io.File;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.sonatype.nexus.configuration.application.ApplicationConfiguration;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
 import org.sonatype.nexus.proxy.walker.DefaultStoreWalkerFilter;
@@ -39,22 +35,23 @@ import org.sonatype.nexus.proxy.walker.DefaultStoreWalkerFilter;
 import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.api.nonpublic.HubVersionRequestService;
 import com.blackducksoftware.integration.hub.cli.CLIDownloadService;
+import com.blackducksoftware.integration.hub.nexus.application.IntegrationInfo;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.ScanRepositoryWalker;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.TaskWalker;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.filter.ScanRepositoryWalkerFilter;
+import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor;
 import com.blackducksoftware.integration.hub.nexus.util.ScanAttributesHelper;
 import com.blackducksoftware.integration.hub.util.HostnameHelper;
 import com.blackducksoftware.integration.util.CIEnvironmentVariables;
 
 @Named(ScanTaskDescriptor.ID)
 public class ScanTask extends AbstractHubWalkerTask {
-    private ExecutorService executorService;
-    private final ApplicationConfiguration appConfiguration;
+    private final ParallelEventProcessor parallelEventProcessor;
 
     @Inject
-    public ScanTask(final ApplicationConfiguration appConfiguration, final TaskWalker walker, final DefaultAttributesHandler attributesHandler) {
-        super(walker, attributesHandler);
-        this.appConfiguration = appConfiguration;
+    public ScanTask(final IntegrationInfo integrationInfo, final TaskWalker walker, final DefaultAttributesHandler attributesHandler, final ParallelEventProcessor parallelEventProcessor) {
+        super(walker, attributesHandler, integrationInfo);
+        this.parallelEventProcessor = parallelEventProcessor;
     }
 
     @Override
@@ -88,23 +85,12 @@ public class ScanTask extends AbstractHubWalkerTask {
             cliInstallDirectory.mkdirs();
         }
         installCLI(cliInstallDirectory);
+
     }
 
     @Override
     public AbstractWalkerProcessor getRepositoryWalker() {
-        final ScanAttributesHelper scanAttributesHelper = new ScanAttributesHelper(getParameters());
-        int maxParallelScans = scanAttributesHelper.getIntegerAttribute(TaskField.MAX_PARALLEL_SCANS);
-
-        if (maxParallelScans <= 0) {
-            maxParallelScans = 1;
-        } else if (maxParallelScans > Runtime.getRuntime().availableProcessors()) {
-            maxParallelScans = Runtime.getRuntime().availableProcessors();
-        }
-        logger.info("Max parallel scans {}", maxParallelScans);
-
-        executorService = Executors.newFixedThreadPool(maxParallelScans);
-
-        return new ScanRepositoryWalker(executorService, new ScanAttributesHelper(getParameters()), getHubServiceHelper(), itemAttributesHelper, appConfiguration.getConfigurationModel().getNexusVersion());
+        return new ScanRepositoryWalker(parallelEventProcessor, new ScanAttributesHelper(getParameters()), getHubServiceHelper(), itemAttributesHelper);
     }
 
     @Override
@@ -124,27 +110,10 @@ public class ScanTask extends AbstractHubWalkerTask {
         cliDownloadService.performInstallation(installDirectory, ciEnvironmentVariables, getHubServiceHelper().getHubServerConfig().getHubUrl().toString(), hubVersion, localHostName);
     }
 
+    // TODO confirm that after run is always called after run
     @Override
     protected void afterRun() throws Exception {
-        super.afterRun();
-        if (executorService != null) {
-            shutdownAndAwaitTermination(executorService);
-        }
-    }
-
-    private void shutdownAndAwaitTermination(final ExecutorService pool) {
-        pool.shutdown();
-        try {
-            if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
-                pool.shutdownNow();
-                if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
-                    logger.error("Threads did not terminate properly");
-                }
-            }
-        } catch (final InterruptedException ie) {
-            pool.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
+        parallelEventProcessor.shutdownProcessor();
     }
 
 }

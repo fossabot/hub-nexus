@@ -24,13 +24,11 @@
 package com.blackducksoftware.integration.hub.nexus.event.handler;
 
 import java.io.File;
-import java.util.concurrent.ExecutorService;
 
 import org.slf4j.LoggerFactory;
 
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
-import com.blackducksoftware.integration.hub.nexus.application.IntegrationInfo;
 import com.blackducksoftware.integration.hub.nexus.event.HubPolicyCheckEvent;
 import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent;
 import com.blackducksoftware.integration.hub.nexus.repository.task.ScanTaskDescriptor;
@@ -38,16 +36,14 @@ import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.scan.ArtifactScanner;
 import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
-import com.blackducksoftware.integration.phonehome.enums.ThirdPartyName;
+import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor;
 
 public class HubScanEventHandler extends HubEventHandler<HubScanEvent> {
-    private final String nexusVersion;
-    private final ExecutorService executorService;
+    private final ParallelEventProcessor parallelEventProcessor;
 
-    public HubScanEventHandler(final ExecutorService executorService, final String nexusVersion, final ItemAttributesHelper itemAttributesHelper, final HubScanEvent event, final HubServiceHelper hubServiceHelper) {
+    public HubScanEventHandler(final ParallelEventProcessor parallelEventProcessor, final ItemAttributesHelper itemAttributesHelper, final HubScanEvent event, final HubServiceHelper hubServiceHelper) {
         super(itemAttributesHelper, event, hubServiceHelper);
-        this.nexusVersion = nexusVersion;
-        this.executorService = executorService;
+        this.parallelEventProcessor = parallelEventProcessor;
     }
 
     @Override
@@ -55,19 +51,18 @@ public class HubScanEventHandler extends HubEventHandler<HubScanEvent> {
         final HubEventLogger logger = new HubEventLogger(getEvent(), LoggerFactory.getLogger(getClass()));
         try {
             logger.info("Begin handling scan event");
-            final IntegrationInfo phoneHomeInfo = new IntegrationInfo(ThirdPartyName.NEXUS, nexusVersion, ScanTaskDescriptor.PLUGIN_VERSION);
             final HubServiceHelper hubServiceHelper = getHubServiceHelper();
             final String cliInstallRootDirectory = String.format("hub%s", String.valueOf(hubServiceHelper.getHubServerConfig().getHubUrl().getHost().hashCode()));
             logger.info(String.format("CLI Installation Root Directory for %s: %s", hubServiceHelper.getHubServerConfig().getHubUrl().toString(), cliInstallRootDirectory));
             final File blackDuckDirectory = new File(getEvent().getTaskParameters().get(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
             final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
-            final ArtifactScanner scanner = new ArtifactScanner(getEvent(), logger, getAttributeHelper(), taskDirectory, hubServiceHelper, phoneHomeInfo);
+            final ArtifactScanner scanner = new ArtifactScanner(getEvent(), logger, getAttributeHelper(), taskDirectory, hubServiceHelper, null);
             final ProjectVersionView projectVersionView = scanner.scan();
             if (projectVersionView != null) {
                 logger.info("Posting policy check event for " + projectVersionView.versionName);
                 final HubPolicyCheckEvent event = new HubPolicyCheckEvent(getEvent().getRepository(), getEvent().getItem(), getEvent().getTaskParameters(), getEvent().getRequest(), projectVersionView);
                 final HubPolicyCheckEventHandler hubPolicyCheckEventHandler = new HubPolicyCheckEventHandler(getAttributeHelper(), event, hubServiceHelper);
-                executorService.execute(hubPolicyCheckEventHandler);
+                parallelEventProcessor.executeHandler(hubPolicyCheckEventHandler);
             } else {
                 logger.error("Scanned event was null");
             }

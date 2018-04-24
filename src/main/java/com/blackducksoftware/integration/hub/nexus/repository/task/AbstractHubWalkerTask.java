@@ -37,6 +37,7 @@ import org.sonatype.nexus.proxy.walker.DefaultStoreWalkerFilter;
 import org.sonatype.nexus.scheduling.AbstractNexusRepositoriesPathAwareTask;
 
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
+import com.blackducksoftware.integration.hub.nexus.application.IntegrationInfo;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.TaskWalker;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.log.Slf4jIntLogger;
@@ -46,10 +47,12 @@ public abstract class AbstractHubWalkerTask extends AbstractNexusRepositoriesPat
     protected ItemAttributesHelper itemAttributesHelper;
     protected TaskWalker taskWalker;
     private HubServiceHelper hubServiceHelper;
+    private final IntegrationInfo integrationInfo;
 
-    public AbstractHubWalkerTask(final TaskWalker taskWalker, final DefaultAttributesHandler attributesHandler) {
+    public AbstractHubWalkerTask(final TaskWalker taskWalker, final DefaultAttributesHandler attributesHandler, final IntegrationInfo integrationInfo) {
         this.taskWalker = taskWalker;
         itemAttributesHelper = new ItemAttributesHelper(attributesHandler);
+        this.integrationInfo = integrationInfo;
     }
 
     protected HubServiceHelper getHubServiceHelper() {
@@ -89,10 +92,15 @@ public abstract class AbstractHubWalkerTask extends AbstractNexusRepositoriesPat
 
             final List<Repository> repositoryList = createRepositoryList();
             taskWalker.walkRepositoriesWithFilter(repositoryList, repositoryWalker, repositoryWalkerFilter, getResourceStorePath());
+            phoneHome();
         } catch (final Exception ex) {
             logger.error("Error occurred during task execution {}", ex);
         }
         return null;
+    }
+
+    private void phoneHome() {
+        // TODO add phonehome here that references the last time phone home was called
     }
 
     protected void initTask() throws Exception {

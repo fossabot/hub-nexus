@@ -23,8 +23,6 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task.walker;
 
-import java.util.concurrent.ExecutorService;
-
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.walker.WalkerContext;
 
@@ -35,6 +33,7 @@ import com.blackducksoftware.integration.hub.nexus.event.HubPolicyCheckEvent;
 import com.blackducksoftware.integration.hub.nexus.event.handler.HubEventHandler;
 import com.blackducksoftware.integration.hub.nexus.event.handler.HubPolicyCheckEventHandler;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
+import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor;
 import com.blackducksoftware.integration.hub.nexus.util.ScanAttributesHelper;
 
 public class PolicyRepositoryWalker extends RepositoryWalkerProcessor<HubPolicyCheckEvent> {
@@ -42,9 +41,9 @@ public class PolicyRepositoryWalker extends RepositoryWalkerProcessor<HubPolicyC
     private final HubServiceHelper hubServiceHelper;
     private final ScanAttributesHelper scanAttributesHelper;
 
-    public PolicyRepositoryWalker(final ExecutorService executorService, final ItemAttributesHelper itemAttributesHelper, final ScanAttributesHelper scanAttributesHelper,
+    public PolicyRepositoryWalker(final ParallelEventProcessor parallelEventProcessor, final ItemAttributesHelper itemAttributesHelper, final ScanAttributesHelper scanAttributesHelper,
             final HubServiceHelper hubServiceHelper) {
-        super(executorService);
+        super(parallelEventProcessor);
         this.scanAttributesHelper = scanAttributesHelper;
         this.itemAttributesHelper = itemAttributesHelper;
         this.hubServiceHelper = hubServiceHelper;

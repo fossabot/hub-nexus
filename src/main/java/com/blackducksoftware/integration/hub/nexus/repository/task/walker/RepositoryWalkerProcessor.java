@@ -23,7 +23,6 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task.walker;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 
 import org.slf4j.Logger;
@@ -35,13 +34,14 @@ import org.sonatype.sisu.goodies.common.Loggers;
 import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.nexus.event.HubEvent;
 import com.blackducksoftware.integration.hub.nexus.event.handler.HubEventHandler;
+import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor;
 
 public abstract class RepositoryWalkerProcessor<E extends HubEvent> extends AbstractWalkerProcessor {
     private final Logger logger = Loggers.getLogger(getClass());
-    protected final ExecutorService executorService;
+    protected final ParallelEventProcessor parallelEventProcessor;
 
-    public RepositoryWalkerProcessor(final ExecutorService executorService) {
-        this.executorService = executorService;
+    public RepositoryWalkerProcessor(final ParallelEventProcessor parallelEventProcessor) {
+        this.parallelEventProcessor = parallelEventProcessor;
     }
 
     @Override
@@ -52,7 +52,7 @@ public abstract class RepositoryWalkerProcessor<E extends HubEvent> extends Abst
             boolean runTask = true;
             while (runTask) {
                 try {
-                    executorService.execute(hubEventHandler);
+                    parallelEventProcessor.executeHandler(hubEventHandler);
                     runTask = false;
                 } catch (final RejectedExecutionException e) {
                     logger.info("Waiting for open thread");
