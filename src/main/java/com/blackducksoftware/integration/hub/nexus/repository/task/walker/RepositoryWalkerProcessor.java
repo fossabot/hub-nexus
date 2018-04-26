@@ -23,8 +23,6 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task.walker;
 
-import java.util.concurrent.RejectedExecutionException;
-
 import org.slf4j.Logger;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
@@ -49,16 +47,7 @@ public abstract class RepositoryWalkerProcessor<E extends HubEvent> extends Abst
         try {
             logger.info("Item pending scan {}", item);
             final HubEventHandler<E> hubEventHandler = getHubEventHandler(context, item);
-            boolean runTask = true;
-            while (runTask) {
-                try {
-                    parallelEventProcessor.executeHandler(hubEventHandler);
-                    runTask = false;
-                } catch (final RejectedExecutionException e) {
-                    logger.info("Waiting for open thread");
-                    Thread.sleep(5000);
-                }
-            }
+            parallelEventProcessor.executeHandlerAndWaitForThread(hubEventHandler);
         } catch (final IntegrationException ex) {
             logger.error("Error occurred in walker processor for repository: ", ex);
         }

@@ -24,6 +24,7 @@
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
 import java.io.File;
+import java.util.concurrent.ExecutorService;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -46,12 +47,10 @@ import com.blackducksoftware.integration.util.CIEnvironmentVariables;
 
 @Named(ScanTaskDescriptor.ID)
 public class ScanTask extends AbstractHubWalkerTask {
-    private final ParallelEventProcessor parallelEventProcessor;
 
     @Inject
     public ScanTask(final IntegrationInfo integrationInfo, final TaskWalker walker, final DefaultAttributesHandler attributesHandler, final ParallelEventProcessor parallelEventProcessor) {
-        super(walker, attributesHandler, integrationInfo);
-        this.parallelEventProcessor = parallelEventProcessor;
+        super(walker, attributesHandler, integrationInfo, parallelEventProcessor);
     }
 
     @Override
@@ -90,6 +89,8 @@ public class ScanTask extends AbstractHubWalkerTask {
 
     @Override
     public AbstractWalkerProcessor getRepositoryWalker() {
+        final ExecutorService executorService = parallelEventProcessor.createExecutorService();
+        parallelEventProcessor.setExecutorService(executorService);
         return new ScanRepositoryWalker(parallelEventProcessor, new ScanAttributesHelper(getParameters()), getHubServiceHelper(), itemAttributesHelper);
     }
 
@@ -108,12 +109,6 @@ public class ScanTask extends AbstractHubWalkerTask {
         final CLIDownloadService cliDownloadService = getHubServiceHelper().getCliDownloadService();
         final String hubVersion = hubVersionRequestService.getHubVersion();
         cliDownloadService.performInstallation(installDirectory, ciEnvironmentVariables, getHubServiceHelper().getHubServerConfig().getHubUrl().toString(), hubVersion, localHostName);
-    }
-
-    // TODO confirm that after run is always called after run
-    @Override
-    protected void afterRun() throws Exception {
-        parallelEventProcessor.shutdownProcessor();
     }
 
 }

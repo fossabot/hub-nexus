@@ -43,6 +43,6 @@ public class ScanTaskDescriptorTest {
     @Test
     public void formFieldsTest() {
         final ScanTaskDescriptor taskDesc = new ScanTaskDescriptor(null)
-        Assert.assertTrue(taskDesc.formFields().size() == 20)
+        Assert.assertTrue(taskDesc.formFields().size() == 19)
     }
 }

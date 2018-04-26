@@ -62,7 +62,7 @@ public class ScanRepositoryWalker extends RepositoryWalkerProcessor<HubScanEvent
     @Override
     public HubEventHandler<HubScanEvent> getHubEventHandler(final WalkerContext context, final StorageItem item) throws IntegrationException {
         final HubScanEvent event = createEvent(context, item);
-        final HubScanEventHandler hubScanEventHandler = new HubScanEventHandler(parallelEventProcessor, itemAttributesHelper, event, hubServiceHelper);
+        final HubScanEventHandler hubScanEventHandler = new HubScanEventHandler(itemAttributesHelper, event, hubServiceHelper);
         return hubScanEventHandler;
     }
 

@@ -23,13 +23,11 @@
  */
 package com.blackducksoftware.integration.hub.nexus.event.handler;
 
-import org.sonatype.sisu.goodies.common.ComponentSupport;
-
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.HubEvent;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
-public abstract class HubEventHandler<E extends HubEvent> extends ComponentSupport implements Runnable {
+public abstract class HubEventHandler<E extends HubEvent> implements Runnable {
     private final ItemAttributesHelper attributeHelper;
     private E event;
     private final HubServiceHelper hubServiceHelper;

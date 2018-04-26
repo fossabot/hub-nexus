@@ -43,8 +43,7 @@ public enum TaskField {
     OLD_ARTIFACT_CUTOFF("blackduck.hub.nexus.artifact.cutoff"),
     RESCAN_FAILURES("blackduck.hub.nexus.rescan.failures"),
     ALWAYS_SCAN("blackduck.hub.nexus.rescan.always"),
-    MAX_PARALLEL_SCANS("blackduck.hub.nexus.max.parallel.scans"),
-    MAX_PARALLEL_POLICY_CHECKS("blackduck.hub.nexus.max.parallel.policy.checks");
+    PHONE_HOME("blackduck.hub.nexus.phonehome");
 
     private String parameterKey;
 
