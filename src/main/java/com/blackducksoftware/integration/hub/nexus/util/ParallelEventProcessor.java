@@ -61,7 +61,7 @@ public class ParallelEventProcessor {
 
     public void executeHandlerAndWaitForThread(final HubEventHandler<?> eventHandler) throws InterruptedException {
         boolean runTask = true;
-        while (runTask) {
+        while (runTask && !executorService.isShutdown()) {
             try {
                 executeHandler(eventHandler);
                 runTask = false;

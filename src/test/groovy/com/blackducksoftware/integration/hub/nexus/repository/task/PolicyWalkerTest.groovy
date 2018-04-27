@@ -23,60 +23,81 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task
 
-//@RunWith(MockitoJUnitRunner.class)
+import org.apache.commons.collections.map.HashedMap
+import org.junit.Assert
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.mockito.Mock
+import org.mockito.Mockito
+import org.mockito.runners.MockitoJUnitRunner
+import org.sonatype.nexus.proxy.attributes.Attributes
+import org.sonatype.nexus.proxy.item.RepositoryItemUid
+import org.sonatype.nexus.proxy.item.StorageItem
+import org.sonatype.nexus.proxy.walker.WalkerContext
+
+import com.blackducksoftware.integration.hub.api.project.version.ProjectVersionRequestService
+import com.blackducksoftware.integration.hub.model.view.ProjectVersionView
+import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper
+import com.blackducksoftware.integration.hub.nexus.event.handler.HubPolicyCheckEventHandler
+import com.blackducksoftware.integration.hub.nexus.repository.task.walker.PolicyRepositoryWalker
+import com.blackducksoftware.integration.hub.nexus.test.TestExecutorService
+import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
+import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor
+import com.blackducksoftware.integration.hub.nexus.util.ScanAttributesHelper
+
+@RunWith(MockitoJUnitRunner.class)
 public class PolicyWalkerTest {
 
-    //    private final static String PARENT_PATH="/test/0.0.1-SNAPSHOT"
-    //    private final static String PROJECT_NAME="test"
-    //
-    //    @Mock
-    //    private ItemAttributesHelper itemAttributesHelper
-    //    @Mock
-    //    private HubServiceHelper hubServiceHelper
-    //    private StorageItem item
-    //    private WalkerContext walkerContext
-    //    private RepositoryItemUid repositoryItemUid
-    //    private Attributes attributes
-    //    private TestEventBus eventBus
-    //    private Map<String,String> taskParameters
-    //    private TaskEventManager taskEventManager
-    //
-    //    @Before
-    //    public void initTest() {
-    //        taskParameters = new HashedMap<>()
-    //        taskParameters.put(TaskField.DISTRIBUTION.getParameterKey(), "EXTERNAL")
-    //        taskParameters.put(TaskField.PHASE.getParameterKey(), "DEVELOPMENT")
-    //        taskParameters.put(TaskEventManager.PARAMETER_KEY_TASK_NAME, PROJECT_NAME)
-    //
-    //        eventBus = new TestEventBus()
-    //        taskEventManager = new TaskEventManager(eventBus)
-    //        repositoryItemUid = [ getBooleanAttributeValue: { attr -> false }, getRepository: { -> null } ] as RepositoryItemUid
-    //
-    //        item = [ getRepositoryItemUid: { -> repositoryItemUid },
-    //            getRemoteUrl: { -> "" },
-    //            getPath: { -> PROJECT_NAME },
-    //            getRepositoryItemAttributes: { -> attributes },
-    //            getParentPath: { -> PARENT_PATH },
-    //            getName: { -> "itemName" }] as StorageItem
-    //        walkerContext = [ getResourceStoreRequest: { -> null } ] as WalkerContext
-    //        ProjectVersionRequestService projectVersionRequestService = Mockito.mock(ProjectVersionRequestService.class)
-    //        hubServiceHelper = Mockito.mock(HubServiceHelper.class)
-    //        Mockito.when(hubServiceHelper.getProjectVersionRequestService()).thenReturn(projectVersionRequestService)
-    //        Mockito.when(projectVersionRequestService.getItem(Mockito.anyString(), Mockito.any())).thenReturn(Mockito.mock(ProjectVersionView.class))
-    //    }
+    private final static String PARENT_PATH="/test/0.0.1-SNAPSHOT"
+    private final static String PROJECT_NAME="test"
 
-    //    @Test
-    //    public void testScanSuccess() {
-    //        Mockito.when(itemAttributesHelper.getScanResult(item)).thenReturn(ItemAttributesHelper.SCAN_STATUS_SUCCESS)
-    //
-    //        final PolicyRepositoryWalker walker = new PolicyRepositoryWalker(taskEventManager, itemAttributesHelper, new ScanAttributesHelper(taskParameters), hubServiceHelper, 5);
-    //        walker.processItem(walkerContext, item)
-    //        assertEquals(1, eventBus.getEventCount())
-    //        Collection<Event<?>> eventCollection = eventBus.getEvents()
-    //        for(Event<?> event : eventCollection ) {
-    //            assertTrue(event instanceof HubPolicyCheckEvent)
-    //            HubPolicyCheckEvent policyEvent = (HubPolicyCheckEvent) event
-    //            assertEquals(item, policyEvent.getItem())
-    //        }
-    //    }
+    @Mock
+    private ItemAttributesHelper itemAttributesHelper
+
+    @Mock
+    private HubServiceHelper hubServiceHelper
+
+    private StorageItem item
+    private WalkerContext walkerContext
+    private RepositoryItemUid repositoryItemUid
+    private Attributes attributes
+    private Map<String,String> taskParameters
+    private ParallelEventProcessor parallelEventProcessor
+
+    @Before
+    public void initTest() {
+        taskParameters = new HashedMap<>()
+        taskParameters.put(TaskField.DISTRIBUTION.getParameterKey(), "EXTERNAL")
+        taskParameters.put(TaskField.PHASE.getParameterKey(), "DEVELOPMENT")
+
+        repositoryItemUid = [ getBooleanAttributeValue: { attr -> false }, getRepository: { -> null } ] as RepositoryItemUid
+
+        item = [ getRepositoryItemUid: { -> repositoryItemUid },
+            getRemoteUrl: { -> "" },
+            getPath: { -> PROJECT_NAME },
+            getRepositoryItemAttributes: { -> attributes },
+            getParentPath: { -> PARENT_PATH },
+            getName: { -> "itemName" }] as StorageItem
+        walkerContext = [ getResourceStoreRequest: { -> null } ] as WalkerContext
+        ProjectVersionRequestService projectVersionRequestService = Mockito.mock(ProjectVersionRequestService.class)
+        hubServiceHelper = Mockito.mock(HubServiceHelper.class)
+        Mockito.when(hubServiceHelper.getProjectVersionRequestService()).thenReturn(projectVersionRequestService)
+        Mockito.when(projectVersionRequestService.getItem(Mockito.anyString(), Mockito.any())).thenReturn(Mockito.mock(ProjectVersionView.class))
+
+        TestExecutorService executorService = new TestExecutorService()
+        parallelEventProcessor = new ParallelEventProcessor()
+        parallelEventProcessor.setExecutorService(executorService)
+    }
+
+    @Test
+    public void testScanSuccess() {
+        Mockito.when(itemAttributesHelper.getScanResult(item)).thenReturn(ItemAttributesHelper.SCAN_STATUS_SUCCESS)
+
+        final PolicyRepositoryWalker walker = new PolicyRepositoryWalker(parallelEventProcessor, itemAttributesHelper, new ScanAttributesHelper(taskParameters), hubServiceHelper);
+        walker.processItem(walkerContext, item)
+        TestExecutorService executorService = parallelEventProcessor.getExecutorService() as TestExecutorService
+        Assert.assertEquals(1, executorService.getSize())
+        Assert.assertTrue(executorService.getItem(0) instanceof HubPolicyCheckEventHandler)
+    }
 }
