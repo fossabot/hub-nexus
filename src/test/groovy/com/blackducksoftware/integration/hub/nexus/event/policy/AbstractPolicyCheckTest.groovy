@@ -23,13 +23,20 @@
  */
 package com.blackducksoftware.integration.hub.nexus.event.policy
 
+import org.slf4j.LoggerFactory
+
+import com.blackducksoftware.integration.hub.model.view.ProjectVersionView
 import com.blackducksoftware.integration.hub.nexus.event.AbstractHandlerTest
+import com.blackducksoftware.integration.hub.nexus.event.HubPolicyCheckEvent
 import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent
 import com.blackducksoftware.integration.hub.nexus.event.ScanItemMetaData
-import com.blackducksoftware.integration.hub.nexus.event.handler.HubScanEventHandler
+import com.blackducksoftware.integration.hub.nexus.repository.task.ScanTaskDescriptor
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField
+import com.blackducksoftware.integration.hub.nexus.scan.ArtifactScanner
+import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger
 
 public abstract class AbstractPolicyCheckTest extends AbstractHandlerTest {
+    HubPolicyCheckEvent policyCheckEvent
 
     @Override
     protected void setUp() throws Exception {
@@ -38,10 +45,18 @@ public abstract class AbstractPolicyCheckTest extends AbstractHandlerTest {
         getTaskParameters().put(TaskField.WORKING_DIRECTORY.getParameterKey(), getWorkHomeDir().getCanonicalPath())
         getTaskParameters().put(TaskField.HUB_SCAN_MEMORY.getParameterKey(), "4096")
         getTaskParameters().put(TaskField.HUB_TIMEOUT.getParameterKey(), "300")
-
         final ScanItemMetaData data = new ScanItemMetaData(getItem(), getResourceStoreRequest(), getTaskParameters(), getProjectRequest())
         HubScanEvent event = processItem(data);
-        final HubScanEventHandler scanEventHandler = new HubScanEventHandler(getAppConfiguration(), getAttributesHandler(), event)
-        scanEventHandler.run();
+
+        final HubEventLogger logger = new HubEventLogger(event, LoggerFactory.getLogger(getClass()));
+
+        String cliInstallRootDirectory = String.format("hub%s", String.valueOf(hubServiceHelper.getHubServerConfig().getHubUrl().getHost().hashCode()));
+        final File blackDuckDirectory = new File(event.getTaskParameters().get(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
+        final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
+
+        final ArtifactScanner scanner = new ArtifactScanner(event, logger, getItemAttributesHelper(), taskDirectory, hubServiceHelper);
+        ProjectVersionView projectVersionView = scanner.scan();
+
+        policyCheckEvent = new HubPolicyCheckEvent(event.getRepository(), event.getItem(), event.getTaskParameters(), event.getRequest(), projectVersionView);
     }
 }

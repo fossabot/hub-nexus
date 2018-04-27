@@ -44,7 +44,9 @@ import com.blackducksoftware.integration.hub.model.view.ProjectView
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField
 import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper
+import com.blackducksoftware.integration.hub.nexus.test.TestExecutorService
 import com.blackducksoftware.integration.hub.nexus.test.TestingPropertyKey
+import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
 import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder
 import com.blackducksoftware.integration.hub.service.HubServicesFactory
 import com.blackducksoftware.integration.log.Slf4jIntLogger
@@ -53,12 +55,14 @@ public abstract class AbstractHandlerTest extends AbstractMavenRepoContentTests 
     private RestConnectionTestHelper restConnection
     private ApplicationConfiguration appConfiguration
     private DefaultAttributesHandler attributesHandler
+    private ItemAttributesHelper itemAttributesHelper
     private Repository repository
     private Map<String, String> taskParameters
     private ResourceStoreRequest resourceStoreRequest
     private StorageItem item
     private ProjectRequest projectRequest
     private HubServiceHelper hubServiceHelper
+    private TestExecutorService testExecutorService
 
     @Override
     protected void setUp() throws Exception {
@@ -82,8 +86,10 @@ public abstract class AbstractHandlerTest extends AbstractMavenRepoContentTests 
     public abstract String getZipFilePath()
 
     private void setupTest(final String zipFilePath) throws Exception {
+        testExecutorService = new TestExecutorService()
         appConfiguration = this.nexusConfiguration()
         attributesHandler = lookup(DefaultAttributesHandler.class)
+        itemAttributesHelper = new ItemAttributesHelper(attributesHandler);
         restConnection = new RestConnectionTestHelper()
         final File zipFile = getTestFile(zipFilePath)
         final File propFile = getTestFile("src/test/resources/repo1/extension-mapping.properties")
@@ -148,6 +154,10 @@ public abstract class AbstractHandlerTest extends AbstractMavenRepoContentTests 
 
     public DefaultAttributesHandler getAttributesHandler() {
         return attributesHandler
+    }
+
+    public ItemAttributesHelper getItemAttributesHelper() {
+        return itemAttributesHelper
     }
 
     public HubServiceHelper getHubServiceHelper() {

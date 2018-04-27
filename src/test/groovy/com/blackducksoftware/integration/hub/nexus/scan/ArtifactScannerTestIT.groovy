@@ -26,21 +26,15 @@ package com.blackducksoftware.integration.hub.nexus.scan
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import org.sonatype.nexus.events.Event
 
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper
-import com.blackducksoftware.integration.hub.nexus.application.IntegrationInfo
-import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent
 import com.blackducksoftware.integration.hub.nexus.event.policy.AbstractPolicyCheckTest
-import com.blackducksoftware.integration.hub.nexus.repository.task.ScanTaskDescriptor
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField
 import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper
 import com.blackducksoftware.integration.hub.nexus.test.TestEventLogger
 import com.blackducksoftware.integration.hub.nexus.test.TestingPropertyKey
-import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
-import com.blackducksoftware.integration.phonehome.enums.ThirdPartyName
 
 public class ArtifactScannerTestIT extends AbstractPolicyCheckTest {
     private RestConnectionTestHelper restConnection
@@ -85,18 +79,10 @@ public class ArtifactScannerTestIT extends AbstractPolicyCheckTest {
         ItemAttributesHelper itemAttributesHelper = new ItemAttributesHelper(super.getAttributesHandler())
         File installDirectory = new File(getClass().getClassLoader().getResource('repo1').getFile())
         HubServiceHelper hubServiceHelper = new HubServiceHelper(testEventLogger, taskParams)
-        IntegrationInfo phoneHomeInfo = new IntegrationInfo(ThirdPartyName.NEXUS, appConfiguration.getConfigurationModel().getNexusVersion(), ScanTaskDescriptor.PLUGIN_VERSION);
 
-        for (final Event<?> event : getEventBus().getEvents()) {
-            if (event instanceof HubScanEvent) {
-                final HubScanEvent scanEvent = (HubScanEvent) event
-                HubEventLogger hubEventLogger = new HubEventLogger(scanEvent, testEventLogger)
-                ArtifactScanner artifactScanner = new ArtifactScanner(scanEvent, hubEventLogger, itemAttributesHelper, installDirectory, hubServiceHelper, phoneHomeInfo)
-                ProjectVersionView projectVersionView = artifactScanner.scan()
-                Assert.assertNotNull(projectVersionView.meta)
-                Assert.assertNotNull(projectVersionView.distribution)
-                Assert.assertNotNull(projectVersionView.phase)
-            }
-        }
+        ProjectVersionView projectVersionView = getPolicyCheckEvent().projectVersionView
+        Assert.assertNotNull(projectVersionView.meta)
+        Assert.assertNotNull(projectVersionView.distribution)
+        Assert.assertNotNull(projectVersionView.phase)
     }
 }

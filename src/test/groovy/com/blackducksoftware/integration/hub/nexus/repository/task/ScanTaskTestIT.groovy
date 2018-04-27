@@ -33,9 +33,11 @@ import org.sonatype.nexus.configuration.application.ApplicationConfiguration
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler
 import org.sonatype.nexus.proxy.walker.Walker
 
+import com.blackducksoftware.integration.hub.nexus.application.IntegrationInfo
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.TaskWalker
 import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper
 import com.blackducksoftware.integration.hub.nexus.test.TestingPropertyKey
+import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor
 
 public class ScanTaskTestIT extends AbstractMavenRepoContentTests {
     private Walker walker
@@ -44,6 +46,8 @@ public class ScanTaskTestIT extends AbstractMavenRepoContentTests {
     private RestConnectionTestHelper restConnection
     private Map<String, String> taskParameters
     private ApplicationConfiguration applicationConfiguration
+    private IntegrationInfo integrationInfo
+    private ParallelEventProcessor parallelEventProcessor
 
     @Override
     public void setUp() throws Exception {
@@ -59,12 +63,15 @@ public class ScanTaskTestIT extends AbstractMavenRepoContentTests {
         taskWalker = new TaskWalker(walker)
         defaultAttributesHandler = lookup(DefaultAttributesHandler.class)
         taskParameters = generateParams()
+        integrationInfo = new IntegrationInfo(applicationConfiguration)
+        parallelEventProcessor = Mockito.mock(ParallelEventProcessor.class)
+        Mockito.doNothing().when(parallelEventProcessor).shutdownProcessor()
     }
 
     @Test
     public void doRunTest() throws Exception {
 
-        final ScanTask scanTask = new ScanTask(applicationConfiguration, taskWalker, defaultAttributesHandler)
+        final ScanTask scanTask = new ScanTask(integrationInfo, taskWalker, defaultAttributesHandler, parallelEventProcessor)
         final ScanTask spyScanTask = Mockito.spy(scanTask)
 
         Mockito.when(spyScanTask.getParameters()).thenReturn(taskParameters)

@@ -93,7 +93,6 @@ public class ArtifactScanner {
                 return projectVersionView;
             }
         } catch (final Exception ex) {
-            logger.error("ERROR: " + ex.getMessage());
             logger.error("Error occurred during scan task", ex);
             attributesHelper.clearBlackduckAttributes(item);
             attributesHelper.setScanResult(item, ItemAttributesHelper.SCAN_STATUS_FAILED);

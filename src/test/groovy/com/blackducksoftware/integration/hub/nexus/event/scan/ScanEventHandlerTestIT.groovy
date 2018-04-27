@@ -23,6 +23,7 @@
  */
 package com.blackducksoftware.integration.hub.nexus.event.scan
 
+import org.junit.Assert
 import org.junit.Test
 
 import com.blackducksoftware.integration.hub.nexus.event.AbstractHandlerTest
@@ -47,24 +48,16 @@ public class ScanEventHandlerTestIT extends AbstractHandlerTest {
 
         final ScanItemMetaData data = new ScanItemMetaData(getItem(), getResourceStoreRequest(), getTaskParameters(), getProjectRequest())
         HubScanEvent event = processItem(data)
-        final HubScanEventHandler eventHandler = new HubScanEventHandler(null, "1", new ItemAttributesHelper(getAttributesHandler()), event, getHubServiceHelper())
+        final HubScanEventHandler eventHandler = new HubScanEventHandler(getItemAttributesHelper(), event, getHubServiceHelper())
         eventHandler.run()
-        //        for (final Event<?> event : getEventBus().getEvents()) {
-        //            if (event instanceof HubScanEvent) {
-        //                final HubScanEvent scanEvent = (HubScanEvent) event
-        //                eventHandler.handle(scanEvent)
-        //                Assert.assertTrue(getEventBus().hasEvents())
-        //                Assert.assertTrue(scanEvent.isProcessed())
-        //                final ItemAttributesHelper itemAttributesHelper = new ItemAttributesHelper(getAttributesHandler())
-        //                final String apiUrl = itemAttributesHelper.getApiUrl(getItem())
-        //                final String scanResult = itemAttributesHelper.getScanResult(getItem())
-        //                final String uiUrl = itemAttributesHelper.getUiUrl(getItem())
-        //                final long scanTime = itemAttributesHelper.getScanTime(getItem())
-        //                Assert.assertNotNull(apiUrl)
-        //                Assert.assertNotNull(uiUrl)
-        //                Assert.assertNotNull(scanResult)
-        //                Assert.assertNotEquals(0, scanTime)
-        //            }
-        //        }
+        final ItemAttributesHelper itemAttributesHelper = new ItemAttributesHelper(getAttributesHandler())
+        final String apiUrl = itemAttributesHelper.getApiUrl(getItem())
+        final String scanResult = itemAttributesHelper.getScanResult(getItem())
+        final String uiUrl = itemAttributesHelper.getUiUrl(getItem())
+        final long scanTime = itemAttributesHelper.getScanTime(getItem())
+        Assert.assertNotNull(apiUrl)
+        Assert.assertNotNull(uiUrl)
+        Assert.assertNotNull(scanResult)
+        Assert.assertNotEquals(0, scanTime)
     }
 }
