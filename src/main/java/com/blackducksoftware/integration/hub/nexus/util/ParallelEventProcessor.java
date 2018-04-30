@@ -60,40 +60,48 @@ public class ParallelEventProcessor {
     }
 
     public void executeHandlerAndWaitForThread(final HubEventHandler<?> eventHandler) throws InterruptedException {
-        boolean runTask = true;
-        while (runTask && !executorService.isShutdown()) {
-            try {
-                executeHandler(eventHandler);
-                runTask = false;
-            } catch (final RejectedExecutionException e) {
-                logger.info("Waiting for open thread");
-                Thread.sleep(5000);
+        if (executorService != null) {
+            boolean runTask = true;
+            while (runTask && !executorService.isShutdown()) {
+                try {
+                    executeHandler(eventHandler);
+                    runTask = false;
+                } catch (final RejectedExecutionException e) {
+                    logger.info("Waiting for open thread");
+                    Thread.sleep(5000);
+                }
             }
         }
     }
 
     public void executeHandler(final HubEventHandler<?> eventHandler) {
-        executorService.execute(eventHandler);
+        if (executorService != null) {
+            executorService.execute(eventHandler);
+        }
     }
 
     public void hardShutdown() {
-        shutdownProcessor();
-        try {
-            if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
-                logger.info("Attempting hard shutdown");
-                executorService.shutdownNow();
+        if (executorService != null) {
+            shutdownProcessor();
+            try {
                 if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
-                    logger.error("Threads did not terminate properly");
+                    logger.info("Attempting hard shutdown");
+                    executorService.shutdownNow();
+                    if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+                        logger.error("Threads did not terminate properly");
+                    }
                 }
+            } catch (final InterruptedException ie) {
+                executorService.shutdownNow();
+                Thread.currentThread().interrupt();
             }
-        } catch (final InterruptedException ie) {
-            executorService.shutdownNow();
-            Thread.currentThread().interrupt();
         }
     }
 
     public void shutdownProcessor() {
-        executorService.shutdown();
+        if (executorService != null) {
+            executorService.shutdown();
+        }
     }
 
 }
