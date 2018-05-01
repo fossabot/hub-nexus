@@ -23,6 +23,8 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task
 
+import java.util.concurrent.ExecutorService
+
 import org.apache.commons.collections.map.HashedMap
 import org.junit.After
 import org.junit.Assert
@@ -50,13 +52,9 @@ import com.blackducksoftware.integration.hub.nexus.test.TestEventLogger
 import com.blackducksoftware.integration.hub.nexus.test.TestExecutorService
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
 import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor
-import com.blackducksoftware.integration.hub.nexus.util.ScanAttributesHelper
 import com.blackducksoftware.integration.hub.service.HubServicesFactory
 import com.blackducksoftware.integration.log.Slf4jIntLogger
 
-import groovy.transform.TypeChecked
-
-@TypeChecked
 @RunWith(MockitoJUnitRunner.class)
 @PrepareForTest(ScanRepositoryWalker.class)
 public class ScanRepositoryWalkerTestIT {
@@ -73,6 +71,7 @@ public class ScanRepositoryWalkerTestIT {
     private Map<String,String> taskParameters
     private RestConnectionTestHelper restConnection
     private ParallelEventProcessor parallelEventProcessor
+    private TestExecutorService testExecutorService
 
     @Mock
     HubServiceHelper hubServiceHelper
@@ -87,7 +86,14 @@ public class ScanRepositoryWalkerTestIT {
         taskParameters.put(TaskField.DISTRIBUTION.getParameterKey(), "EXTERNAL")
         taskParameters.put(TaskField.PHASE.getParameterKey(), "DEVELOPMENT")
 
-        parallelEventProcessor = new ParallelEventProcessor()
+        parallelEventProcessor = new ParallelEventProcessor() {
+                    @Override
+                    public ExecutorService createExecutorService(int availableProcessors) {
+                        TestExecutorService testExecutorService = new TestExecutorService()
+                        return testExecutorService;
+                    }
+                }
+        testExecutorService = parallelEventProcessor.initializeExecutorService() as TestExecutorService
         repositoryItemUid = [ getBooleanAttributeValue: { attr -> false }, getRepository: { -> null } ] as RepositoryItemUid
         walkerContext = [ getResourceStoreRequest: { -> null } ] as WalkerContext
     }
@@ -107,8 +113,6 @@ public class ScanRepositoryWalkerTestIT {
 
     @Test
     public void processSuccessfullyScanned() throws Exception {
-        TestExecutorService testExecutorService = new TestExecutorService()
-        parallelEventProcessor.setExecutorService(new TestExecutorService())
         attributes = [ getModified: { -> 10l }] as Attributes
         item = [ getRepositoryItemUid: { -> repositoryItemUid },
             getRemoteUrl: { -> "" },
@@ -124,9 +128,8 @@ public class ScanRepositoryWalkerTestIT {
         final HubServiceHelper hubServiceHelper = new HubServiceHelper(new TestEventLogger(), taskParameters)
         hubServiceHelper.setHubServicesFactory(restConnection.createHubServicesFactory())
 
-        final ScanRepositoryWalker walker = new ScanRepositoryWalker(parallelEventProcessor, new ScanAttributesHelper(taskParameters), hubServiceHelper, itemAttributesHelper)
+        final ScanRepositoryWalker walker = new ScanRepositoryWalker(parallelEventProcessor, taskParameters, hubServiceHelper, itemAttributesHelper)
         walker.processItem(walkerContext, item)
-        testExecutorService = parallelEventProcessor.getExecutorService() as TestExecutorService
         Assert.assertTrue(testExecutorService.hasItems())
     }
 }

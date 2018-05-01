@@ -23,6 +23,8 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task.walker;
 
+import java.util.Map;
+
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.walker.WalkerContext;
 
@@ -34,17 +36,16 @@ import com.blackducksoftware.integration.hub.nexus.event.handler.HubEventHandler
 import com.blackducksoftware.integration.hub.nexus.event.handler.HubPolicyCheckEventHandler;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor;
-import com.blackducksoftware.integration.hub.nexus.util.ScanAttributesHelper;
 
 public class PolicyRepositoryWalker extends RepositoryWalkerProcessor<HubPolicyCheckEvent> {
     private final ItemAttributesHelper itemAttributesHelper;
     private final HubServiceHelper hubServiceHelper;
-    private final ScanAttributesHelper scanAttributesHelper;
+    private final Map<String, String> taskParams;
 
-    public PolicyRepositoryWalker(final ParallelEventProcessor parallelEventProcessor, final ItemAttributesHelper itemAttributesHelper, final ScanAttributesHelper scanAttributesHelper,
+    public PolicyRepositoryWalker(final ParallelEventProcessor parallelEventProcessor, final ItemAttributesHelper itemAttributesHelper, final Map<String, String> taskParams,
             final HubServiceHelper hubServiceHelper) {
         super(parallelEventProcessor);
-        this.scanAttributesHelper = scanAttributesHelper;
+        this.taskParams = taskParams;
         this.itemAttributesHelper = itemAttributesHelper;
         this.hubServiceHelper = hubServiceHelper;
     }
@@ -59,7 +60,7 @@ public class PolicyRepositoryWalker extends RepositoryWalkerProcessor<HubPolicyC
 
     public HubPolicyCheckEvent createEvent(final WalkerContext context, final StorageItem item) throws IntegrationException {
         final ProjectVersionView projectVersionView = getProjectVersion(item);
-        final HubPolicyCheckEvent event = new HubPolicyCheckEvent(item.getRepositoryItemUid().getRepository(), item, scanAttributesHelper.getScanAttributes(), context.getResourceStoreRequest(), projectVersionView);
+        final HubPolicyCheckEvent event = new HubPolicyCheckEvent(item.getRepositoryItemUid().getRepository(), item, taskParams, context.getResourceStoreRequest(), projectVersionView);
         return event;
     }
 

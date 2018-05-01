@@ -25,7 +25,6 @@ package com.blackducksoftware.integration.hub.nexus.repository.task;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -41,7 +40,6 @@ import com.blackducksoftware.integration.hub.nexus.repository.task.walker.Policy
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.TaskWalker;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.filter.PolicyRepositoryWalkerFilter;
 import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor;
-import com.blackducksoftware.integration.hub.nexus.util.ScanAttributesHelper;
 
 @Named(PolicyCheckTaskDescriptor.ID)
 public class PolicyCheckTask extends AbstractHubWalkerTask {
@@ -81,9 +79,8 @@ public class PolicyCheckTask extends AbstractHubWalkerTask {
 
     @Override
     protected AbstractWalkerProcessor getRepositoryWalker() {
-        final ExecutorService executorService = parallelEventProcessor.createExecutorService();
-        parallelEventProcessor.setExecutorService(executorService);
-        return new PolicyRepositoryWalker(parallelEventProcessor, itemAttributesHelper, new ScanAttributesHelper(getParameters()), getHubServiceHelper());
+        parallelEventProcessor.initializeExecutorService();
+        return new PolicyRepositoryWalker(parallelEventProcessor, itemAttributesHelper, getParameters(), getHubServiceHelper());
     }
 
     @Override

@@ -23,6 +23,8 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task
 
+import java.util.concurrent.ExecutorService
+
 import org.apache.commons.collections.map.HashedMap
 import org.junit.Assert
 import org.junit.Before
@@ -44,7 +46,6 @@ import com.blackducksoftware.integration.hub.nexus.repository.task.walker.Policy
 import com.blackducksoftware.integration.hub.nexus.test.TestExecutorService
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
 import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor
-import com.blackducksoftware.integration.hub.nexus.util.ScanAttributesHelper
 
 @RunWith(MockitoJUnitRunner.class)
 public class PolicyWalkerTest {
@@ -64,6 +65,7 @@ public class PolicyWalkerTest {
     private Attributes attributes
     private Map<String,String> taskParameters
     private ParallelEventProcessor parallelEventProcessor
+    private TestExecutorService testExecutorService
 
     @Before
     public void initTest() {
@@ -85,19 +87,23 @@ public class PolicyWalkerTest {
         Mockito.when(hubServiceHelper.getProjectVersionRequestService()).thenReturn(projectVersionRequestService)
         Mockito.when(projectVersionRequestService.getItem(Mockito.anyString(), Mockito.any())).thenReturn(Mockito.mock(ProjectVersionView.class))
 
-        TestExecutorService executorService = new TestExecutorService()
-        parallelEventProcessor = new ParallelEventProcessor()
-        parallelEventProcessor.setExecutorService(executorService)
+        parallelEventProcessor = new ParallelEventProcessor() {
+                    @Override
+                    public ExecutorService createExecutorService(int availableProcessors) {
+                        TestExecutorService testExecutorService = new TestExecutorService()
+                        return testExecutorService;
+                    }
+                }
+        testExecutorService = parallelEventProcessor.initializeExecutorService() as TestExecutorService
     }
 
     @Test
     public void testScanSuccess() {
         Mockito.when(itemAttributesHelper.getScanResult(item)).thenReturn(ItemAttributesHelper.SCAN_STATUS_SUCCESS)
 
-        final PolicyRepositoryWalker walker = new PolicyRepositoryWalker(parallelEventProcessor, itemAttributesHelper, new ScanAttributesHelper(taskParameters), hubServiceHelper);
+        final PolicyRepositoryWalker walker = new PolicyRepositoryWalker(parallelEventProcessor, itemAttributesHelper, taskParameters, hubServiceHelper);
         walker.processItem(walkerContext, item)
-        TestExecutorService executorService = parallelEventProcessor.getExecutorService() as TestExecutorService
-        Assert.assertEquals(1, executorService.getSize())
-        Assert.assertTrue(executorService.getItem(0) instanceof HubPolicyCheckEventHandler)
+        Assert.assertEquals(1, testExecutorService.getSize())
+        Assert.assertTrue(testExecutorService.getItem(0) instanceof HubPolicyCheckEventHandler)
     }
 }

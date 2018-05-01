@@ -23,6 +23,8 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task.walker;
 
+import java.util.Map;
+
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.item.StorageItem;
@@ -44,19 +46,18 @@ import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.scan.NameVersionNode;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor;
-import com.blackducksoftware.integration.hub.nexus.util.ScanAttributesHelper;
 import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder;
 
 public class ScanRepositoryWalker extends RepositoryWalkerProcessor<HubScanEvent> {
     private final HubServiceHelper hubServiceHelper;
     private final ItemAttributesHelper itemAttributesHelper;
-    private final ScanAttributesHelper scanAttributesHelper;
+    private final Map<String, String> taskParams;
 
-    public ScanRepositoryWalker(final ParallelEventProcessor parallelEventProcessor, final ScanAttributesHelper scanAttributesHelper, final HubServiceHelper hubServiceHelper, final ItemAttributesHelper itemAttributesHelper) {
+    public ScanRepositoryWalker(final ParallelEventProcessor parallelEventProcessor, final Map<String, String> taskParams, final HubServiceHelper hubServiceHelper, final ItemAttributesHelper itemAttributesHelper) {
         super(parallelEventProcessor);
         this.hubServiceHelper = hubServiceHelper;
         this.itemAttributesHelper = itemAttributesHelper;
-        this.scanAttributesHelper = scanAttributesHelper;
+        this.taskParams = taskParams;
     }
 
     @Override
@@ -67,13 +68,13 @@ public class ScanRepositoryWalker extends RepositoryWalkerProcessor<HubScanEvent
     }
 
     public HubScanEvent createEvent(final WalkerContext context, final StorageItem item) throws IntegrationException {
-        final String distribution = scanAttributesHelper.getStringAttribute(TaskField.DISTRIBUTION);
-        final String phase = scanAttributesHelper.getStringAttribute(TaskField.PHASE);
+        final String distribution = taskParams.get(TaskField.DISTRIBUTION.getParameterKey());
+        final String phase = taskParams.get(TaskField.PHASE.getParameterKey());
         final ProjectRequest projectRequest = createProjectRequest(distribution, phase, item);
         createProjectAndVersion(projectRequest);
         // the walker has already restricted the items to find. Now for scanning to work create a request that is for the repository root because the item path is relative to the repository root
         final ResourceStoreRequest eventRequest = new ResourceStoreRequest(RepositoryItemUid.PATH_ROOT, true, false);
-        final ScanItemMetaData scanItem = new ScanItemMetaData(item, eventRequest, scanAttributesHelper.getScanAttributes(), projectRequest);
+        final ScanItemMetaData scanItem = new ScanItemMetaData(item, eventRequest, taskParams, projectRequest);
         return processItem(scanItem);
     }
 

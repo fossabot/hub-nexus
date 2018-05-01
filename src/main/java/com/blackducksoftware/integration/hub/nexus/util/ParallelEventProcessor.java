@@ -42,21 +42,19 @@ public class ParallelEventProcessor {
     private final Logger logger = Loggers.getLogger(getClass());
     private ExecutorService executorService;
 
-    public ExecutorService createExecutorService() {
-        return createExecutorService(Runtime.getRuntime().availableProcessors());
+    public ExecutorService initializeExecutorService() {
+        return initializeExecutorService(Runtime.getRuntime().availableProcessors());
+    }
+
+    public ExecutorService initializeExecutorService(final int availableProcessors) {
+        hardShutdown();
+        executorService = createExecutorService(availableProcessors);
+        return executorService;
     }
 
     public ExecutorService createExecutorService(final int availableProcessors) {
         logger.info("Using {} parallel processors", availableProcessors);
         return Executors.newFixedThreadPool(availableProcessors);
-    }
-
-    public ExecutorService getExecutorService() {
-        return executorService;
-    }
-
-    public void setExecutorService(final ExecutorService executorService) {
-        this.executorService = executorService;
     }
 
     public void executeHandlerAndWaitForThread(final HubEventHandler<?> eventHandler) throws InterruptedException {
@@ -94,6 +92,8 @@ public class ParallelEventProcessor {
             } catch (final InterruptedException ie) {
                 executorService.shutdownNow();
                 Thread.currentThread().interrupt();
+            } finally {
+                executorService = null;
             }
         }
     }
@@ -101,6 +101,7 @@ public class ParallelEventProcessor {
     public void shutdownProcessor() {
         if (executorService != null) {
             executorService.shutdown();
+            executorService = null;
         }
     }
 

@@ -23,8 +23,8 @@
  */
 package com.blackducksoftware.integration.hub.nexus.event.handler;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -60,7 +60,9 @@ public class NexusTaskEventStoppedCanceledHandler extends ComponentSupport imple
     }
 
     private boolean isBlackduckTask(final NexusTask<?> task) {
-        final List<Class<? extends AbstractHubWalkerTask>> taskNames = Arrays.asList(ScanTask.class, PolicyCheckTask.class);
+        final Set<Class<? extends AbstractHubWalkerTask>> taskNames = new HashSet<>();
+        taskNames.add(ScanTask.class);
+        taskNames.add(PolicyCheckTask.class);
         return taskNames.contains(task.getClass());
     }
 }

@@ -24,7 +24,6 @@
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
 import java.io.File;
-import java.util.concurrent.ExecutorService;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -41,7 +40,6 @@ import com.blackducksoftware.integration.hub.nexus.repository.task.walker.ScanRe
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.TaskWalker;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.filter.ScanRepositoryWalkerFilter;
 import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor;
-import com.blackducksoftware.integration.hub.nexus.util.ScanAttributesHelper;
 import com.blackducksoftware.integration.hub.util.HostnameHelper;
 import com.blackducksoftware.integration.util.CIEnvironmentVariables;
 
@@ -89,9 +87,8 @@ public class ScanTask extends AbstractHubWalkerTask {
 
     @Override
     public AbstractWalkerProcessor getRepositoryWalker() {
-        final ExecutorService executorService = parallelEventProcessor.createExecutorService();
-        parallelEventProcessor.setExecutorService(executorService);
-        return new ScanRepositoryWalker(parallelEventProcessor, new ScanAttributesHelper(getParameters()), getHubServiceHelper(), itemAttributesHelper);
+        parallelEventProcessor.initializeExecutorService(Runtime.getRuntime().availableProcessors() + 1 / 2);
+        return new ScanRepositoryWalker(parallelEventProcessor, getParameters(), getHubServiceHelper(), itemAttributesHelper);
     }
 
     @Override
