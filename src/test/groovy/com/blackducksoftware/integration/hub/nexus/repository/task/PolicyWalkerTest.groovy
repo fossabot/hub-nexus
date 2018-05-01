@@ -23,18 +23,16 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task
 
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertFalse
-import static org.junit.Assert.assertTrue
+import java.util.concurrent.ExecutorService
 
 import org.apache.commons.collections.map.HashedMap
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.runners.MockitoJUnitRunner
-import org.sonatype.nexus.events.Event
 import org.sonatype.nexus.proxy.attributes.Attributes
 import org.sonatype.nexus.proxy.item.RepositoryItemUid
 import org.sonatype.nexus.proxy.item.StorageItem
@@ -43,9 +41,11 @@ import org.sonatype.nexus.proxy.walker.WalkerContext
 import com.blackducksoftware.integration.hub.api.project.version.ProjectVersionRequestService
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper
-import com.blackducksoftware.integration.hub.nexus.event.HubPolicyCheckEvent
-import com.blackducksoftware.integration.hub.nexus.test.TestEventBus
+import com.blackducksoftware.integration.hub.nexus.event.handler.HubPolicyCheckEventHandler
+import com.blackducksoftware.integration.hub.nexus.repository.task.walker.PolicyRepositoryWalker
+import com.blackducksoftware.integration.hub.nexus.test.TestExecutorService
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
+import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor
 
 @RunWith(MockitoJUnitRunner.class)
 public class PolicyWalkerTest {
@@ -55,14 +55,17 @@ public class PolicyWalkerTest {
 
     @Mock
     private ItemAttributesHelper itemAttributesHelper
+
     @Mock
     private HubServiceHelper hubServiceHelper
+
     private StorageItem item
     private WalkerContext walkerContext
     private RepositoryItemUid repositoryItemUid
     private Attributes attributes
-    private TestEventBus eventBus
     private Map<String,String> taskParameters
+    private ParallelEventProcessor parallelEventProcessor
+    private TestExecutorService testExecutorService
 
     @Before
     public void initTest() {
@@ -70,7 +73,6 @@ public class PolicyWalkerTest {
         taskParameters.put(TaskField.DISTRIBUTION.getParameterKey(), "EXTERNAL")
         taskParameters.put(TaskField.PHASE.getParameterKey(), "DEVELOPMENT")
 
-        eventBus = new TestEventBus();
         repositoryItemUid = [ getBooleanAttributeValue: { attr -> false }, getRepository: { -> null } ] as RepositoryItemUid
 
         item = [ getRepositoryItemUid: { -> repositoryItemUid },
@@ -84,29 +86,24 @@ public class PolicyWalkerTest {
         hubServiceHelper = Mockito.mock(HubServiceHelper.class)
         Mockito.when(hubServiceHelper.getProjectVersionRequestService()).thenReturn(projectVersionRequestService)
         Mockito.when(projectVersionRequestService.getItem(Mockito.anyString(), Mockito.any())).thenReturn(Mockito.mock(ProjectVersionView.class))
+
+        parallelEventProcessor = new ParallelEventProcessor() {
+                    @Override
+                    public ExecutorService createExecutorService(int availableProcessors) {
+                        TestExecutorService testExecutorService = new TestExecutorService()
+                        return testExecutorService;
+                    }
+                }
+        testExecutorService = parallelEventProcessor.initializeExecutorService() as TestExecutorService
     }
 
     @Test
     public void testScanSuccess() {
         Mockito.when(itemAttributesHelper.getScanResult(item)).thenReturn(ItemAttributesHelper.SCAN_STATUS_SUCCESS)
 
-        final PolicyRepositoryWalker walker = new PolicyRepositoryWalker(eventBus, itemAttributesHelper, taskParameters, hubServiceHelper);
+        final PolicyRepositoryWalker walker = new PolicyRepositoryWalker(parallelEventProcessor, itemAttributesHelper, taskParameters, hubServiceHelper);
         walker.processItem(walkerContext, item)
-        assertEquals(1, eventBus.getEventCount())
-        Collection<Event<?>> eventCollection = eventBus.getEvents()
-        for(Event<?> event : eventCollection ) {
-            assertTrue(event instanceof HubPolicyCheckEvent)
-            HubPolicyCheckEvent policyEvent = (HubPolicyCheckEvent) event
-            assertEquals(item, policyEvent.getItem())
-        }
-    }
-
-    @Test
-    public void testScanFailed() {
-        Mockito.when(itemAttributesHelper.getScanResult(item)).thenReturn(ItemAttributesHelper.SCAN_STATUS_FAILED)
-
-        final PolicyRepositoryWalker walker = new PolicyRepositoryWalker(eventBus, itemAttributesHelper, taskParameters, hubServiceHelper);
-        walker.processItem(walkerContext, item)
-        assertFalse(eventBus.hasEvents())
+        Assert.assertEquals(1, testExecutorService.getSize())
+        Assert.assertTrue(testExecutorService.getItem(0) instanceof HubPolicyCheckEventHandler)
     }
 }

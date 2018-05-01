@@ -99,7 +99,7 @@ public class HubServiceHelper {
         return hubServerConfig;
     }
 
-    public HubServicesFactory getHubServicesFactory() {
+    public synchronized HubServicesFactory getHubServicesFactory() {
         if (hubServicesFactory == null) {
             CredentialsRestConnection credentialsRestConnection = null;
 

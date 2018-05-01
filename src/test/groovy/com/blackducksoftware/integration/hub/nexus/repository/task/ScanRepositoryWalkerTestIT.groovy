@@ -23,11 +23,11 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task
 
-import static org.junit.Assert.assertFalse
-import static org.junit.Assert.assertTrue
+import java.util.concurrent.ExecutorService
 
 import org.apache.commons.collections.map.HashedMap
 import org.junit.After
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -45,13 +45,13 @@ import com.blackducksoftware.integration.hub.api.project.ProjectRequestService
 import com.blackducksoftware.integration.hub.exception.DoesNotExistException
 import com.blackducksoftware.integration.hub.model.view.ProjectView
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper
-import com.blackducksoftware.integration.hub.nexus.event.ScanEventManager
 import com.blackducksoftware.integration.hub.nexus.event.ScanItemMetaData
-import com.blackducksoftware.integration.hub.nexus.event.scan.ScanEventManagerTest
+import com.blackducksoftware.integration.hub.nexus.repository.task.walker.ScanRepositoryWalker
 import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper
-import com.blackducksoftware.integration.hub.nexus.test.TestEventBus
 import com.blackducksoftware.integration.hub.nexus.test.TestEventLogger
+import com.blackducksoftware.integration.hub.nexus.test.TestExecutorService
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
+import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor
 import com.blackducksoftware.integration.hub.service.HubServicesFactory
 import com.blackducksoftware.integration.log.Slf4jIntLogger
 
@@ -65,13 +65,14 @@ public class ScanRepositoryWalkerTestIT {
     @Mock
     private ItemAttributesHelper itemAttributesHelper
     private StorageItem item
-    private ScanEventManager scanEventManager
     private WalkerContext walkerContext
     private RepositoryItemUid repositoryItemUid
     private Attributes attributes
-    private TestEventBus eventBus
     private Map<String,String> taskParameters
     private RestConnectionTestHelper restConnection
+    private ParallelEventProcessor parallelEventProcessor
+    private TestExecutorService testExecutorService
+
     @Mock
     HubServiceHelper hubServiceHelper
 
@@ -85,8 +86,14 @@ public class ScanRepositoryWalkerTestIT {
         taskParameters.put(TaskField.DISTRIBUTION.getParameterKey(), "EXTERNAL")
         taskParameters.put(TaskField.PHASE.getParameterKey(), "DEVELOPMENT")
 
-        eventBus = new TestEventBus();
-        scanEventManager = new ScanEventManager(eventBus)
+        parallelEventProcessor = new ParallelEventProcessor() {
+                    @Override
+                    public ExecutorService createExecutorService(int availableProcessors) {
+                        TestExecutorService testExecutorService = new TestExecutorService()
+                        return testExecutorService;
+                    }
+                }
+        testExecutorService = parallelEventProcessor.initializeExecutorService() as TestExecutorService
         repositoryItemUid = [ getBooleanAttributeValue: { attr -> false }, getRepository: { -> null } ] as RepositoryItemUid
         walkerContext = [ getResourceStoreRequest: { -> null } ] as WalkerContext
     }
@@ -121,115 +128,8 @@ public class ScanRepositoryWalkerTestIT {
         final HubServiceHelper hubServiceHelper = new HubServiceHelper(new TestEventLogger(), taskParameters)
         hubServiceHelper.setHubServicesFactory(restConnection.createHubServicesFactory())
 
-        final ScanRepositoryWalker walker = new ScanRepositoryWalker(PROJECT_NAME, itemAttributesHelper, taskParameters, scanEventManager, hubServiceHelper)
+        final ScanRepositoryWalker walker = new ScanRepositoryWalker(parallelEventProcessor, taskParameters, hubServiceHelper, itemAttributesHelper)
         walker.processItem(walkerContext, item)
-        assertFalse(eventBus.hasEvents())
-    }
-
-    @Test
-    public void processLastModified() throws Exception {
-        taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, ScanEventManagerTest.TEST_TASK_NAME)
-        eventBus = new TestEventBus();
-        scanEventManager = new ScanEventManager(eventBus)
-        attributes = [ getModified: { -> 102L }] as Attributes
-
-        item = [ getRepositoryItemUid: { -> repositoryItemUid },
-            getRemoteUrl: { -> "" },
-            getPath: { -> PROJECT_NAME },
-            getRepositoryItemAttributes: { -> attributes },
-            getParentPath: { -> PARENT_PATH },
-            getName: { -> "itemName"}] as StorageItem
-
-        Mockito.when(itemAttributesHelper.getScanTime(item)).thenReturn(101L)
-        Mockito.when(itemAttributesHelper.getScanResult(item)).thenReturn(ItemAttributesHelper.SCAN_STATUS_SUCCESS)
-
-        final RestConnectionTestHelper restConnection = new RestConnectionTestHelper()
-        final HubServiceHelper hubServiceHelper = new HubServiceHelper(new TestEventLogger(), taskParameters)
-        hubServiceHelper.setHubServicesFactory(restConnection.createHubServicesFactory())
-
-        final ScanRepositoryWalker walker = new ScanRepositoryWalker(PROJECT_NAME, itemAttributesHelper, taskParameters, scanEventManager, hubServiceHelper)
-        walker.processItem(walkerContext, item)
-        assertTrue(eventBus.hasEvents())
-    }
-
-    @Test
-    public void processScanFailedNoRescan() throws Exception {
-        taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, ScanEventManagerTest.TEST_TASK_NAME)
-        taskParameters.put(TaskField.RESCAN_FAILURES.getParameterKey(), "false")
-        eventBus = new TestEventBus();
-        scanEventManager = new ScanEventManager(eventBus)
-        attributes = [ getModified: { -> 100L }] as Attributes
-
-        item = [ getRepositoryItemUid: { -> repositoryItemUid },
-            getRemoteUrl: { -> "" },
-            getPath: { -> PROJECT_NAME },
-            getRepositoryItemAttributes: { -> attributes },
-            getParentPath: { -> PARENT_PATH },
-            getName: { -> "itemName"}] as StorageItem
-
-        Mockito.when(itemAttributesHelper.getScanTime(item)).thenReturn(101L)
-        Mockito.when(itemAttributesHelper.getScanResult(item)).thenReturn(ItemAttributesHelper.SCAN_STATUS_FAILED)
-
-        final RestConnectionTestHelper restConnection = new RestConnectionTestHelper()
-        final HubServiceHelper hubServiceHelper = new HubServiceHelper(new TestEventLogger(), taskParameters)
-        hubServiceHelper.setHubServicesFactory(restConnection.createHubServicesFactory())
-
-        final ScanRepositoryWalker walker = new ScanRepositoryWalker(PROJECT_NAME, itemAttributesHelper, taskParameters, scanEventManager, hubServiceHelper)
-        walker.processItem(walkerContext, item)
-        assertFalse(eventBus.hasEvents())
-    }
-
-    @Test
-    public void processScanFailedRescan() throws Exception {
-        taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, ScanEventManagerTest.TEST_TASK_NAME)
-        taskParameters.put(TaskField.RESCAN_FAILURES.getParameterKey(), "true")
-        eventBus = new TestEventBus();
-        scanEventManager = new ScanEventManager(eventBus)
-        attributes = [ getModified: { -> 100L }] as Attributes
-
-        item = [ getRepositoryItemUid: { -> repositoryItemUid },
-            getRemoteUrl: { -> "" },
-            getPath: { -> PROJECT_NAME },
-            getRepositoryItemAttributes: { -> attributes },
-            getParentPath: { -> PARENT_PATH },
-            getName: { -> "itemName"}] as StorageItem
-
-        Mockito.when(itemAttributesHelper.getScanTime(item)).thenReturn(101L)
-        Mockito.when(itemAttributesHelper.getScanResult(item)).thenReturn(ItemAttributesHelper.SCAN_STATUS_FAILED)
-
-        final RestConnectionTestHelper restConnection = new RestConnectionTestHelper()
-        final HubServiceHelper hubServiceHelper = new HubServiceHelper(new TestEventLogger(), taskParameters)
-        hubServiceHelper.setHubServicesFactory(restConnection.createHubServicesFactory())
-
-        final ScanRepositoryWalker walker = new ScanRepositoryWalker(PROJECT_NAME, itemAttributesHelper, taskParameters, scanEventManager, hubServiceHelper)
-        walker.processItem(walkerContext, item)
-        assertTrue(eventBus.hasEvents())
-    }
-
-    @Test
-    public void processAlwaysScan() throws Exception {
-        taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, ScanEventManagerTest.TEST_TASK_NAME)
-        taskParameters.put(TaskField.ALWAYS_SCAN.getParameterKey(), "true")
-        eventBus = new TestEventBus();
-        scanEventManager = new ScanEventManager(eventBus)
-        attributes = [ getModified: { -> 100L }] as Attributes
-
-        item = [ getRepositoryItemUid: { -> repositoryItemUid },
-            getRemoteUrl: { -> "" },
-            getPath: { -> PROJECT_NAME},
-            getRepositoryItemAttributes: { -> attributes },
-            getParentPath: { -> PARENT_PATH },
-            getName: { -> "itemName"}] as StorageItem
-
-        Mockito.when(itemAttributesHelper.getScanTime(item)).thenReturn(101L)
-        Mockito.when(itemAttributesHelper.getScanResult(item)).thenReturn(ItemAttributesHelper.SCAN_STATUS_SUCCESS)
-
-        final RestConnectionTestHelper restConnection = new RestConnectionTestHelper()
-        final HubServiceHelper hubServiceHelper = new HubServiceHelper(new TestEventLogger(), taskParameters)
-        hubServiceHelper.setHubServicesFactory(restConnection.createHubServicesFactory())
-
-        final ScanRepositoryWalker walker = new ScanRepositoryWalker(PROJECT_NAME, itemAttributesHelper, taskParameters, scanEventManager, hubServiceHelper)
-        walker.processItem(walkerContext, item)
-        assertTrue(eventBus.hasEvents())
+        Assert.assertTrue(testExecutorService.hasItems())
     }
 }

@@ -23,17 +23,27 @@
  */
 package com.blackducksoftware.integration.hub.nexus.application;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import org.sonatype.nexus.configuration.application.ApplicationConfiguration;
+
+import com.blackducksoftware.integration.hub.nexus.repository.task.ScanTaskDescriptor;
 import com.blackducksoftware.integration.phonehome.enums.ThirdPartyName;
 
+@Named
+@Singleton
 public class IntegrationInfo {
     private final ThirdPartyName thirdPartyName;
     private final String thirdPartyVersion;
     private final String pluginVersion;
 
-    public IntegrationInfo(final ThirdPartyName thirdPartyName, final String thirdPartyVersion, final String pluginVersion) {
-        this.thirdPartyName = thirdPartyName;
-        this.thirdPartyVersion = thirdPartyVersion;
-        this.pluginVersion = pluginVersion;
+    @Inject
+    public IntegrationInfo(final ApplicationConfiguration applicationConfiguration) {
+        this.thirdPartyName = ThirdPartyName.NEXUS;
+        this.thirdPartyVersion = applicationConfiguration.getConfigurationModel().getNexusVersion();
+        this.pluginVersion = ScanTaskDescriptor.PLUGIN_VERSION;
     }
 
     public ThirdPartyName getThirdPartyName() {

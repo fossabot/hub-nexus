@@ -41,27 +41,28 @@ import com.blackducksoftware.integration.hub.api.project.ProjectRequestService
 import com.blackducksoftware.integration.hub.exception.DoesNotExistException
 import com.blackducksoftware.integration.hub.model.request.ProjectRequest
 import com.blackducksoftware.integration.hub.model.view.ProjectView
-import com.blackducksoftware.integration.hub.nexus.event.scan.ScanEventManagerTest
+import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField
 import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper
-import com.blackducksoftware.integration.hub.nexus.test.TestEventBus
+import com.blackducksoftware.integration.hub.nexus.test.TestExecutorService
 import com.blackducksoftware.integration.hub.nexus.test.TestingPropertyKey
+import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
 import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder
 import com.blackducksoftware.integration.hub.service.HubServicesFactory
 import com.blackducksoftware.integration.log.Slf4jIntLogger
 
 public abstract class AbstractHandlerTest extends AbstractMavenRepoContentTests {
-
     private RestConnectionTestHelper restConnection
     private ApplicationConfiguration appConfiguration
-    private TestEventBus eventBus
     private DefaultAttributesHandler attributesHandler
-    private ScanEventManager eventManager
+    private ItemAttributesHelper itemAttributesHelper
     private Repository repository
     private Map<String, String> taskParameters
     private ResourceStoreRequest resourceStoreRequest
     private StorageItem item
     private ProjectRequest projectRequest
+    private HubServiceHelper hubServiceHelper
+    private TestExecutorService testExecutorService
 
     @Override
     protected void setUp() throws Exception {
@@ -85,10 +86,10 @@ public abstract class AbstractHandlerTest extends AbstractMavenRepoContentTests 
     public abstract String getZipFilePath()
 
     private void setupTest(final String zipFilePath) throws Exception {
-        eventBus = new TestEventBus()
+        testExecutorService = new TestExecutorService()
         appConfiguration = this.nexusConfiguration()
         attributesHandler = lookup(DefaultAttributesHandler.class)
-        eventManager = new ScanEventManager(eventBus)
+        itemAttributesHelper = new ItemAttributesHelper(attributesHandler);
         restConnection = new RestConnectionTestHelper()
         final File zipFile = getTestFile(zipFilePath)
         final File propFile = getTestFile("src/test/resources/repo1/extension-mapping.properties")
@@ -103,9 +104,9 @@ public abstract class AbstractHandlerTest extends AbstractMavenRepoContentTests 
         repository.storeItem(resourceStoreRequest, zipFileInputStream, null)
         item = repository.retrieveItem(resourceStoreRequest)
         taskParameters = generateParams()
-        taskParameters.put(ScanEventManager.PARAMETER_KEY_TASK_NAME, ScanEventManagerTest.TEST_TASK_NAME)
         projectRequest = createProjectRequest()
         resourceStoreRequest = new ResourceStoreRequest("")
+        hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(LoggerFactory.getLogger(getClass())), taskParameters);
     }
 
     private ProjectRequest createProjectRequest() {
@@ -116,6 +117,11 @@ public abstract class AbstractHandlerTest extends AbstractMavenRepoContentTests 
         builder.setPhase(restConnection.getProperty(TestingPropertyKey.TEST_PHASE))
         builder.setDistribution(restConnection.getProperty(TestingPropertyKey.TEST_DISTRIBUTION))
         return builder.build()
+    }
+
+    protected HubScanEvent processItem(final ScanItemMetaData data) {
+        final HubScanEvent event = new HubScanEvent(data.getItem().getRepositoryItemUid().getRepository(), data.getItem(), data.getTaskParameters(), data.getRequest(), data.getProjectRequest());
+        return event;
     }
 
     @Override
@@ -146,16 +152,16 @@ public abstract class AbstractHandlerTest extends AbstractMavenRepoContentTests 
         return appConfiguration
     }
 
-    public TestEventBus getEventBus() {
-        return eventBus
-    }
-
     public DefaultAttributesHandler getAttributesHandler() {
         return attributesHandler
     }
 
-    public ScanEventManager getEventManager() {
-        return eventManager
+    public ItemAttributesHelper getItemAttributesHelper() {
+        return itemAttributesHelper
+    }
+
+    public HubServiceHelper getHubServiceHelper() {
+        return hubServiceHelper
     }
 
     public Repository getRepository() {

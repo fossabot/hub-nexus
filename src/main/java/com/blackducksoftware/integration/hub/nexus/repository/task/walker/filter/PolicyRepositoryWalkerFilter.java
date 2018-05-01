@@ -21,30 +21,21 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.repository.task;
+package com.blackducksoftware.integration.hub.nexus.repository.task.walker.filter;
 
-import java.util.List;
-
-import org.sonatype.nexus.proxy.walker.Walker;
+import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.walker.WalkerContext;
-import org.sonatype.nexus.proxy.walker.WalkerException;
-import org.sonatype.nexus.scheduling.AbstractNexusRepositoriesPathAwareTask;
 
-public abstract class AbstractHubTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
-    private final Walker walker;
+import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
-    public AbstractHubTask(final Walker walker) {
-        this.walker = walker;
+public class PolicyRepositoryWalkerFilter extends RepositoryWalkerFilter {
+
+    public PolicyRepositoryWalkerFilter(final ItemAttributesHelper itemAttributesHelper) {
+        super(itemAttributesHelper);
     }
 
-    public void walkRepositories(final List<WalkerContext> contextList) {
-        for (final WalkerContext context : contextList) {
-            try {
-                walker.walk(context);
-            } catch (final WalkerException walkerEx) {
-                logger.error("Exception walking repository. ", walkerEx);
-            }
-        }
+    @Override
+    public boolean shouldProcess(final WalkerContext context, final StorageItem item) {
+        return super.shouldProcess(context, item) && ItemAttributesHelper.SCAN_STATUS_SUCCESS == itemAttributesHelper.getScanResult(item);
     }
-
 }

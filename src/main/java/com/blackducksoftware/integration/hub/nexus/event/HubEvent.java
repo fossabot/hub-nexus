@@ -64,4 +64,5 @@ public class HubEvent extends AbstractEvent<Repository> {
     public Map<String, String> getTaskParameters() {
         return taskParameters;
     }
+
 }

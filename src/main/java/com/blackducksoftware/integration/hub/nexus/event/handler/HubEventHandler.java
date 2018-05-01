@@ -21,31 +21,36 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-package com.blackducksoftware.integration.hub.nexus.event;
-
-import java.util.Map;
-
-import org.sonatype.nexus.events.Asynchronous;
-import org.sonatype.nexus.events.EventSubscriber;
-import org.sonatype.nexus.proxy.attributes.AttributesHandler;
-import org.sonatype.sisu.goodies.common.ComponentSupport;
+package com.blackducksoftware.integration.hub.nexus.event.handler;
 
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
-import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger;
+import com.blackducksoftware.integration.hub.nexus.event.HubEvent;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 
-public abstract class HubEventHandler extends ComponentSupport implements EventSubscriber, Asynchronous {
+public abstract class HubEventHandler<E extends HubEvent> implements Runnable {
     private final ItemAttributesHelper attributeHelper;
+    private E event;
+    private final HubServiceHelper hubServiceHelper;
 
-    public HubEventHandler(final AttributesHandler attributesHandler) {
-        this.attributeHelper = new ItemAttributesHelper(attributesHandler);
+    public HubEventHandler(final ItemAttributesHelper itemAttributesHelper, final E event, final HubServiceHelper hubServiceHelper) {
+        this.attributeHelper = itemAttributesHelper;
+        this.event = event;
+        this.hubServiceHelper = hubServiceHelper;
     }
 
     public ItemAttributesHelper getAttributeHelper() {
         return attributeHelper;
     }
 
-    public HubServiceHelper createServiceHelper(final HubEventLogger logger, final Map<String, String> taskParameters) {
-        return new HubServiceHelper(logger, taskParameters);
+    public E getEvent() {
+        return event;
+    }
+
+    public void setEvent(final E event) {
+        this.event = event;
+    }
+
+    public HubServiceHelper getHubServiceHelper() {
+        return hubServiceHelper;
     }
 }

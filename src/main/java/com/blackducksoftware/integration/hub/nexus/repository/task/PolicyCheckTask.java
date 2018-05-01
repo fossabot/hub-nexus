@@ -29,63 +29,29 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.apache.commons.lang3.StringUtils;
-import org.sonatype.nexus.proxy.ResourceStoreRequest;
-import org.sonatype.nexus.proxy.attributes.AttributesHandler;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
-import org.sonatype.nexus.proxy.item.RepositoryItemUid;
+import org.sonatype.nexus.proxy.repository.GroupRepository;
 import org.sonatype.nexus.proxy.repository.Repository;
-import org.sonatype.nexus.proxy.walker.DefaultWalkerContext;
-import org.sonatype.nexus.proxy.walker.Walker;
-import org.sonatype.nexus.proxy.walker.WalkerContext;
+import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
+import org.sonatype.nexus.proxy.walker.DefaultStoreWalkerFilter;
 
-import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
-import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
-import com.blackducksoftware.integration.log.Slf4jIntLogger;
+import com.blackducksoftware.integration.hub.nexus.application.IntegrationInfo;
+import com.blackducksoftware.integration.hub.nexus.repository.task.walker.PolicyRepositoryWalker;
+import com.blackducksoftware.integration.hub.nexus.repository.task.walker.TaskWalker;
+import com.blackducksoftware.integration.hub.nexus.repository.task.walker.filter.PolicyRepositoryWalkerFilter;
+import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor;
 
 @Named(PolicyCheckTaskDescriptor.ID)
-public class PolicyCheckTask extends AbstractHubTask {
-    private final AttributesHandler attributesHandler;
+public class PolicyCheckTask extends AbstractHubWalkerTask {
 
     @Inject
-    public PolicyCheckTask(final Walker walker, final DefaultAttributesHandler attributesHandler) {
-        super(walker);
-        this.attributesHandler = attributesHandler;
+    public PolicyCheckTask(final TaskWalker walker, final DefaultAttributesHandler attributesHandler, final ParallelEventProcessor parallelEventProcessor, final IntegrationInfo integrationInfo) {
+        super(walker, attributesHandler, integrationInfo, parallelEventProcessor);
     }
 
     @Override
     protected String getRepositoryPathFieldId() {
         return TaskField.REPOSITORY_PATH_FIELD_ID.getParameterKey();
-    }
-
-    @Override
-    protected Object doRun() throws Exception {
-        try {
-            final HubServiceHelper hubServiceHelper = new HubServiceHelper(new Slf4jIntLogger(logger), this.getParameters());
-            final List<Repository> repositoryList = getRepositoryRegistry().getRepositories();
-            final List<WalkerContext> contextList = new ArrayList<>();
-
-            for (final Repository repository : repositoryList) {
-                contextList.add(createRepositoryWalker(repository, hubServiceHelper));
-            }
-            walkRepositories(contextList);
-        } catch (final Exception ex) {
-            logger.error("Error occurred during task execution {}", ex);
-        }
-        return null;
-    }
-
-    private WalkerContext createRepositoryWalker(final Repository repository, final HubServiceHelper hubServiceHelper) {
-        final ResourceStoreRequest request = new ResourceStoreRequest(getResourceStorePath(), true, false);
-        if (StringUtils.isBlank(request.getRequestPath())) {
-            request.setRequestPath(RepositoryItemUid.PATH_ROOT);
-        }
-
-        request.setRequestLocalOnly(true);
-        final WalkerContext context = new DefaultWalkerContext(repository, request);
-        getLogger().info("Creating walker for repository {}", repository.getName());
-        context.getProcessors().add(new PolicyRepositoryWalker(getEventBus(), new ItemAttributesHelper(attributesHandler), getParameters(), hubServiceHelper));
-        return context;
     }
 
     @Override
@@ -96,6 +62,30 @@ public class PolicyCheckTask extends AbstractHubTask {
     @Override
     protected String getMessage() {
         return "HUB-NEXUS-PLUGIN-POLICY-CHECK: Search for successfully scanned artifacts and check their policy";
+    }
+
+    @Override
+    protected List<Repository> createRepositoryList() {
+        final List<Repository> repositoryList = new ArrayList<>();
+        final List<Repository> allRepositoryList = super.createRepositoryList();
+        for (final Repository repository : allRepositoryList) {
+            if (!repository.getRepositoryKind().isFacetAvailable(GroupRepository.class)) {
+                repositoryList.add(repository);
+            }
+        }
+
+        return repositoryList;
+    }
+
+    @Override
+    protected AbstractWalkerProcessor getRepositoryWalker() {
+        parallelEventProcessor.initializeExecutorService();
+        return new PolicyRepositoryWalker(parallelEventProcessor, itemAttributesHelper, getParameters(), getHubServiceHelper());
+    }
+
+    @Override
+    protected DefaultStoreWalkerFilter getRepositoryWalkerFilter() {
+        return new PolicyRepositoryWalkerFilter(itemAttributesHelper);
     }
 
 }
