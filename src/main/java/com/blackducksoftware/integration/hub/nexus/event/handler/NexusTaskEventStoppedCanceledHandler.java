@@ -45,10 +45,14 @@ import com.google.common.eventbus.Subscribe;
 @Singleton
 public class NexusTaskEventStoppedCanceledHandler extends ComponentSupport implements EventSubscriber {
     private final ParallelEventProcessor parallelEventProcessor;
+    private final Set<Class<? extends AbstractHubWalkerTask>> taskNames;
 
     @Inject
     public NexusTaskEventStoppedCanceledHandler(final ParallelEventProcessor parallelEventProcessor) {
         this.parallelEventProcessor = parallelEventProcessor;
+        taskNames = new HashSet<>();
+        taskNames.add(ScanTask.class);
+        taskNames.add(PolicyCheckTask.class);
     }
 
     @Subscribe
@@ -60,9 +64,6 @@ public class NexusTaskEventStoppedCanceledHandler extends ComponentSupport imple
     }
 
     private boolean isBlackduckTask(final NexusTask<?> task) {
-        final Set<Class<? extends AbstractHubWalkerTask>> taskNames = new HashSet<>();
-        taskNames.add(ScanTask.class);
-        taskNames.add(PolicyCheckTask.class);
         return taskNames.contains(task.getClass());
     }
 }
