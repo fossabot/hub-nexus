@@ -10,4 +10,4 @@ The Black Duck Hub Nexus plugin is a new tool designed to help you manage the lo
 Download the latest from release page: https://github.com/blackducksoftware/hub-nexus/releases
 
 ## Documentation ##
-All documentation for hub-nexus can be found on our public [Black Duck Confluence](https://blackducksoftware.atlassian.net/wiki/spaces/INTDOCS/pages/49438996/Hub+Nexus+Plugin)
+All documentation for hub-nexus can be found on our public [Confluence](https://synopsys.atlassian.net/wiki/spaces/INTDOCS/pages/622647/Hub+Nexus+Plugin)
