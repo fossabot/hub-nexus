@@ -41,8 +41,8 @@
   <dependencies>
     <dependency>
       <groupId>com.blackducksoftware.integration</groupId>
-      <artifactId>hub-common</artifactId>
-      <version>15.0.4</version>
+      <artifactId>blackduck-common</artifactId>
+      <version>42.0.0</version>
       <exclusions>
         <!-- Commons logging is a transitive dependency from a dependency in hub-common-reporting
            Logging is done in Nexus with slf4j

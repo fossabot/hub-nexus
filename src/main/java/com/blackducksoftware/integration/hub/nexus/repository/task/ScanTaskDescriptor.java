@@ -38,8 +38,8 @@ import org.sonatype.nexus.formfields.FormField;
 import org.sonatype.nexus.formfields.RepoOrGroupComboFormField;
 import org.sonatype.nexus.formfields.StringTextFormField;
 
-import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionDistributionEnum;
-import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionPhaseEnum;
+import com.synopsys.integration.blackduck.api.generated.enumeration.ProjectVersionDistributionType;
+import com.synopsys.integration.blackduck.api.generated.enumeration.ProjectVersionPhaseType;
 
 @Named
 @Singleton
@@ -63,7 +63,7 @@ public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
     private static final String DESCRIPTION_SCAN_FILE_PATTERN_MATCH = "The file pattern match wildcard to filter the artifacts scanned.";
     private static final String DESCRIPTION_TASK_WORKING_DIRECTORY = "The parent directory where the blackduck directory will be created to contain temporary data for the scans";
     private static final String DESCRIPTION_SCAN_CUTOFF_DATE = "If this is set, only artifacts with a modified date later than this will be scanned. To scan only artifacts newer than January 01, 2016 you would use "
-            + "the cutoff format of \"2016-01-01T00:00:00.000\"";
+                                                                   + "the cutoff format of \"2016-01-01T00:00:00.000\"";
     private static final String DESCRIPTION_RESCAN_FAILURE = "Re-scan artifacts if the previous scan result was failed";
     private static final String DESCRIPTION_ALWAYS_SCAN = "Always scan artifacts that are not too old and match the file pattern, regardless of previous scan result";
 
@@ -80,11 +80,11 @@ public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
     private final RepoOrGroupComboFormField repoField = new RepoOrGroupComboFormField(TaskField.REPOSITORY_FIELD_ID.getParameterKey(), RepoOrGroupComboFormField.DEFAULT_LABEL, DESCRIPTION_REPO_NAME, FormField.MANDATORY);
     private final StringTextFormField resourceStorePathField = new StringTextFormField(TaskField.REPOSITORY_PATH_FIELD_ID.getParameterKey(), LABEL_REPO_PATH, DESCRIPTION_REPO_PATH, FormField.OPTIONAL);
     private final StringTextFormField artifactCutoffField = new StringTextFormField(TaskField.OLD_ARTIFACT_CUTOFF.getParameterKey(), LABEL_ARTIFACT_CUTOFF, DESCRIPTION_SCAN_CUTOFF_DATE, FormField.OPTIONAL)
-            .withInitialValue(DEFAULT_ARTIFACT_CUTOFF);
+                                                                .withInitialValue(DEFAULT_ARTIFACT_CUTOFF);
     private final StringTextFormField filePatternField = new StringTextFormField(TaskField.FILE_PATTERNS.getParameterKey(), LABEL_FILE_PATTERN_MATCHES, DESCRIPTION_SCAN_FILE_PATTERN_MATCH, FormField.MANDATORY)
-            .withInitialValue(DEFAULT_FILE_PATTERNS);
+                                                             .withInitialValue(DEFAULT_FILE_PATTERNS);
     private final StringTextFormField scanMemoryField = new StringTextFormField(TaskField.HUB_SCAN_MEMORY.getParameterKey(), LABEL_SCAN_MEMORY_ALLOCATION, DESCRIPTION_HUB_SCAN_MEMORY, FormField.OPTIONAL)
-            .withInitialValue(DEFAULT_SCAN_MEMORY);
+                                                            .withInitialValue(DEFAULT_SCAN_MEMORY);
     private final CheckboxFormField rescanFailures = new CheckboxFormField(TaskField.RESCAN_FAILURES.getParameterKey(), LABEL_RESCAN_FAILURE, DESCRIPTION_RESCAN_FAILURE, FormField.OPTIONAL);
     private final CheckboxFormField alwaysRescan = new CheckboxFormField(TaskField.ALWAYS_SCAN.getParameterKey(), LABEL_ALWAYS_SCAN, DESCRIPTION_ALWAYS_SCAN, FormField.OPTIONAL);
     private final ApplicationDirectories appDirectories;
@@ -122,7 +122,7 @@ public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
         StringTextFormField workingDirectoryField;
         try {
             workingDirectoryField = new StringTextFormField(TaskField.WORKING_DIRECTORY.getParameterKey(), LABEL_WORKING_DIRECTORY, DESCRIPTION_TASK_WORKING_DIRECTORY, FormField.MANDATORY)
-                    .withInitialValue(appDirectories.getWorkDirectory().getCanonicalPath());
+                                        .withInitialValue(appDirectories.getWorkDirectory().getCanonicalPath());
         } catch (final IOException | NullPointerException e) {
             workingDirectoryField = new StringTextFormField(TaskField.WORKING_DIRECTORY.getParameterKey(), LABEL_WORKING_DIRECTORY, DESCRIPTION_TASK_WORKING_DIRECTORY, FormField.MANDATORY).withInitialValue(DEFAULT_WORKING_DIRECTORY);
         }
@@ -130,17 +130,17 @@ public class ScanTaskDescriptor extends AbstractHubTaskDescriptor {
     }
 
     private StringTextFormField createDistributionField() {
-        final String possibleValues = StringUtils.join(ProjectVersionDistributionEnum.values(), ", ");
+        final String possibleValues = StringUtils.join(ProjectVersionDistributionType.values(), ", ");
         final String description = DESCRIPTION_HUB_PROJECT_DISTRIBUTION.concat(possibleValues);
         final StringTextFormField distributionFormField = new StringTextFormField(TaskField.DISTRIBUTION.getParameterKey(), LABEL_DISTRIBUTION, description, FormField.OPTIONAL)
-                .withInitialValue(ProjectVersionDistributionEnum.EXTERNAL.name());
+                                                              .withInitialValue(ProjectVersionDistributionType.EXTERNAL.name());
         return distributionFormField;
     }
 
     private StringTextFormField createPhaseField() {
-        final String possibleValues = StringUtils.join(ProjectVersionPhaseEnum.values(), ", ");
+        final String possibleValues = StringUtils.join(ProjectVersionPhaseType.values(), ", ");
         final String description = DESCRIPTION_HUB_PROJECT_PHASE.concat(possibleValues);
-        final StringTextFormField phaseFormField = new StringTextFormField(TaskField.PHASE.getParameterKey(), LABEL_PHASE, description, FormField.OPTIONAL).withInitialValue(ProjectVersionPhaseEnum.DEVELOPMENT.name());
+        final StringTextFormField phaseFormField = new StringTextFormField(TaskField.PHASE.getParameterKey(), LABEL_PHASE, description, FormField.OPTIONAL).withInitialValue(ProjectVersionPhaseType.DEVELOPMENT.name());
         return phaseFormField;
     }
 

@@ -25,47 +25,35 @@ package com.blackducksoftware.integration.hub.nexus.application;
 
 import java.util.Map;
 
-import com.blackducksoftware.integration.exception.EncryptionException;
-import com.blackducksoftware.integration.exception.IntegrationException;
-import com.blackducksoftware.integration.hub.api.item.MetaService;
-import com.blackducksoftware.integration.hub.api.nonpublic.HubVersionRequestService;
-import com.blackducksoftware.integration.hub.api.project.ProjectRequestService;
-import com.blackducksoftware.integration.hub.api.project.version.ProjectVersionRequestService;
-import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
-import com.blackducksoftware.integration.hub.cli.CLIDownloadService;
-import com.blackducksoftware.integration.hub.dataservice.cli.CLIDataService;
-import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDataService;
-import com.blackducksoftware.integration.hub.dataservice.report.RiskReportDataService;
-import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
-import com.blackducksoftware.integration.hub.rest.CredentialsRestConnection;
-import com.blackducksoftware.integration.hub.service.HubResponseService;
-import com.blackducksoftware.integration.hub.service.HubServicesFactory;
-import com.blackducksoftware.integration.log.IntLogger;
+import com.synopsys.integration.blackduck.configuration.BlackDuckServerConfig;
+import com.synopsys.integration.blackduck.configuration.BlackDuckServerConfigBuilder;
+import com.synopsys.integration.blackduck.service.BlackDuckService;
+import com.synopsys.integration.blackduck.service.BlackDuckServicesFactory;
+import com.synopsys.integration.blackduck.service.PolicyRuleService;
+import com.synopsys.integration.blackduck.service.ProjectService;
+import com.synopsys.integration.blackduck.service.ReportService;
+import com.synopsys.integration.exception.IntegrationException;
+import com.synopsys.integration.log.IntLogger;
 
 public class HubServiceHelper {
     private final IntLogger intLogger;
-    private HubServerConfig hubServerConfig;
+    private BlackDuckServerConfig hubServerConfig;
     private final Map<String, String> taskParameters;
 
-    private HubServicesFactory hubServicesFactory;
+    private BlackDuckServicesFactory hubServicesFactory;
 
-    private PolicyStatusDataService policyStatusDataService;
-    private MetaService metaService;
-    private RiskReportDataService riskReportDataService;
-    private CLIDataService cliDataService;
-    private ProjectRequestService projectRequestService;
-    private HubResponseService hubResponseService;
-    private ProjectVersionRequestService projectVersionRequestService;
-    private CLIDownloadService cliDownloadService;
-    private HubVersionRequestService hubVersionRequestService;
+    private PolicyRuleService policyRuleService;
+    private ReportService reportService;
+    private ProjectService projectService;
+    private BlackDuckService blackDuckService;
 
     public HubServiceHelper(final IntLogger logger, final Map<String, String> taskParameters) {
         this.intLogger = logger;
         this.taskParameters = taskParameters;
     }
 
-    public HubServerConfig createHubServerConfig(final Map<String, String> taskParameters) {
+    public BlackDuckServerConfig createHubServerConfig(final Map<String, String> taskParameters) {
 
         final String hubUrl = taskParameters.get(TaskField.HUB_URL.getParameterKey());
         final String hubUsername = taskParameters.get(TaskField.HUB_USERNAME.getParameterKey());
@@ -77,8 +65,8 @@ public class HubServiceHelper {
         final String proxyPassword = taskParameters.get(TaskField.HUB_PROXY_PASSWORD.getParameterKey());
         final String autoImport = taskParameters.get(TaskField.HUB_AUTO_IMPORT_CERT.getParameterKey());
 
-        final HubServerConfigBuilder hubServerConfigBuilder = new HubServerConfigBuilder();
-        hubServerConfigBuilder.setHubUrl(hubUrl);
+        final BlackDuckServerConfigBuilder hubServerConfigBuilder = new BlackDuckServerConfigBuilder();
+        hubServerConfigBuilder.setUrl(hubUrl);
         hubServerConfigBuilder.setUsername(hubUsername);
         hubServerConfigBuilder.setPassword(hubPassword);
         hubServerConfigBuilder.setTimeout(hubTimeout);
@@ -86,117 +74,65 @@ public class HubServiceHelper {
         hubServerConfigBuilder.setProxyPort(proxyPort);
         hubServerConfigBuilder.setProxyUsername(proxyUsername);
         hubServerConfigBuilder.setProxyPassword(proxyPassword);
-        hubServerConfigBuilder.setAlwaysTrustServerCertificate(Boolean.parseBoolean(autoImport));
+        hubServerConfigBuilder.setTrustCert(autoImport);
 
         return hubServerConfigBuilder.build();
     }
 
-    public HubServerConfig getHubServerConfig() {
+    public BlackDuckServerConfig getHubServerConfig() {
         if (hubServerConfig == null) {
             hubServerConfig = createHubServerConfig(taskParameters);
         }
-
         return hubServerConfig;
     }
 
-    public synchronized HubServicesFactory getHubServicesFactory() {
+    public synchronized BlackDuckServicesFactory getHubServicesFactory() {
         if (hubServicesFactory == null) {
-            CredentialsRestConnection credentialsRestConnection = null;
-
-            try {
-                credentialsRestConnection = getHubServerConfig().createCredentialsRestConnection(intLogger);
-            } catch (final EncryptionException e) {
-                intLogger.error("Encryption error when creating REST connection");
-                e.printStackTrace();
-            }
-            setHubServicesFactory(new HubServicesFactory(credentialsRestConnection));
+            setHubServicesFactory(getHubServerConfig().createBlackDuckServicesFactory(intLogger));
         }
-
         return hubServicesFactory;
     }
 
-    public PolicyStatusDataService getPolicyStatusDataService() {
-        if (policyStatusDataService == null) {
-            policyStatusDataService = getHubServicesFactory().createPolicyStatusDataService();
+    public PolicyRuleService getPolicyRuleService() {
+        if (policyRuleService == null) {
+            policyRuleService = getHubServicesFactory().createPolicyRuleService();
         }
-
-        return policyStatusDataService;
+        return policyRuleService;
     }
 
-    public MetaService getMetaService() {
-        if (metaService == null) {
-            metaService = getHubServicesFactory().createMetaService();
-        }
-
-        return metaService;
-    }
-
-    public RiskReportDataService getRiskReportDataService(final long timeout) {
-        if (riskReportDataService == null) {
+    public ReportService getReportService(final long timeout) {
+        if (reportService == null) {
             try {
-                riskReportDataService = getHubServicesFactory().createRiskReportDataService(timeout);
+                reportService = getHubServicesFactory().createReportService(timeout);
             } catch (final IntegrationException e) {
                 e.printStackTrace();
                 intLogger.error("Error retrieving risk report service");
             }
         }
-
-        return riskReportDataService;
+        return reportService;
     }
 
-    public RiskReportDataService getRiskReportDataService() {
-        return getRiskReportDataService(getHubServerConfig().getTimeout());
+    public ReportService getReportService() {
+        return getReportService(getHubServerConfig().getTimeout());
     }
 
-    public CLIDataService getCliDataService() {
-        if (cliDataService == null) {
-            cliDataService = getHubServicesFactory().createCLIDataService();
+    public ProjectService getProjectService() {
+        if (projectService == null) {
+            projectService = getHubServicesFactory().createProjectService();
         }
 
-        return cliDataService;
+        return projectService;
     }
 
-    public ProjectRequestService getProjectRequestService() {
-        if (projectRequestService == null) {
-            projectRequestService = getHubServicesFactory().createProjectRequestService();
+    public BlackDuckService getBlackDuckService() {
+        if (blackDuckService == null) {
+            blackDuckService = getHubServicesFactory().createBlackDuckService();
         }
 
-        return projectRequestService;
+        return blackDuckService;
     }
 
-    public HubResponseService getHubResponseService() {
-        if (hubResponseService == null) {
-            hubResponseService = getHubServicesFactory().createHubResponseService();
-        }
-
-        return hubResponseService;
-    }
-
-    public ProjectVersionRequestService getProjectVersionRequestService() {
-        if (projectVersionRequestService == null) {
-            projectVersionRequestService = getHubServicesFactory().createProjectVersionRequestService();
-        }
-
-        return projectVersionRequestService;
-    }
-
-    public CLIDownloadService getCliDownloadService() {
-        if (cliDownloadService == null) {
-            cliDownloadService = getHubServicesFactory().createCliDownloadService();
-        }
-
-        return cliDownloadService;
-    }
-
-    public HubVersionRequestService getHubVersionRequestService() {
-        if (hubVersionRequestService == null) {
-            hubVersionRequestService = getHubServicesFactory().createHubVersionRequestService();
-        }
-
-        return hubVersionRequestService;
-    }
-
-    public void setHubServicesFactory(final HubServicesFactory hubServicesFactory) {
+    public void setHubServicesFactory(final BlackDuckServicesFactory hubServicesFactory) {
         this.hubServicesFactory = hubServicesFactory;
     }
 }

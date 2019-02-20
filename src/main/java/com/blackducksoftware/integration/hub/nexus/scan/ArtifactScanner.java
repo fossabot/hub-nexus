@@ -39,6 +39,7 @@ import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent;
+import com.blackducksoftware.integration.hub.nexus.repository.task.ScanTaskDescriptor;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
@@ -72,6 +73,8 @@ public class ArtifactScanner {
                 attributesHelper.setScanResult(item, ItemAttributesHelper.SCAN_STATUS_FAILED);
                 return null;
             } else {
+                final File cliInstallDirectory = getSignatureScannerInstallDirectory();
+
                 final String scanMemoryValue = getParameter(TaskField.HUB_SCAN_MEMORY.getParameterKey());
                 final HubServerConfig hubServerConfig = hubServiceHelper.getHubServerConfig();
                 final HubScanConfig scanConfig = createScanConfig(Integer.parseInt(scanMemoryValue), workingDirectory);
@@ -124,5 +127,16 @@ public class ArtifactScanner {
         final File file = new File(repositoryPath, item.getPath());
         hubScanConfigBuilder.addScanTargetPath(file.getCanonicalPath());
         return hubScanConfigBuilder.build();
+    }
+
+    private File getSignatureScannerInstallDirectory() {
+        final File blackDuckDirectory = new File(getParameter(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
+        final String cliInstallRootDirectory = String.format("hub%s", String.valueOf(hubServiceHelper.getHubServerConfig().getBlackDuckUrl().getHost().hashCode()));
+        final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
+        final File cliInstallDirectory = new File(taskDirectory, "tools");
+        if (!cliInstallDirectory.exists()) {
+            cliInstallDirectory.mkdirs();
+        }
+        return cliInstallDirectory;
     }
 }

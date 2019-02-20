@@ -23,8 +23,6 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
-import java.io.File;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -32,16 +30,11 @@ import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
 import org.sonatype.nexus.proxy.walker.DefaultStoreWalkerFilter;
 
-import com.blackducksoftware.integration.exception.IntegrationException;
-import com.blackducksoftware.integration.hub.api.nonpublic.HubVersionRequestService;
-import com.blackducksoftware.integration.hub.cli.CLIDownloadService;
 import com.blackducksoftware.integration.hub.nexus.application.IntegrationInfo;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.ScanRepositoryWalker;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.TaskWalker;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.filter.ScanRepositoryWalkerFilter;
 import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor;
-import com.blackducksoftware.integration.hub.util.HostnameHelper;
-import com.blackducksoftware.integration.util.CIEnvironmentVariables;
 
 @Named(ScanTaskDescriptor.ID)
 public class ScanTask extends AbstractHubWalkerTask {
@@ -74,15 +67,6 @@ public class ScanTask extends AbstractHubWalkerTask {
     @Override
     public void initTask() throws Exception {
         logger.info("Start task execution.");
-        final File blackDuckDirectory = new File(getParameter(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
-        final String cliInstallRootDirectory = String.format("hub%s", String.valueOf(getHubServiceHelper().getHubServerConfig().getHubUrl().getHost().hashCode()));
-        final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
-        final File cliInstallDirectory = new File(taskDirectory, "tools");
-        if (!cliInstallDirectory.exists()) {
-            cliInstallDirectory.mkdirs();
-        }
-        installCLI(cliInstallDirectory);
-
     }
 
     @Override
@@ -95,17 +79,6 @@ public class ScanTask extends AbstractHubWalkerTask {
     public DefaultStoreWalkerFilter getRepositoryWalkerFilter() {
         final String fileMatchPatterns = getParameter(TaskField.FILE_PATTERNS.getParameterKey());
         return new ScanRepositoryWalkerFilter(fileMatchPatterns, itemAttributesHelper, getParameters());
-    }
-
-    private void installCLI(final File installDirectory) throws IntegrationException {
-        final String localHostName = HostnameHelper.getMyHostname();
-        logger.info("Installing CLI to the following location: " + localHostName + ": " + installDirectory);
-        final CIEnvironmentVariables ciEnvironmentVariables = new CIEnvironmentVariables();
-        ciEnvironmentVariables.putAll(System.getenv());
-        final HubVersionRequestService hubVersionRequestService = getHubServiceHelper().getHubVersionRequestService();
-        final CLIDownloadService cliDownloadService = getHubServiceHelper().getCliDownloadService();
-        final String hubVersion = hubVersionRequestService.getHubVersion();
-        cliDownloadService.performInstallation(installDirectory, ciEnvironmentVariables, getHubServiceHelper().getHubServerConfig().getHubUrl().toString(), hubVersion, localHostName);
     }
 
 }

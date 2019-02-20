@@ -29,21 +29,17 @@ import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.repository.Repository;
 
-import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
+import com.synopsys.integration.blackduck.api.generated.view.ProjectVersionView;
 
 public class HubScanEvent extends HubEvent {
-    private ProjectRequest projectRequest;
+    private final ProjectVersionView projectVersionView;
 
-    public HubScanEvent(final Repository repository, final StorageItem item, final Map<String, String> taskParameters, final ResourceStoreRequest request, final ProjectRequest projectRequest) {
+    public HubScanEvent(final Repository repository, final StorageItem item, final Map<String, String> taskParameters, final ResourceStoreRequest request, final ProjectVersionView projectVersionView) {
         super(repository, item, taskParameters, request);
-        this.setProjectRequest(projectRequest);
+        this.projectVersionView = projectVersionView;
     }
 
-    public ProjectRequest getProjectRequest() {
-        return projectRequest;
-    }
-
-    public void setProjectRequest(final ProjectRequest projectRequest) {
-        this.projectRequest = projectRequest;
+    public ProjectVersionView getProjectVersionView() {
+        return projectVersionView;
     }
 }

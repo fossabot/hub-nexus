@@ -42,10 +42,10 @@ import com.blackducksoftware.integration.hub.nexus.application.IntegrationInfo;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.TaskWalker;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor;
-import com.blackducksoftware.integration.log.Slf4jIntLogger;
 import com.blackducksoftware.integration.phonehome.PhoneHomeClient;
 import com.blackducksoftware.integration.phonehome.PhoneHomeRequestBodyBuilder;
 import com.blackducksoftware.integration.phonehome.exception.PhoneHomeException;
+import com.synopsys.integration.log.Slf4jIntLogger;
 
 public abstract class AbstractHubWalkerTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
     protected static final String ALL_REPO_ID = "all_repo";
@@ -121,10 +121,10 @@ public abstract class AbstractHubWalkerTask extends AbstractNexusRepositoriesPat
         try {
             final PhoneHomeDataService phoneHomeDataService = hubServiceHelper.getHubServicesFactory().createPhoneHomeDataService();
             final PhoneHomeRequestBodyBuilder phoneHomeRequestBodyBuilder = phoneHomeDataService.createInitialPhoneHomeRequestBodyBuilder(integrationInfo.getThirdPartyName(), integrationInfo.getThirdPartyVersion(),
-                    integrationInfo.getPluginVersion());
+                integrationInfo.getPluginVersion());
             final PhoneHomeClient phoneHomeClient = hubServiceHelper.getHubServicesFactory().createPhoneHomeClient();
             phoneHomeClient.postPhoneHomeRequest(phoneHomeRequestBodyBuilder.build());
-        } catch (IllegalStateException | PhoneHomeException e) {
+        } catch (final IllegalStateException | PhoneHomeException e) {
             logger.debug("Problem with phoning home", e);
         }
     }

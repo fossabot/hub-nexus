@@ -29,10 +29,10 @@ import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
 import org.sonatype.nexus.proxy.walker.WalkerContext;
 import org.sonatype.sisu.goodies.common.Loggers;
 
-import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.nexus.event.HubEvent;
 import com.blackducksoftware.integration.hub.nexus.event.handler.HubEventHandler;
 import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor;
+import com.synopsys.integration.exception.IntegrationException;
 
 public abstract class RepositoryWalkerProcessor<E extends HubEvent> extends AbstractWalkerProcessor {
     private final Logger logger = Loggers.getLogger(getClass());

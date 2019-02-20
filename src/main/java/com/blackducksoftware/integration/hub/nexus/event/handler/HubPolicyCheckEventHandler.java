@@ -23,6 +23,8 @@
  */
 package com.blackducksoftware.integration.hub.nexus.event.handler;
 
+import java.util.Optional;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -31,13 +33,14 @@ import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.sonatype.nexus.proxy.item.StorageItem;
 
-import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDescription;
-import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
-import com.blackducksoftware.integration.hub.model.view.VersionBomPolicyStatusView;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.HubPolicyCheckEvent;
 import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
+import com.synopsys.integration.blackduck.api.generated.view.ProjectVersionView;
+import com.synopsys.integration.blackduck.api.generated.view.VersionBomPolicyStatusView;
+import com.synopsys.integration.blackduck.service.BlackDuckService;
+import com.synopsys.integration.blackduck.service.model.PolicyStatusDescription;
 
 @Named
 @Singleton
@@ -65,11 +68,14 @@ public class HubPolicyCheckEventHandler extends HubEventHandler<HubPolicyCheckEv
             final ProjectVersionView projectVersionView = getEvent().getProjectVersionView();
             final HubServiceHelper hubServiceHelper = getHubServiceHelper();
             if (hubServiceHelper != null) {
-                final VersionBomPolicyStatusView versionBomPolicyStatusView = hubServiceHelper.getPolicyStatusDataService().getPolicyStatusForVersion(projectVersionView);
-                final PolicyStatusDescription policyCheckResults = new PolicyStatusDescription(versionBomPolicyStatusView);
-                getAttributeHelper().setPolicyStatus(item, policyCheckResults.getPolicyStatusMessage());
-                final String overallStatus = transformOverallStatus(versionBomPolicyStatusView.overallStatus.toString());
-                getAttributeHelper().setOverallPolicyStatus(item, overallStatus);
+                final BlackDuckService blackDuckService = hubServiceHelper.getBlackDuckService();
+                final Optional<VersionBomPolicyStatusView> response = blackDuckService.getResponse(projectVersionView, ProjectVersionView.POLICY_STATUS_LINK_RESPONSE);
+                response.ifPresent(versionBomPolicyStatusView -> {
+                    final PolicyStatusDescription policyCheckResults = new PolicyStatusDescription(versionBomPolicyStatusView);
+                    getAttributeHelper().setPolicyStatus(item, policyCheckResults.getPolicyStatusMessage());
+                    final String overallStatus = transformOverallStatus(versionBomPolicyStatusView.getOverallStatus().toString());
+                    getAttributeHelper().setOverallPolicyStatus(item, overallStatus);
+                });
             }
         } catch (final Exception ex) {
             logger.error("Error occurred checking policy", ex);
