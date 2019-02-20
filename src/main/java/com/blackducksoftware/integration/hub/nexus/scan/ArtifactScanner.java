@@ -33,38 +33,35 @@ import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
 
-import com.blackducksoftware.integration.hub.builder.HubScanConfigBuilder;
-import com.blackducksoftware.integration.hub.dataservice.cli.CLIDataService;
-import com.blackducksoftware.integration.hub.global.HubServerConfig;
-import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent;
 import com.blackducksoftware.integration.hub.nexus.repository.task.ScanTaskDescriptor;
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
-import com.blackducksoftware.integration.hub.scan.HubScanConfig;
-import com.blackducksoftware.integration.phonehome.enums.ThirdPartyName;
+import com.synopsys.integration.blackduck.api.generated.view.ProjectVersionView;
+import com.synopsys.integration.blackduck.codelocation.signaturescanner.ScanBatch;
+import com.synopsys.integration.blackduck.codelocation.signaturescanner.ScanBatchBuilder;
+import com.synopsys.integration.blackduck.codelocation.signaturescanner.command.ScanTarget;
+import com.synopsys.integration.blackduck.configuration.BlackDuckServerConfig;
 
 public class ArtifactScanner {
-    private final boolean HUB_SCAN_DRY_RUN = false;
+    public static final String SCAN_CODE_LOCATION_NAME = "HubNexusScan";
+
     private final HubEventLogger logger;
     private final HubScanEvent event;
     private final ItemAttributesHelper attributesHelper;
     private final HubServiceHelper hubServiceHelper;
-    private final File scanInstallDirectory;
 
-    public ArtifactScanner(final HubScanEvent event, final HubEventLogger logger, final ItemAttributesHelper attributesHelper, final File scanInstallDirectory, final HubServiceHelper hubserviceHelper) {
+    public ArtifactScanner(final HubScanEvent event, final HubEventLogger logger, final ItemAttributesHelper attributesHelper, final HubServiceHelper hubserviceHelper) {
         this.event = event;
         this.logger = logger;
         this.attributesHelper = attributesHelper;
-        this.scanInstallDirectory = scanInstallDirectory;
         this.hubServiceHelper = hubserviceHelper;
     }
 
     public ProjectVersionView scan() {
         final StorageItem item = event.getItem();
-        final File workingDirectory = new File(scanInstallDirectory, event.getEventId().toString());
         try {
             logger.info("Beginning scan of artifact");
             if (hubServiceHelper == null) {
@@ -74,11 +71,18 @@ public class ArtifactScanner {
                 return null;
             } else {
                 final File cliInstallDirectory = getSignatureScannerInstallDirectory();
+                final File outputDirectory = getSignatureScannerOutputDirectory(cliInstallDirectory, event.getEventId().toString());
 
                 final String scanMemoryValue = getParameter(TaskField.HUB_SCAN_MEMORY.getParameterKey());
-                final HubServerConfig hubServerConfig = hubServiceHelper.getHubServerConfig();
-                final HubScanConfig scanConfig = createScanConfig(Integer.parseInt(scanMemoryValue), workingDirectory);
-                logger.info(String.format("Scan Path %s", scanConfig.getScanTargetPaths()));
+                final BlackDuckServerConfig blackDuckServerConfig = hubServiceHelper.getHubServerConfig();
+                String projectName = event.getProjectVersionWrapper().getProjectView().getName();
+                String projectVersion = event.getProjectVersionWrapper().getProjectVersionView().getVersionName();
+                final String codeLocationName = String.join("/", SCAN_CODE_LOCATION_NAME, event.getRepository().getName(), projectName, projectVersion);
+                final ScanBatch scanBatch = createScanBatch(blackDuckServerConfig, Integer.parseInt(scanMemoryValue), cliInstallDirectory, outputDirectory, projectName,
+                    projectVersion, codeLocationName);
+
+                final String targets = StringUtils.join(scanBatch.getScanTargets(), ", ");
+                logger.info(String.format("Scan Path %s", targets));
                 final CLIDataService cliDataService = hubServiceHelper.getCliDataService();
                 final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, event.getProjectRequest(), true, ThirdPartyName.NEXUS, null, null);
                 logger.info("Checking scan results...");
@@ -110,14 +114,14 @@ public class ArtifactScanner {
         return event.getTaskParameters().get(key);
     }
 
-    private HubScanConfig createScanConfig(final int scanMemory, final File workingDirectory) throws IOException {
-        final HubScanConfigBuilder hubScanConfigBuilder = new HubScanConfigBuilder();
-        hubScanConfigBuilder.setScanMemory(scanMemory);
-        hubScanConfigBuilder.setDryRun(HUB_SCAN_DRY_RUN);
-        final File cliInstallDirectory = new File(scanInstallDirectory, "tools");
-        hubScanConfigBuilder.setToolsDir(cliInstallDirectory);
-        hubScanConfigBuilder.setWorkingDirectory(workingDirectory);
-        hubScanConfigBuilder.disableScanTargetPathExistenceCheck();
+    private ScanBatch createScanBatch(final BlackDuckServerConfig blackDuckServerConfig, final int scanMemory, final File scanInstallDirectory, final File outputDirectory, final String projectName, final String projectVersion,
+        final String codeLocationName)
+        throws IOException {
+        final ScanBatchBuilder scanBatchBuilder = new ScanBatchBuilder();
+        scanBatchBuilder.fromBlackDuckServerConfig(blackDuckServerConfig);
+        scanBatchBuilder.installDirectory(scanInstallDirectory);
+        scanBatchBuilder.outputDirectory(outputDirectory);
+        scanBatchBuilder.projectAndVersionNames(projectName, projectVersion);
 
         final Repository repository = event.getRepository();
         final StorageItem item = event.getItem();
@@ -125,8 +129,11 @@ public class ArtifactScanner {
         final DefaultFSLocalRepositoryStorage storage = (DefaultFSLocalRepositoryStorage) repository.getLocalStorage();
         final File repositoryPath = storage.getFileFromBase(repository, request);
         final File file = new File(repositoryPath, item.getPath());
-        hubScanConfigBuilder.addScanTargetPath(file.getCanonicalPath());
-        return hubScanConfigBuilder.build();
+
+        scanBatchBuilder.addTarget(ScanTarget.createBasicTarget(file.getCanonicalPath(), codeLocationName));
+        scanBatchBuilder.scanMemoryInMegabytes(scanMemory);
+
+        return scanBatchBuilder.build();
     }
 
     private File getSignatureScannerInstallDirectory() {
@@ -138,5 +145,14 @@ public class ArtifactScanner {
             cliInstallDirectory.mkdirs();
         }
         return cliInstallDirectory;
+    }
+
+    private File getSignatureScannerOutputDirectory(final File installDirectory, final String identifier) {
+        final File outputDirectory = new File(installDirectory, "output");
+        final File uniqueOutputDirectory = new File(outputDirectory, identifier);
+        if (!uniqueOutputDirectory.exists()) {
+            uniqueOutputDirectory.mkdirs();
+        }
+        return outputDirectory;
     }
 }

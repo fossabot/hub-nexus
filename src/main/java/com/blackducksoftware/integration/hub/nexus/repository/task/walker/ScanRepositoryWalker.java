@@ -44,7 +44,6 @@ import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor;
 import com.synopsys.integration.blackduck.api.generated.enumeration.ProjectVersionDistributionType;
 import com.synopsys.integration.blackduck.api.generated.enumeration.ProjectVersionPhaseType;
-import com.synopsys.integration.blackduck.api.generated.view.ProjectVersionView;
 import com.synopsys.integration.blackduck.api.generated.view.ProjectView;
 import com.synopsys.integration.blackduck.api.generated.view.TagView;
 import com.synopsys.integration.blackduck.service.BlackDuckService;
@@ -84,16 +83,17 @@ public class ScanRepositoryWalker extends RepositoryWalkerProcessor<HubScanEvent
 
         hubServiceHelper.getBlackDuckService();
         hubServiceHelper.getProjectService();
-        final ProjectVersionView projectVersionView = getOrCreateProjectVersion(hubServiceHelper.getBlackDuckService(), hubServiceHelper.getProjectService(), nameVersionNode.getName(), nameVersionNode.getVersion(), distribution, phase);
+        final ProjectVersionWrapper projectVersionWrapper = getOrCreateProjectVersion(hubServiceHelper.getBlackDuckService(), hubServiceHelper.getProjectService(), nameVersionNode.getName(), nameVersionNode.getVersion(), distribution,
+            phase);
 
         // the walker has already restricted the items to find. Now for scanning to work create a request that is for the repository root because the item path is relative to the repository root
         final ResourceStoreRequest eventRequest = new ResourceStoreRequest(RepositoryItemUid.PATH_ROOT, true, false);
-        final ScanItemMetaData scanItem = new ScanItemMetaData(item, eventRequest, taskParams, projectVersionView);
+        final ScanItemMetaData scanItem = new ScanItemMetaData(item, eventRequest, taskParams, projectVersionWrapper);
         return processItem(scanItem);
     }
 
     private HubScanEvent processItem(final ScanItemMetaData data) {
-        final HubScanEvent event = new HubScanEvent(data.getItem().getRepositoryItemUid().getRepository(), data.getItem(), data.getTaskParameters(), data.getRequest(), data.getProjectVersionView());
+        final HubScanEvent event = new HubScanEvent(data.getItem().getRepositoryItemUid().getRepository(), data.getItem(), data.getTaskParameters(), data.getRequest(), data.getProjectVersionWrapper());
         return event;
     }
 
@@ -110,7 +110,7 @@ public class ScanRepositoryWalker extends RepositoryWalkerProcessor<HubScanEvent
         return nameVersion;
     }
 
-    public ProjectVersionView getOrCreateProjectVersion(final BlackDuckService blackDuckService, final ProjectService projectService, final String name, final String versionName, final String distribution, final String phase)
+    public ProjectVersionWrapper getOrCreateProjectVersion(final BlackDuckService blackDuckService, final ProjectService projectService, final String name, final String versionName, final String distribution, final String phase)
         throws IntegrationException {
         final Optional<ProjectVersionWrapper> projectVersionWrapperOptional = projectService.getProjectVersion(name, versionName);
         final ProjectVersionWrapper projectVersionWrapper;
@@ -130,7 +130,7 @@ public class ScanRepositoryWalker extends RepositoryWalkerProcessor<HubScanEvent
             tagService.createTag(projectView, tagView);
         }
 
-        return projectVersionWrapper.getProjectVersionView();
+        return projectVersionWrapper;
     }
 
     private ProjectVersionWrapper createProjectVersion(final ProjectService projectService, final String name, final String versionName, final String distribution, final String phase) throws IntegrationException {
