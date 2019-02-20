@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.sonatype.nexus.plugins</groupId>
     <artifactId>nexus-plugins</artifactId>
-    <version>2.14.4-03</version>
+    <version>2.14.11-01</version>
   </parent>
 
   <groupId>com.blackducksoftware.integration</groupId>
@@ -105,7 +105,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>build-helper-maven-plugin</artifactId>
-          <version>1.10</version>
+          <version>3.0.0</version>
           <executions>
             <execution>
               <id>add-source</id>
@@ -147,10 +147,10 @@
           </executions>
           <configuration>
             <inlineHeader>${project.name}
-	
+
 	Copyright (C) ${current.year} ${project.organization.name}
 	${project.organization.url}
-	
+
 	Licensed to the Apache Software Foundation (ASF) under one
 	or more contributor license agreements. See the NOTICE file
 	distributed with this work for additional information
@@ -158,9 +158,9 @@
 	to you under the Apache License, Version 2.0 (the
 	"License"); you may not use this file except in compliance
 	with the License. You may obtain a copy of the License at
-	
+
 	http://www.apache.org/licenses/LICENSE-2.0
-	
+
 	Unless required by applicable law or agreed to in writing,
 	software distributed under the License is distributed on an
 	"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -199,7 +199,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
-          <version>2.4</version>
+          <version>3.0.1</version>
           <executions>
             <execution>
               <id>attach-sources</id>
@@ -212,7 +212,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>2.10.1</version>
+          <version>3.0.1</version>
           <executions>
             <execution>
               <id>attach-javadocs</id>
@@ -225,12 +225,12 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.19.1</version>
+          <version>2.22.1</version>
         </plugin>
         <plugin>
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
-          <version>0.7.6.201602180812</version>
+          <version>0.8.3</version>
           <executions>
             <execution>
               <id>default-prepare-agent</id>
@@ -250,7 +250,7 @@
         <plugin>
           <groupId>com.github.ekryd.sortpom</groupId>
           <artifactId>sortpom-maven-plugin</artifactId>
-          <version>2.4.0</version>
+          <version>2.10.0</version>
           <executions>
             <execution>
               <phase>package</phase>
@@ -269,7 +269,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>tidy-maven-plugin</artifactId>
-          <version>1.0.0</version>
+          <version>1.1.0</version>
           <executions>
             <execution>
               <phase>package</phase>
@@ -282,7 +282,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
-          <version>2.10</version>
+          <version>3.1.1</version>
           <executions>
             <execution>
               <id>copy-dependencies</id>
@@ -307,7 +307,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>versions-maven-plugin</artifactId>
-          <version>2.3</version>
+          <version>2.7</version>
           <executions>
             <execution>
               <phase>install</phase>
@@ -375,7 +375,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
-        <version>2.17</version>
+        <version>2.22.1</version>
         <executions>
           <execution>
             <id>integration-tests</id>
@@ -407,6 +407,8 @@
         </dependencies>
         <configuration>
           <compilerId>groovy-eclipse-compiler</compilerId>
+          <source>1.8</source>
+          <target>1.8</target>
         </configuration>
       </plugin>
       <plugin>
