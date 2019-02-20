@@ -62,6 +62,8 @@ public class ArtifactScanner {
 
     public ProjectVersionView scan() {
         final StorageItem item = event.getItem();
+        final File cliInstallDirectory = getSignatureScannerInstallDirectory();
+        final File outputDirectory = getSignatureScannerOutputDirectory(cliInstallDirectory, event.getEventId().toString());
         try {
             logger.info("Beginning scan of artifact");
             if (hubServiceHelper == null) {
@@ -70,13 +72,10 @@ public class ArtifactScanner {
                 attributesHelper.setScanResult(item, ItemAttributesHelper.SCAN_STATUS_FAILED);
                 return null;
             } else {
-                final File cliInstallDirectory = getSignatureScannerInstallDirectory();
-                final File outputDirectory = getSignatureScannerOutputDirectory(cliInstallDirectory, event.getEventId().toString());
-
                 final String scanMemoryValue = getParameter(TaskField.HUB_SCAN_MEMORY.getParameterKey());
                 final BlackDuckServerConfig blackDuckServerConfig = hubServiceHelper.getHubServerConfig();
-                String projectName = event.getProjectVersionWrapper().getProjectView().getName();
-                String projectVersion = event.getProjectVersionWrapper().getProjectVersionView().getVersionName();
+                final String projectName = event.getProjectVersionWrapper().getProjectView().getName();
+                final String projectVersion = event.getProjectVersionWrapper().getProjectVersionView().getVersionName();
                 final String codeLocationName = String.join("/", SCAN_CODE_LOCATION_NAME, event.getRepository().getName(), projectName, projectVersion);
                 final ScanBatch scanBatch = createScanBatch(blackDuckServerConfig, Integer.parseInt(scanMemoryValue), cliInstallDirectory, outputDirectory, projectName,
                     projectVersion, codeLocationName);
@@ -86,8 +85,8 @@ public class ArtifactScanner {
                 final CLIDataService cliDataService = hubServiceHelper.getCliDataService();
                 final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, event.getProjectRequest(), true, ThirdPartyName.NEXUS, null, null);
                 logger.info("Checking scan results...");
-                final String apiUrl = hubServiceHelper.getMetaService().getHref(projectVersionView);
-                final String uiUrl = hubServiceHelper.getMetaService().getFirstLink(projectVersionView, "components");
+                final String apiUrl = projectVersionView.getHref().orElse("");
+                final String uiUrl = projectVersionView.getFirstLink(ProjectVersionView.COMPONENTS_LINK).orElse("");
 
                 if (StringUtils.isNotBlank(apiUrl)) {
                     attributesHelper.setApiUrl(item, apiUrl);
@@ -106,7 +105,7 @@ public class ArtifactScanner {
             return null;
         } finally {
             attributesHelper.setScanTime(item, System.currentTimeMillis());
-            FileUtils.deleteQuietly(workingDirectory);
+            FileUtils.deleteQuietly(outputDirectory);
         }
     }
 
