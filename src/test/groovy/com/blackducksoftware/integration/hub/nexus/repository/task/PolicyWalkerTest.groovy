@@ -23,8 +23,14 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task
 
-import java.util.concurrent.ExecutorService
-
+import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper
+import com.blackducksoftware.integration.hub.nexus.event.handler.HubPolicyCheckEventHandler
+import com.blackducksoftware.integration.hub.nexus.repository.task.walker.PolicyRepositoryWalker
+import com.blackducksoftware.integration.hub.nexus.test.TestExecutorService
+import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
+import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor
+import com.synopsys.integration.blackduck.api.generated.view.ProjectVersionView
+import com.synopsys.integration.blackduck.service.BlackDuckService
 import org.apache.commons.collections.map.HashedMap
 import org.junit.Assert
 import org.junit.Before
@@ -38,20 +44,13 @@ import org.sonatype.nexus.proxy.item.RepositoryItemUid
 import org.sonatype.nexus.proxy.item.StorageItem
 import org.sonatype.nexus.proxy.walker.WalkerContext
 
-import com.blackducksoftware.integration.hub.api.project.version.ProjectVersionRequestService
-import com.blackducksoftware.integration.hub.model.view.ProjectVersionView
-import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper
-import com.blackducksoftware.integration.hub.nexus.event.handler.HubPolicyCheckEventHandler
-import com.blackducksoftware.integration.hub.nexus.repository.task.walker.PolicyRepositoryWalker
-import com.blackducksoftware.integration.hub.nexus.test.TestExecutorService
-import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
-import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor
+import java.util.concurrent.ExecutorService
 
 @RunWith(MockitoJUnitRunner.class)
 public class PolicyWalkerTest {
 
-    private final static String PARENT_PATH="/test/0.0.1-SNAPSHOT"
-    private final static String PROJECT_NAME="test"
+    private final static String PARENT_PATH = "/test/0.0.1-SNAPSHOT"
+    private final static String PROJECT_NAME = "test"
 
     @Mock
     private ItemAttributesHelper itemAttributesHelper
@@ -63,7 +62,7 @@ public class PolicyWalkerTest {
     private WalkerContext walkerContext
     private RepositoryItemUid repositoryItemUid
     private Attributes attributes
-    private Map<String,String> taskParameters
+    private Map<String, String> taskParameters
     private ParallelEventProcessor parallelEventProcessor
     private TestExecutorService testExecutorService
 
@@ -73,27 +72,28 @@ public class PolicyWalkerTest {
         taskParameters.put(TaskField.DISTRIBUTION.getParameterKey(), "EXTERNAL")
         taskParameters.put(TaskField.PHASE.getParameterKey(), "DEVELOPMENT")
 
-        repositoryItemUid = [ getBooleanAttributeValue: { attr -> false }, getRepository: { -> null } ] as RepositoryItemUid
+        repositoryItemUid = [getBooleanAttributeValue: { attr -> false }, getRepository: { -> null }] as RepositoryItemUid
 
-        item = [ getRepositoryItemUid: { -> repositoryItemUid },
-            getRemoteUrl: { -> "" },
-            getPath: { -> PROJECT_NAME },
-            getRepositoryItemAttributes: { -> attributes },
-            getParentPath: { -> PARENT_PATH },
-            getName: { -> "itemName" }] as StorageItem
-        walkerContext = [ getResourceStoreRequest: { -> null } ] as WalkerContext
-        ProjectVersionRequestService projectVersionRequestService = Mockito.mock(ProjectVersionRequestService.class)
+        item = [getRepositoryItemUid       : { -> repositoryItemUid },
+                getRemoteUrl               : { -> "" },
+                getPath                    : { -> PROJECT_NAME },
+                getRepositoryItemAttributes: { -> attributes },
+                getParentPath              : { -> PARENT_PATH },
+                getName                    : { -> "itemName" }] as StorageItem
+        walkerContext = [getResourceStoreRequest: { -> null }] as WalkerContext
+        BlackDuckService blackDuckService = Mockito.mock(BlackDuckService.class)
         hubServiceHelper = Mockito.mock(HubServiceHelper.class)
-        Mockito.when(hubServiceHelper.getProjectVersionRequestService()).thenReturn(projectVersionRequestService)
-        Mockito.when(projectVersionRequestService.getItem(Mockito.anyString(), Mockito.any())).thenReturn(Mockito.mock(ProjectVersionView.class))
+        Mockito.when(hubServiceHelper.getBlackDuckService()).thenReturn(blackDuckService)
+        ProjectVersionView projectVersionView = Mockito.mock(ProjectVersionView.class);
+        Mockito.when(blackDuckService.getResponse(Mockito.anyString(), Mockito.any(Class.class))).thenReturn(projectVersionView)
 
         parallelEventProcessor = new ParallelEventProcessor() {
-                    @Override
-                    public ExecutorService createExecutorService(int availableProcessors) {
-                        TestExecutorService testExecutorService = new TestExecutorService()
-                        return testExecutorService;
-                    }
-                }
+            @Override
+            public ExecutorService createExecutorService(int availableProcessors) {
+                TestExecutorService testExecutorService = new TestExecutorService()
+                return testExecutorService;
+            }
+        }
         testExecutorService = parallelEventProcessor.initializeExecutorService() as TestExecutorService
     }
 

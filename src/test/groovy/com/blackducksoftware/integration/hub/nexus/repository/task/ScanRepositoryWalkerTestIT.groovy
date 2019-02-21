@@ -23,8 +23,19 @@
  */
 package com.blackducksoftware.integration.hub.nexus.repository.task
 
-import java.util.concurrent.ExecutorService
-
+import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper
+import com.blackducksoftware.integration.hub.nexus.event.ScanItemMetaData
+import com.blackducksoftware.integration.hub.nexus.repository.task.walker.ScanRepositoryWalker
+import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper
+import com.blackducksoftware.integration.hub.nexus.test.TestExecutorService
+import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
+import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor
+import com.synopsys.integration.blackduck.api.generated.view.ProjectView
+import com.synopsys.integration.blackduck.service.BlackDuckService
+import com.synopsys.integration.blackduck.service.BlackDuckServicesFactory
+import com.synopsys.integration.blackduck.service.ProjectService
+import com.synopsys.integration.log.PrintStreamIntLogger
+import com.synopsys.integration.log.Slf4jIntLogger
 import org.apache.commons.collections.map.HashedMap
 import org.junit.After
 import org.junit.Assert
@@ -41,26 +52,14 @@ import org.sonatype.nexus.proxy.item.RepositoryItemUid
 import org.sonatype.nexus.proxy.item.StorageItem
 import org.sonatype.nexus.proxy.walker.WalkerContext
 
-import com.blackducksoftware.integration.hub.api.project.ProjectRequestService
-import com.blackducksoftware.integration.hub.exception.DoesNotExistException
-import com.blackducksoftware.integration.hub.model.view.ProjectView
-import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper
-import com.blackducksoftware.integration.hub.nexus.event.ScanItemMetaData
-import com.blackducksoftware.integration.hub.nexus.repository.task.walker.ScanRepositoryWalker
-import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper
-import com.blackducksoftware.integration.hub.nexus.test.TestEventLogger
-import com.blackducksoftware.integration.hub.nexus.test.TestExecutorService
-import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
-import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor
-import com.blackducksoftware.integration.hub.service.HubServicesFactory
-import com.blackducksoftware.integration.log.Slf4jIntLogger
+import java.util.concurrent.ExecutorService
 
 @RunWith(MockitoJUnitRunner.class)
 @PrepareForTest(ScanRepositoryWalker.class)
 public class ScanRepositoryWalkerTestIT {
 
-    private final static String PARENT_PATH="/test/0.0.1-SNAPSHOT"
-    private final static String PROJECT_NAME="test"
+    private final static String PARENT_PATH = "/test/0.0.1-SNAPSHOT"
+    private final static String PROJECT_NAME = "test"
 
     @Mock
     private ItemAttributesHelper itemAttributesHelper
@@ -68,7 +67,7 @@ public class ScanRepositoryWalkerTestIT {
     private WalkerContext walkerContext
     private RepositoryItemUid repositoryItemUid
     private Attributes attributes
-    private Map<String,String> taskParameters
+    private Map<String, String> taskParameters
     private RestConnectionTestHelper restConnection
     private ParallelEventProcessor parallelEventProcessor
     private TestExecutorService testExecutorService
@@ -87,46 +86,46 @@ public class ScanRepositoryWalkerTestIT {
         taskParameters.put(TaskField.PHASE.getParameterKey(), "DEVELOPMENT")
 
         parallelEventProcessor = new ParallelEventProcessor() {
-                    @Override
-                    public ExecutorService createExecutorService(int availableProcessors) {
-                        TestExecutorService testExecutorService = new TestExecutorService()
-                        return testExecutorService;
-                    }
-                }
+            @Override
+            public ExecutorService createExecutorService(int availableProcessors) {
+                TestExecutorService testExecutorService = new TestExecutorService()
+                return testExecutorService;
+            }
+        }
         testExecutorService = parallelEventProcessor.initializeExecutorService() as TestExecutorService
-        repositoryItemUid = [ getBooleanAttributeValue: { attr -> false }, getRepository: { -> null } ] as RepositoryItemUid
-        walkerContext = [ getResourceStoreRequest: { -> null } ] as WalkerContext
+        repositoryItemUid = [getBooleanAttributeValue: { attr -> false }, getRepository: { -> null }] as RepositoryItemUid
+        walkerContext = [getResourceStoreRequest: { -> null }] as WalkerContext
     }
 
     @After
     public void cleanUpAfterTest() throws Exception {
-        try {
-            final Slf4jIntLogger intLogger = new Slf4jIntLogger(LoggerFactory.getLogger(getClass()))
-            final HubServicesFactory hubServicesFactory = restConnection.createHubServicesFactory(intLogger)
-            final ProjectRequestService projectRequestService = hubServicesFactory.createProjectRequestService()
-            final ProjectView projectView = projectRequestService.getProjectByName(PROJECT_NAME)
-            projectRequestService.deleteHubProject(projectView)
-        } catch (final DoesNotExistException ex) {
-            // ignore if the project doesn't exist then do not fail the test this is just cleanup.
+        final Slf4jIntLogger intLogger = new Slf4jIntLogger(LoggerFactory.getLogger(getClass()))
+        final BlackDuckServicesFactory hubServicesFactory = restConnection.createHubServicesFactory(intLogger)
+        final ProjectService projectRequestService = hubServicesFactory.createProjectService()
+        BlackDuckService blackDuckService = hubServicesFactory.createBlackDuckService();
+        final Optional<ProjectView> projectView = projectRequestService.getProjectByName(PROJECT_NAME)
+        if (projectView.isPresent()) {
+            ProjectView project = projectView.get()
+            blackDuckService.delete(project)
         }
     }
 
     @Test
     public void processSuccessfullyScanned() throws Exception {
-        attributes = [ getModified: { -> 10l }] as Attributes
-        item = [ getRepositoryItemUid: { -> repositoryItemUid },
-            getRemoteUrl: { -> "" },
-            getPath: { -> PROJECT_NAME },
-            getRepositoryItemAttributes: { -> attributes },
-            getParentPath: { -> PARENT_PATH },
-            getName: { -> "itemName" }] as StorageItem
+        attributes = [getModified: { -> 10l }] as Attributes
+        item = [getRepositoryItemUid       : { -> repositoryItemUid },
+                getRemoteUrl               : { -> "" },
+                getPath                    : { -> PROJECT_NAME },
+                getRepositoryItemAttributes: { -> attributes },
+                getParentPath              : { -> PARENT_PATH },
+                getName                    : { -> "itemName" }] as StorageItem
 
         Mockito.when(itemAttributesHelper.getScanTime(item)).thenReturn(101L)
         Mockito.when(itemAttributesHelper.getScanResult(item)).thenReturn(ItemAttributesHelper.SCAN_STATUS_SUCCESS)
 
 
-        final HubServiceHelper hubServiceHelper = new HubServiceHelper(new TestEventLogger(), taskParameters)
-        hubServiceHelper.setHubServicesFactory(restConnection.createHubServicesFactory())
+        final HubServiceHelper hubServiceHelper = new HubServiceHelper(new PrintStreamIntLogger(), taskParameters)
+        hubServiceHelper.setHubServicesFactory(restConnection.createBlackDuckServicesFactory())
 
         final ScanRepositoryWalker walker = new ScanRepositoryWalker(parallelEventProcessor, taskParameters, hubServiceHelper, itemAttributesHelper)
         walker.processItem(walkerContext, item)

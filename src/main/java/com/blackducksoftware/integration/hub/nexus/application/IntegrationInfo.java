@@ -28,32 +28,28 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.sonatype.nexus.configuration.application.ApplicationConfiguration;
-
-import com.blackducksoftware.integration.hub.nexus.repository.task.ScanTaskDescriptor;
+import org.sonatype.nexus.plugin.PluginIdentity;
 
 @Named
 @Singleton
 public class IntegrationInfo {
-    private final String artifactName;
+    public static final String ARTIFACT_GROUP = "com.blackducksoftware.integration";
+    public static final String ARTIFACT_NAME = "hub-nexus";
+
     private final String thirdPartyVersion;
-    private final String pluginVersion;
+    private final PluginIdentity pluginIdentity;
 
     @Inject
-    public IntegrationInfo(final ApplicationConfiguration applicationConfiguration) {
-        this.artifactName = "hub-nexus";
+    public IntegrationInfo(final ApplicationConfiguration applicationConfiguration) throws Exception {
         this.thirdPartyVersion = applicationConfiguration.getConfigurationModel().getNexusVersion();
-        this.pluginVersion = ScanTaskDescriptor.PLUGIN_VERSION;
-    }
-
-    public String getArtifactName() {
-        return artifactName;
+        this.pluginIdentity = new PluginIdentity(ARTIFACT_GROUP, ARTIFACT_NAME);
     }
 
     public String getThirdPartyVersion() {
         return thirdPartyVersion;
     }
 
-    public String getPluginVersion() {
-        return pluginVersion;
+    public PluginIdentity getPluginIdentity() {
+        return pluginIdentity;
     }
 }

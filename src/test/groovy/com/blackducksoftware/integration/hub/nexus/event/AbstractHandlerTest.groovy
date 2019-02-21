@@ -23,6 +23,19 @@
  */
 package com.blackducksoftware.integration.hub.nexus.event
 
+import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper
+import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField
+import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper
+import com.blackducksoftware.integration.hub.nexus.test.TestExecutorService
+import com.blackducksoftware.integration.hub.nexus.test.TestingPropertyKey
+import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
+import com.synopsys.integration.blackduck.api.generated.component.ProjectRequest
+import com.synopsys.integration.blackduck.api.generated.view.ProjectView
+import com.synopsys.integration.blackduck.service.BlackDuckService
+import com.synopsys.integration.blackduck.service.BlackDuckServicesFactory
+import com.synopsys.integration.blackduck.service.ProjectService
+import com.synopsys.integration.blackduck.service.model.ProjectSyncModel
+import com.synopsys.integration.log.Slf4jIntLogger
 import org.apache.commons.lang3.StringUtils
 import org.junit.After
 import org.slf4j.LoggerFactory
@@ -36,20 +49,6 @@ import org.sonatype.nexus.proxy.maven.MavenHostedRepository
 import org.sonatype.nexus.proxy.maven.packaging.ArtifactPackagingMapper
 import org.sonatype.nexus.proxy.registry.RepositoryRegistry
 import org.sonatype.nexus.proxy.repository.Repository
-
-import com.blackducksoftware.integration.hub.api.project.ProjectRequestService
-import com.blackducksoftware.integration.hub.exception.DoesNotExistException
-import com.blackducksoftware.integration.hub.model.request.ProjectRequest
-import com.blackducksoftware.integration.hub.model.view.ProjectView
-import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper
-import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField
-import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper
-import com.blackducksoftware.integration.hub.nexus.test.TestExecutorService
-import com.blackducksoftware.integration.hub.nexus.test.TestingPropertyKey
-import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
-import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder
-import com.blackducksoftware.integration.hub.service.HubServicesFactory
-import com.blackducksoftware.integration.log.Slf4jIntLogger
 
 public abstract class AbstractHandlerTest extends AbstractMavenRepoContentTests {
     private RestConnectionTestHelper restConnection
@@ -72,16 +71,17 @@ public abstract class AbstractHandlerTest extends AbstractMavenRepoContentTests 
 
     @After
     public void cleanUpAfterTest() throws Exception {
-        try {
-            final Slf4jIntLogger intLogger = new Slf4jIntLogger(LoggerFactory.getLogger(getClass()))
-            final HubServicesFactory hubServicesFactory = restConnection.createHubServicesFactory(intLogger)
-            final ProjectRequestService projectRequestService = hubServicesFactory.createProjectRequestService()
-            final ProjectView projectView = projectRequestService.getProjectByName(projectRequest.getName())
-            projectRequestService.deleteHubProject(projectView)
-        } catch (final DoesNotExistException ex) {
-            // ignore if the project doesn't exist then do not fail the test this is just cleanup.
+        final Slf4jIntLogger intLogger = new Slf4jIntLogger(LoggerFactory.getLogger(getClass()))
+        final BlackDuckServicesFactory hubServicesFactory = restConnection.createHubServicesFactory(intLogger)
+        final ProjectService projectRequestService = hubServicesFactory.createProjectService()
+        BlackDuckService blackDuckService = hubServicesFactory.createBlackDuckService();
+        final Optional<ProjectView> projectView = projectRequestService.getProjectByName(projectRequest.getName())
+        if (projectView.isPresent()) {
+            ProjectView project = projectView.get()
+            blackDuckService.delete(project)
         }
     }
+
 
     public abstract String getZipFilePath()
 
@@ -110,13 +110,13 @@ public abstract class AbstractHandlerTest extends AbstractMavenRepoContentTests 
     }
 
     private ProjectRequest createProjectRequest() {
-        final ProjectRequestBuilder builder = new ProjectRequestBuilder()
-        builder.setProjectName(restConnection.getProperty(TestingPropertyKey.TEST_PROJECT))
-        builder.setVersionName(restConnection.getProperty(TestingPropertyKey.TEST_VERSION))
-        builder.setProjectLevelAdjustments(true)
-        builder.setPhase(restConnection.getProperty(TestingPropertyKey.TEST_PHASE))
-        builder.setDistribution(restConnection.getProperty(TestingPropertyKey.TEST_DISTRIBUTION))
-        return builder.build()
+        ProjectSyncModel projectSyncModel = new ProjectSyncModel();
+        projectSyncModel.setName(restConnection.getProperty(TestingPropertyKey.TEST_PROJECT))
+        projectSyncModel.setVersionName(restConnection.getProperty(TestingPropertyKey.TEST_VERSION))
+        projectSyncModel.setProjectLevelAdjustments(true)
+        projectSyncModel.setPhase(restConnection.getProperty(TestingPropertyKey.TEST_PHASE))
+        projectSyncModel.setDistribution(restConnection.getProperty(TestingPropertyKey.TEST_DISTRIBUTION))
+        return projectSyncModel.createProjectRequest()
     }
 
     protected HubScanEvent processItem(final ScanItemMetaData data) {
