@@ -10,8 +10,8 @@
 
   <groupId>com.blackducksoftware.integration</groupId>
   <artifactId>hub-nexus</artifactId>
-    <!--  If you modify the version update the static PLUGIN_VERSION field in ScanTaskDescriptor -->
-    <version>1.0.3-SNAPSHOT</version>
+  <!--  If you modify the version update the static PLUGIN_VERSION field in ScanTaskDescriptor -->
+  <version>1.0.3-SNAPSHOT</version>
   <packaging>nexus-plugin</packaging>
 
   <name>hub-nexus</name>
@@ -47,13 +47,13 @@
         <!-- Commons logging is a transitive dependency from a dependency in hub-common-reporting
            Logging is done in Nexus with slf4j
        -->
-          <exclusion>
+        <exclusion>
           <groupId>commons-logging</groupId>
           <artifactId>commons-logging</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>commons-beanutils</groupId>
           <artifactId>commons-beanutils</artifactId>
+          <groupId>commons-beanutils</groupId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -83,8 +83,8 @@
       <artifactId>nexus-capabilities-plugin</artifactId>
       <scope>provided</scope>
     </dependency>
-      <!-- Testing dependencies -->
-      <dependency>
+    <!-- Testing dependencies -->
+    <dependency>
       <groupId>org.sonatype.nexus.plugins</groupId>
       <artifactId>nexus-kazuki-plugin</artifactId>
       <scope>test</scope>
@@ -106,7 +106,7 @@
     <pluginManagement>
       <plugins>
         <!-- common-maven-parent START copied plugins-->
-          <plugin>
+        <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>build-helper-maven-plugin</artifactId>
           <version>3.0.0</version>
@@ -321,12 +321,12 @@
             </execution>
           </executions>
         </plugin>
-          <!-- common-maven-parent END copied plugins-->
+        <!-- common-maven-parent END copied plugins-->
       </plugins>
     </pluginManagement>
     <plugins>
       <!-- common-maven-parent START copied plugins -->
-        <plugin>
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
       </plugin>
@@ -370,8 +370,8 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>versions-maven-plugin</artifactId>
       </plugin>
-        <!-- common-maven-parent END copied plugins -->
-        <plugin>
+      <!-- common-maven-parent END copied plugins -->
+      <plugin>
         <groupId>org.sonatype.nexus</groupId>
         <artifactId>nexus-plugin-bundle-maven-plugin</artifactId>
         <extensions>true</extensions>
@@ -402,8 +402,8 @@
             <artifactId>groovy-eclipse-compiler</artifactId>
             <version>2.9.2-01</version>
           </dependency>
-            <!-- for 2.8.0-01 and later you must have an explicit dependency on groovy-eclipse-batch -->
-            <dependency>
+          <!-- for 2.8.0-01 and later you must have an explicit dependency on groovy-eclipse-batch -->
+          <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-eclipse-batch</artifactId>
             <version>2.4.3-01</version>
