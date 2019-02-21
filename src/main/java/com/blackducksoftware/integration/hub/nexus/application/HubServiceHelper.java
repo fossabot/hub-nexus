@@ -26,6 +26,7 @@ package com.blackducksoftware.integration.hub.nexus.application;
 import java.util.Map;
 
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
+import com.synopsys.integration.blackduck.codelocation.signaturescanner.SignatureScannerService;
 import com.synopsys.integration.blackduck.configuration.BlackDuckServerConfig;
 import com.synopsys.integration.blackduck.configuration.BlackDuckServerConfigBuilder;
 import com.synopsys.integration.blackduck.service.BlackDuckService;
@@ -43,10 +44,11 @@ public class HubServiceHelper {
 
     private BlackDuckServicesFactory hubServicesFactory;
 
+    private BlackDuckService blackDuckService;
+    private SignatureScannerService signatureScannerService;
     private PolicyRuleService policyRuleService;
     private ReportService reportService;
     private ProjectService projectService;
-    private BlackDuckService blackDuckService;
 
     public HubServiceHelper(final IntLogger logger, final Map<String, String> taskParameters) {
         this.intLogger = logger;
@@ -91,6 +93,13 @@ public class HubServiceHelper {
             setHubServicesFactory(getHubServerConfig().createBlackDuckServicesFactory(intLogger));
         }
         return hubServicesFactory;
+    }
+
+    public SignatureScannerService getSignatureScannerService() {
+        if (signatureScannerService == null) {
+            signatureScannerService = getHubServicesFactory().createSignatureScannerService();
+        }
+        return signatureScannerService;
     }
 
     public PolicyRuleService getPolicyRuleService() {

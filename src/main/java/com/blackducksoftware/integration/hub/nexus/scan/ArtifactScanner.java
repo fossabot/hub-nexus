@@ -40,10 +40,15 @@ import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.synopsys.integration.blackduck.api.generated.view.ProjectVersionView;
+import com.synopsys.integration.blackduck.codelocation.Result;
 import com.synopsys.integration.blackduck.codelocation.signaturescanner.ScanBatch;
 import com.synopsys.integration.blackduck.codelocation.signaturescanner.ScanBatchBuilder;
+import com.synopsys.integration.blackduck.codelocation.signaturescanner.ScanBatchOutput;
+import com.synopsys.integration.blackduck.codelocation.signaturescanner.SignatureScannerService;
+import com.synopsys.integration.blackduck.codelocation.signaturescanner.command.ScanCommandOutput;
 import com.synopsys.integration.blackduck.codelocation.signaturescanner.command.ScanTarget;
 import com.synopsys.integration.blackduck.configuration.BlackDuckServerConfig;
+import com.synopsys.integration.blackduck.service.model.ProjectVersionWrapper;
 
 public class ArtifactScanner {
     public static final String SCAN_CODE_LOCATION_NAME = "HubNexusScan";
@@ -60,7 +65,7 @@ public class ArtifactScanner {
         this.hubServiceHelper = hubserviceHelper;
     }
 
-    public ProjectVersionView scan() {
+    public ProjectVersionWrapper scan() {
         final StorageItem item = event.getItem();
         final File cliInstallDirectory = getSignatureScannerInstallDirectory();
         final File outputDirectory = getSignatureScannerOutputDirectory(cliInstallDirectory, event.getEventId().toString());
@@ -82,21 +87,36 @@ public class ArtifactScanner {
 
                 final String targets = StringUtils.join(scanBatch.getScanTargets(), ", ");
                 logger.info(String.format("Scan Path %s", targets));
-                final CLIDataService cliDataService = hubServiceHelper.getCliDataService();
-                final ProjectVersionView projectVersionView = cliDataService.installAndRunControlledScan(hubServerConfig, scanConfig, event.getProjectRequest(), true, ThirdPartyName.NEXUS, null, null);
+
+                final SignatureScannerService signatureScannerService = hubServiceHelper.getSignatureScannerService();
+                final ScanBatchOutput scanBatchOutput = signatureScannerService.performSignatureScanAndWait(scanBatch, blackDuckServerConfig.getTimeout() * 5);
+
                 logger.info("Checking scan results...");
-                final String apiUrl = projectVersionView.getHref().orElse("");
-                final String uiUrl = projectVersionView.getFirstLink(ProjectVersionView.COMPONENTS_LINK).orElse("");
+                final ScanCommandOutput scanCommandOutput = scanBatchOutput.getOutputs()
+                                                                .stream()
+                                                                .findFirst()
+                                                                .orElse(null);
 
-                if (StringUtils.isNotBlank(apiUrl)) {
-                    attributesHelper.setApiUrl(item, apiUrl);
-                }
+                if (null != scanCommandOutput) {
+                    if (Result.SUCCESS == scanCommandOutput.getResult()) {
+                        final ProjectVersionView projectVersionView = event.getProjectVersionWrapper().getProjectVersionView();
+                        final String apiUrl = projectVersionView.getHref().orElse("");
+                        final String uiUrl = projectVersionView.getFirstLink(ProjectVersionView.COMPONENTS_LINK).orElse("");
 
-                if (StringUtils.isNotBlank(uiUrl)) {
-                    attributesHelper.setUiUrl(item, uiUrl);
+                        if (StringUtils.isNotBlank(apiUrl)) {
+                            attributesHelper.setApiUrl(item, apiUrl);
+                        }
+                        if (StringUtils.isNotBlank(uiUrl)) {
+                            attributesHelper.setUiUrl(item, uiUrl);
+                        }
+                        attributesHelper.setScanResult(item, ItemAttributesHelper.SCAN_STATUS_SUCCESS);
+                        return event.getProjectVersionWrapper();
+                    }
+                    logger.error(String.format("Error occurred scanning %s: %s", projectName, scanCommandOutput.getErrorMessage().orElse("")), scanCommandOutput.getException().orElse(null));
                 }
-                attributesHelper.setScanResult(item, ItemAttributesHelper.SCAN_STATUS_SUCCESS);
-                return projectVersionView;
+                attributesHelper.clearBlackduckAttributes(item);
+                attributesHelper.setScanResult(item, ItemAttributesHelper.SCAN_STATUS_FAILED);
+                return null;
             }
         } catch (final Exception ex) {
             logger.error("Error occurred during scan task", ex);
