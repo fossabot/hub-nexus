@@ -65,7 +65,7 @@ public class HubServiceHelper {
         final String proxyPort = taskParameters.get(TaskField.HUB_PROXY_PORT.getParameterKey());
         final String proxyUsername = taskParameters.get(TaskField.HUB_PROXY_USERNAME.getParameterKey());
         final String proxyPassword = taskParameters.get(TaskField.HUB_PROXY_PASSWORD.getParameterKey());
-        final String autoImport = taskParameters.get(TaskField.HUB_AUTO_IMPORT_CERT.getParameterKey());
+        final String autoImport = taskParameters.get(TaskField.HUB_TRUST_CERT.getParameterKey());
 
         final BlackDuckServerConfigBuilder hubServerConfigBuilder = new BlackDuckServerConfigBuilder();
         hubServerConfigBuilder.setUrl(hubUrl);

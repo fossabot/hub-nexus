@@ -33,16 +33,13 @@ import org.sonatype.nexus.plugin.PluginIdentity;
 @Named
 @Singleton
 public class IntegrationInfo {
-    public static final String ARTIFACT_GROUP = "com.blackducksoftware.integration";
-    public static final String ARTIFACT_NAME = "hub-nexus";
-
     private final String thirdPartyVersion;
     private final PluginIdentity pluginIdentity;
 
     @Inject
     public IntegrationInfo(final ApplicationConfiguration applicationConfiguration) throws Exception {
         this.thirdPartyVersion = applicationConfiguration.getConfigurationModel().getNexusVersion();
-        this.pluginIdentity = new PluginIdentity(ARTIFACT_GROUP, ARTIFACT_NAME);
+        this.pluginIdentity = new PluginIdentity(HubNexusPlugin.GROUP_ID, HubNexusPlugin.ID_PREFIX);
     }
 
     public String getThirdPartyVersion() {
