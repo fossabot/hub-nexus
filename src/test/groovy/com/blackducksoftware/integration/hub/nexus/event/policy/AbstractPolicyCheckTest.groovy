@@ -23,9 +23,6 @@
  */
 package com.blackducksoftware.integration.hub.nexus.event.policy
 
-import org.slf4j.LoggerFactory
-
-import com.blackducksoftware.integration.hub.model.view.ProjectVersionView
 import com.blackducksoftware.integration.hub.nexus.event.AbstractHandlerTest
 import com.blackducksoftware.integration.hub.nexus.event.HubPolicyCheckEvent
 import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent
@@ -34,6 +31,8 @@ import com.blackducksoftware.integration.hub.nexus.repository.task.ScanTaskDescr
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField
 import com.blackducksoftware.integration.hub.nexus.scan.ArtifactScanner
 import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger
+import com.synopsys.integration.blackduck.service.model.ProjectVersionWrapper
+import org.slf4j.LoggerFactory
 
 public abstract class AbstractPolicyCheckTest extends AbstractHandlerTest {
     HubPolicyCheckEvent policyCheckEvent
@@ -55,8 +54,8 @@ public abstract class AbstractPolicyCheckTest extends AbstractHandlerTest {
         final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
 
         final ArtifactScanner scanner = new ArtifactScanner(event, logger, getItemAttributesHelper(), taskDirectory, hubServiceHelper);
-        ProjectVersionView projectVersionView = scanner.scan();
+        ProjectVersionWrapper projectVersionWrapper = scanner.scan();
 
-        policyCheckEvent = new HubPolicyCheckEvent(event.getRepository(), event.getItem(), event.getTaskParameters(), event.getRequest(), projectVersionView);
+        policyCheckEvent = new HubPolicyCheckEvent(event.getRepository(), event.getItem(), event.getTaskParameters(), event.getRequest(), projectVersionWrapper.getProjectVersionView());
     }
 }

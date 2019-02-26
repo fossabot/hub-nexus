@@ -23,21 +23,12 @@
  */
 package com.blackducksoftware.integration.hub.nexus.test
 
-import java.util.logging.Level
-import java.util.logging.Logger
-
-import com.blackducksoftware.integration.exception.EncryptionException
-import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder
-import com.blackducksoftware.integration.hub.exception.HubIntegrationException
-import com.blackducksoftware.integration.hub.global.HubServerConfig
-import com.blackducksoftware.integration.hub.rest.CredentialsRestConnection
-import com.blackducksoftware.integration.hub.rest.RestConnection
-import com.blackducksoftware.integration.hub.service.HubServicesFactory
-import com.blackducksoftware.integration.log.IntLogger
-import com.blackducksoftware.integration.log.LogLevel
-import com.blackducksoftware.integration.log.PrintStreamIntLogger
-
-import okhttp3.OkHttpClient
+import com.synopsys.integration.blackduck.configuration.BlackDuckServerConfig
+import com.synopsys.integration.blackduck.configuration.BlackDuckServerConfigBuilder
+import com.synopsys.integration.blackduck.service.BlackDuckServicesFactory
+import com.synopsys.integration.log.IntLogger
+import com.synopsys.integration.log.LogLevel
+import com.synopsys.integration.log.PrintStreamIntLogger
 
 public class RestConnectionTestHelper {
     private Properties testProperties
@@ -55,7 +46,6 @@ public class RestConnectionTestHelper {
     }
 
     private void initProperties() {
-        Logger.getLogger(OkHttpClient.class.getName()).setLevel(Level.FINE)
         testProperties = new Properties()
         final ClassLoader classLoader = Thread.currentThread().getContextClassLoader()
         try {
@@ -91,9 +81,9 @@ public class RestConnectionTestHelper {
         return testProperties.getProperty(key)
     }
 
-    public HubServerConfig getHubServerConfig() {
-        final HubServerConfigBuilder builder = new HubServerConfigBuilder()
-        builder.setHubUrl(hubServerUrl)
+    public BlackDuckServerConfig getBlackDuckServerConfig() {
+        final BlackDuckServerConfigBuilder builder = new BlackDuckServerConfigBuilder()
+        builder.setUrl(hubServerUrl)
         builder.setUsername(getProperty(TestingPropertyKey.TEST_USERNAME))
         builder.setPassword(getProperty(TestingPropertyKey.TEST_PASSWORD))
         builder.setTimeout(getProperty(TestingPropertyKey.TEST_HUB_TIMEOUT))
@@ -102,7 +92,7 @@ public class RestConnectionTestHelper {
         builder.setProxyUsername(getProperty(TestingPropertyKey.TEST_PROXY_USER_BASIC))
         builder.setProxyPassword(getProperty(TestingPropertyKey.TEST_PROXY_PASSWORD_BASIC))
         boolean autoImportHttpsCertificates = Boolean.parseBoolean(getProperty(TestingPropertyKey.TEST_AUTO_IMPORT_HTTPS_CERT))
-        builder.setAlwaysTrustServerCertificate(autoImportHttpsCertificates)
+        builder.setTrustCert(autoImportHttpsCertificates)
 
         return builder.build()
     }
@@ -119,41 +109,17 @@ public class RestConnectionTestHelper {
         return getProperty(TestingPropertyKey.TEST_PASSWORD)
     }
 
-    public CredentialsRestConnection getIntegrationHubRestConnection() throws IllegalArgumentException, EncryptionException, HubIntegrationException {
-        return getRestConnection(getHubServerConfig())
-    }
 
-    public CredentialsRestConnection getRestConnection(final HubServerConfig serverConfig) throws IllegalArgumentException, EncryptionException, HubIntegrationException {
-        return getRestConnection(serverConfig, LogLevel.TRACE)
-    }
-
-    public CredentialsRestConnection getRestConnection(final HubServerConfig serverConfig, final LogLevel logLevel) throws IllegalArgumentException, EncryptionException, HubIntegrationException {
-
-        final CredentialsRestConnection restConnection = new CredentialsRestConnection(new PrintStreamIntLogger(System.out, logLevel), serverConfig.getHubUrl(), serverConfig.getGlobalCredentials().getUsername(),
-                serverConfig.getGlobalCredentials().getDecryptedPassword(), serverConfig.getTimeout())
-        restConnection.proxyHost = serverConfig.getProxyInfo().getHost()
-        restConnection.proxyPort = serverConfig.getProxyInfo().getPort()
-        restConnection.proxyNoHosts = serverConfig.getProxyInfo().getIgnoredProxyHosts()
-        restConnection.proxyUsername = serverConfig.getProxyInfo().getUsername()
-        restConnection.proxyPassword = serverConfig.getProxyInfo().getDecryptedPassword()
-        restConnection.alwaysTrustServerCertificate = serverConfig.alwaysTrustServerCertificate
-
-        return restConnection
-    }
-
-    public HubServicesFactory createHubServicesFactory() throws IllegalArgumentException, EncryptionException, HubIntegrationException {
+    public BlackDuckServicesFactory createBlackDuckServicesFactory() throws IllegalArgumentException {
         return createHubServicesFactory(LogLevel.TRACE)
     }
 
-    public HubServicesFactory createHubServicesFactory(final LogLevel logLevel) throws IllegalArgumentException, EncryptionException, HubIntegrationException {
+    public BlackDuckServicesFactory createBlackDuckServicesFactory(final LogLevel logLevel) throws IllegalArgumentException {
         return createHubServicesFactory(new PrintStreamIntLogger(System.out, logLevel))
     }
 
-    public HubServicesFactory createHubServicesFactory(final IntLogger logger) throws IllegalArgumentException, EncryptionException, HubIntegrationException {
-        final RestConnection restConnection = getIntegrationHubRestConnection()
-        restConnection.logger = logger
-        final HubServicesFactory hubServicesFactory = new HubServicesFactory(restConnection)
-        return hubServicesFactory
+    public BlackDuckServicesFactory createBlackDuckServicesFactory(final IntLogger logger) throws IllegalArgumentException {
+        return getBlackDuckServerConfig().createBlackDuckServicesFactory(logger)
     }
 
     public File getFile(final String classpathResource) {

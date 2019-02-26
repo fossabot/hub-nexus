@@ -35,7 +35,7 @@ import org.sonatype.nexus.tasks.descriptors.AbstractScheduledTaskDescriptor;
 public abstract class AbstractHubTaskDescriptor extends AbstractScheduledTaskDescriptor {
 
     public static final String DEFAULT_HUB_TIMEOUT = "300";
-    private static final String DESCRIPTION_HUB_IMPORT_CERT = "Import the SSL Certificates from the specified HTTPS Hub Server. Note: For this to work, the keystore must be writable by the nexus user";
+    private static final String DESCRIPTION_HUB_TRUST_CERT = "Import the SSL Certificates from the specified HTTPS Hub Server. Note: For this to work, the keystore must be writable by the nexus user";
     private static final String DESCRIPTION_HUB_PASSWORD = "Provide the password to authenticate with your Hub server";
     private static final String DESCRIPTION_HUB_TIMEOUT = "The timeout in seconds for a request to the Blackduck Hub server";
     private static final String DESCRIPTION_HUB_URL = "Provide the URL that lets you access your Hub server. For example \"https://hub.example.com/\"";
@@ -49,7 +49,7 @@ public abstract class AbstractHubTaskDescriptor extends AbstractScheduledTaskDes
     private static final String LABEL_HUB_PASSWORD = "Hub Password";
     private static final String LABEL_HUB_SERVER_URL = "Hub Server URL";
     private static final String LABEL_HUB_USERNAME = "Hub Username";
-    private static final String LABEL_IMPORT_HUB_SSL_CERTIFICATE = "Import Hub SSL Certificate";
+    private static final String LABEL_TRUST_HUB_SSL_CERTIFICATE = "Trust Hub SSL Certificate";
 
     private static final String LABEL_PROXY_HOST = "Proxy Host";
     private static final String LABEL_PROXY_PASSWORD = "Proxy Password";
@@ -60,7 +60,7 @@ public abstract class AbstractHubTaskDescriptor extends AbstractScheduledTaskDes
     private final StringTextFormField usernameField = new StringTextFormField(TaskField.HUB_USERNAME.getParameterKey(), LABEL_HUB_USERNAME, DESCRIPTION_HUB_USERNAME, FormField.MANDATORY);
     private final PasswordFormField passwordField = new PasswordFormField(TaskField.HUB_PASSWORD.getParameterKey(), LABEL_HUB_PASSWORD, DESCRIPTION_HUB_PASSWORD, FormField.MANDATORY);
     private final StringTextFormField timeoutField = new StringTextFormField(TaskField.HUB_TIMEOUT.getParameterKey(), LABEL_CONNECTION_TIMEOUT, DESCRIPTION_HUB_TIMEOUT, FormField.OPTIONAL).withInitialValue(DEFAULT_HUB_TIMEOUT);
-    private final CheckboxFormField autoImportCert = new CheckboxFormField(TaskField.HUB_AUTO_IMPORT_CERT.getParameterKey(), LABEL_IMPORT_HUB_SSL_CERTIFICATE, DESCRIPTION_HUB_IMPORT_CERT, FormField.OPTIONAL);
+    private final CheckboxFormField trustCert = new CheckboxFormField(TaskField.HUB_TRUST_CERT.getParameterKey(), LABEL_TRUST_HUB_SSL_CERTIFICATE, DESCRIPTION_HUB_TRUST_CERT, FormField.OPTIONAL);
 
     private final StringTextFormField proxyHostField = new StringTextFormField(TaskField.HUB_PROXY_HOST.getParameterKey(), LABEL_PROXY_HOST, DESCRIPTION_PROXY_HOST, FormField.OPTIONAL);
     private final StringTextFormField proxyPortField = new StringTextFormField(TaskField.HUB_PROXY_PORT.getParameterKey(), LABEL_PROXY_PORT, DESCRIPTION_PROXY_PORT, FormField.OPTIONAL);
@@ -75,7 +75,7 @@ public abstract class AbstractHubTaskDescriptor extends AbstractScheduledTaskDes
         fields.add(usernameField);
         fields.add(passwordField);
         fields.add(timeoutField);
-        fields.add(autoImportCert);
+        fields.add(trustCert);
         fields.add(proxyHostField);
         fields.add(proxyPortField);
         fields.add(proxyUsernameField);

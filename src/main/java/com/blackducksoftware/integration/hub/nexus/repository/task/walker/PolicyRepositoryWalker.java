@@ -28,14 +28,14 @@ import java.util.Map;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.walker.WalkerContext;
 
-import com.blackducksoftware.integration.exception.IntegrationException;
-import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.HubPolicyCheckEvent;
 import com.blackducksoftware.integration.hub.nexus.event.handler.HubEventHandler;
 import com.blackducksoftware.integration.hub.nexus.event.handler.HubPolicyCheckEventHandler;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor;
+import com.synopsys.integration.blackduck.api.generated.view.ProjectVersionView;
+import com.synopsys.integration.exception.IntegrationException;
 
 public class PolicyRepositoryWalker extends RepositoryWalkerProcessor<HubPolicyCheckEvent> {
     private final ItemAttributesHelper itemAttributesHelper;
@@ -43,7 +43,7 @@ public class PolicyRepositoryWalker extends RepositoryWalkerProcessor<HubPolicyC
     private final Map<String, String> taskParams;
 
     public PolicyRepositoryWalker(final ParallelEventProcessor parallelEventProcessor, final ItemAttributesHelper itemAttributesHelper, final Map<String, String> taskParams,
-            final HubServiceHelper hubServiceHelper) {
+        final HubServiceHelper hubServiceHelper) {
         super(parallelEventProcessor);
         this.taskParams = taskParams;
         this.itemAttributesHelper = itemAttributesHelper;
@@ -66,8 +66,7 @@ public class PolicyRepositoryWalker extends RepositoryWalkerProcessor<HubPolicyC
 
     private ProjectVersionView getProjectVersion(final StorageItem item) throws IntegrationException {
         final String url = itemAttributesHelper.getApiUrl(item);
-        final ProjectVersionView projectVersionView = hubServiceHelper.getProjectVersionRequestService().getItem(url, ProjectVersionView.class);
-        return projectVersionView;
+        return hubServiceHelper.getBlackDuckService().getResponse(url, ProjectVersionView.class);
     }
 
 }

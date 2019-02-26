@@ -24,10 +24,16 @@
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.sonatype.nexus.plugin.PluginIdentity;
 import org.sonatype.nexus.proxy.NoSuchRepositoryException;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.repository.ProxyRepository;
@@ -36,16 +42,14 @@ import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
 import org.sonatype.nexus.proxy.walker.DefaultStoreWalkerFilter;
 import org.sonatype.nexus.scheduling.AbstractNexusRepositoriesPathAwareTask;
 
-import com.blackducksoftware.integration.hub.dataservice.phonehome.PhoneHomeDataService;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.application.IntegrationInfo;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.TaskWalker;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor;
-import com.blackducksoftware.integration.log.Slf4jIntLogger;
-import com.blackducksoftware.integration.phonehome.PhoneHomeClient;
-import com.blackducksoftware.integration.phonehome.PhoneHomeRequestBodyBuilder;
-import com.blackducksoftware.integration.phonehome.exception.PhoneHomeException;
+import com.synopsys.integration.blackduck.phonehome.BlackDuckPhoneHomeHelper;
+import com.synopsys.integration.log.Slf4jIntLogger;
+import com.synopsys.integration.phonehome.PhoneHomeResponse;
 
 public abstract class AbstractHubWalkerTask extends AbstractNexusRepositoriesPathAwareTask<Object> {
     protected static final String ALL_REPO_ID = "all_repo";
@@ -92,40 +96,62 @@ public abstract class AbstractHubWalkerTask extends AbstractNexusRepositoriesPat
 
     @Override
     protected final Object doRun() throws Exception {
+        Optional<PhoneHomeResponse> phoneHomeResponse = Optional.empty();
         try {
             initTask();
+            phoneHomeResponse = phoneHomeIfApplicable();
             final AbstractWalkerProcessor repositoryWalker = getRepositoryWalker();
             final DefaultStoreWalkerFilter repositoryWalkerFilter = getRepositoryWalkerFilter();
 
             final List<Repository> repositoryList = createRepositoryList();
             taskWalker.walkRepositoriesWithFilter(repositoryList, repositoryWalker, repositoryWalkerFilter, getResourceStorePath());
-            phoneHomeIfApplicable();
         } catch (final Exception ex) {
             logger.error("Error occurred during task execution {}", ex);
         } finally {
             parallelEventProcessor.shutdownProcessor();
+            phoneHomeResponse.ifPresent(this::endPhoneHome);
         }
         return null;
     }
 
-    private void phoneHomeIfApplicable() {
+    private Optional<PhoneHomeResponse> phoneHomeIfApplicable() {
         final DateTime currentTime = new DateTime();
         if (shouldPhoneHome(currentTime)) {
             logger.info("Sending phone home data");
-            phoneHome();
+            final Optional<PhoneHomeResponse> response = phoneHome();
             addParameter(TaskField.PHONE_HOME.getParameterKey(), currentTime.toString());
+            return response;
         }
+        return Optional.empty();
     }
 
-    private void phoneHome() {
+    public Optional<PhoneHomeResponse> phoneHome() {
+        final ExecutorService executorService = Executors.newSingleThreadExecutor();
         try {
-            final PhoneHomeDataService phoneHomeDataService = hubServiceHelper.getHubServicesFactory().createPhoneHomeDataService();
-            final PhoneHomeRequestBodyBuilder phoneHomeRequestBodyBuilder = phoneHomeDataService.createInitialPhoneHomeRequestBodyBuilder(integrationInfo.getThirdPartyName(), integrationInfo.getThirdPartyVersion(),
-                    integrationInfo.getPluginVersion());
-            final PhoneHomeClient phoneHomeClient = hubServiceHelper.getHubServicesFactory().createPhoneHomeClient();
-            phoneHomeClient.postPhoneHomeRequest(phoneHomeRequestBodyBuilder.build());
-        } catch (IllegalStateException | PhoneHomeException e) {
+            final BlackDuckPhoneHomeHelper phoneHomeHelper = BlackDuckPhoneHomeHelper.createAsynchronousPhoneHomeHelper(getHubServiceHelper().getHubServicesFactory(), executorService);
+            logger.debug("Sending phone home data.");
+
+            final Map<String, String> metaData = new HashMap();
+            metaData.put("nexus.version", integrationInfo.getThirdPartyVersion());
+
+            final PluginIdentity pluginIdentity = integrationInfo.getPluginIdentity();
+
+            logger.debug("Found {} version {}", pluginIdentity.getId(), pluginIdentity.getVersion());
+
+            return Optional.of(phoneHomeHelper.handlePhoneHome(pluginIdentity.getId(), pluginIdentity.getVersion(), metaData));
+        } catch (final IllegalArgumentException e) {
             logger.debug("Problem with phoning home", e);
+        } finally {
+            executorService.shutdownNow();
+        }
+        return Optional.empty();
+    }
+
+    public void endPhoneHome(final PhoneHomeResponse phoneHomeResponse) {
+        if (phoneHomeResponse.getImmediateResult()) {
+            logger.debug("Phone home was successful.");
+        } else {
+            logger.debug("Phone home failed.");
         }
     }
 

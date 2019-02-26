@@ -24,9 +24,10 @@
 package com.blackducksoftware.integration.hub.nexus.repository.task;
 
 public enum TaskField {
+    //HUB_TRUST_CERT, leaving the parameter key as the old key to prevent migration issues
     DISTRIBUTION("blackduck.hub.project.version.distribution"),
     FILE_PATTERNS("blackduck.hub.nexus.file.pattern.match.wildcards"),
-    HUB_AUTO_IMPORT_CERT("blackduck.hub.auto.import.cert"),
+    HUB_TRUST_CERT("blackduck.hub.auto.import.cert"),
     HUB_PASSWORD("blackduck.hub.password"),
     HUB_PROXY_HOST("blackduck.hub.proxy.host"),
     HUB_PROXY_PORT("blackduck.hub.proxy.port"),
@@ -45,7 +46,7 @@ public enum TaskField {
     ALWAYS_SCAN("blackduck.hub.nexus.rescan.always"),
     PHONE_HOME("blackduck.hub.nexus.phonehome");
 
-    private String parameterKey;
+    private final String parameterKey;
 
     private TaskField(final String parameterKey) {
         this.parameterKey = parameterKey;

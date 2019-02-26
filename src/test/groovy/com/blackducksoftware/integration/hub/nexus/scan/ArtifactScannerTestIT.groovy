@@ -23,23 +23,23 @@
  */
 package com.blackducksoftware.integration.hub.nexus.scan
 
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
-
-import com.blackducksoftware.integration.hub.model.view.ProjectVersionView
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper
 import com.blackducksoftware.integration.hub.nexus.event.policy.AbstractPolicyCheckTest
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField
 import com.blackducksoftware.integration.hub.nexus.test.RestConnectionTestHelper
-import com.blackducksoftware.integration.hub.nexus.test.TestEventLogger
 import com.blackducksoftware.integration.hub.nexus.test.TestingPropertyKey
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
+import com.synopsys.integration.blackduck.api.generated.view.ProjectVersionView
+import com.synopsys.integration.log.IntLogger
+import com.synopsys.integration.log.PrintStreamIntLogger
+import org.junit.Assert
+import org.junit.Before
+import org.junit.Test
 
 public class ArtifactScannerTestIT extends AbstractPolicyCheckTest {
     private RestConnectionTestHelper restConnection
     private Map<String, String> taskParams
-    private TestEventLogger testEventLogger;
+    private IntLogger logger;
 
     private Map<String, String> generateParams() {
         final Map<String, String> newParams = new HashMap<>()
@@ -61,7 +61,7 @@ public class ArtifactScannerTestIT extends AbstractPolicyCheckTest {
     public void setUp() throws Exception {
         super.setUp()
         restConnection = new RestConnectionTestHelper()
-        testEventLogger = new TestEventLogger();
+        logger = new PrintStreamIntLogger();
     }
 
     @Override
@@ -78,10 +78,10 @@ public class ArtifactScannerTestIT extends AbstractPolicyCheckTest {
     public void scanTest() {
         ItemAttributesHelper itemAttributesHelper = new ItemAttributesHelper(super.getAttributesHandler())
         File installDirectory = new File(getClass().getClassLoader().getResource('repo1').getFile())
-        HubServiceHelper hubServiceHelper = new HubServiceHelper(testEventLogger, taskParams)
+        HubServiceHelper hubServiceHelper = new HubServiceHelper(logger, taskParams)
 
         ProjectVersionView projectVersionView = getPolicyCheckEvent().projectVersionView
-        Assert.assertNotNull(projectVersionView.meta)
+        Assert.assertNotNull(projectVersionView._meta)
         Assert.assertNotNull(projectVersionView.distribution)
         Assert.assertNotNull(projectVersionView.phase)
     }

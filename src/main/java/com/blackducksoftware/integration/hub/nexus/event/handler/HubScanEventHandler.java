@@ -23,19 +23,19 @@
  */
 package com.blackducksoftware.integration.hub.nexus.event.handler;
 
-import java.io.File;
+import java.net.URL;
 
 import org.slf4j.LoggerFactory;
 
-import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.event.HubPolicyCheckEvent;
 import com.blackducksoftware.integration.hub.nexus.event.HubScanEvent;
-import com.blackducksoftware.integration.hub.nexus.repository.task.ScanTaskDescriptor;
-import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
 import com.blackducksoftware.integration.hub.nexus.scan.ArtifactScanner;
 import com.blackducksoftware.integration.hub.nexus.util.HubEventLogger;
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
+import com.synopsys.integration.blackduck.api.generated.view.ProjectVersionView;
+import com.synopsys.integration.blackduck.configuration.BlackDuckServerConfig;
+import com.synopsys.integration.blackduck.service.model.ProjectVersionWrapper;
 
 public class HubScanEventHandler extends HubEventHandler<HubScanEvent> {
     public HubScanEventHandler(final ItemAttributesHelper itemAttributesHelper, final HubScanEvent event, final HubServiceHelper hubServiceHelper) {
@@ -48,14 +48,16 @@ public class HubScanEventHandler extends HubEventHandler<HubScanEvent> {
         try {
             logger.info("Begin handling scan event");
             final HubServiceHelper hubServiceHelper = getHubServiceHelper();
-            final String cliInstallRootDirectory = String.format("hub%s", String.valueOf(hubServiceHelper.getHubServerConfig().getHubUrl().getHost().hashCode()));
-            logger.info(String.format("CLI Installation Root Directory for %s: %s", hubServiceHelper.getHubServerConfig().getHubUrl().toString(), cliInstallRootDirectory));
-            final File blackDuckDirectory = new File(getEvent().getTaskParameters().get(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
-            final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
-            final ArtifactScanner scanner = new ArtifactScanner(getEvent(), logger, getAttributeHelper(), taskDirectory, hubServiceHelper);
-            final ProjectVersionView projectVersionView = scanner.scan();
-            if (projectVersionView != null) {
-                logger.info("Posting policy check event for " + projectVersionView.versionName);
+            final BlackDuckServerConfig blackDuckServerConfig = hubServiceHelper.getHubServerConfig();
+            final URL blackDuckURL = blackDuckServerConfig.getBlackDuckUrl();
+            final String cliInstallRootDirectory = String.format("hub%s", String.valueOf(blackDuckURL.getHost().hashCode()));
+            logger.info(String.format("CLI Installation Root Directory for %s: %s", blackDuckURL.toString(), cliInstallRootDirectory));
+
+            final ArtifactScanner scanner = new ArtifactScanner(getEvent(), logger, getAttributeHelper(), hubServiceHelper);
+            final ProjectVersionWrapper projectVersionWrapper = scanner.scan();
+            if (projectVersionWrapper != null) {
+                final ProjectVersionView projectVersionView = projectVersionWrapper.getProjectVersionView();
+                logger.info("Posting policy check event for " + projectVersionView.getVersionName());
                 final HubPolicyCheckEvent event = new HubPolicyCheckEvent(getEvent().getRepository(), getEvent().getItem(), getEvent().getTaskParameters(), getEvent().getRequest(), projectVersionView);
                 final HubPolicyCheckEventHandler hubPolicyCheckEventHandler = new HubPolicyCheckEventHandler(getAttributeHelper(), event, hubServiceHelper);
                 hubPolicyCheckEventHandler.run();
