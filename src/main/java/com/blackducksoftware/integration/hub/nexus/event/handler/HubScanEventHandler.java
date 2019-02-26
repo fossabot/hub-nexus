@@ -48,7 +48,7 @@ public class HubScanEventHandler extends HubEventHandler<HubScanEvent> {
         try {
             logger.info("Begin handling scan event");
             final HubServiceHelper hubServiceHelper = getHubServiceHelper();
-            final BlackDuckServerConfig blackDuckServerConfig = hubServiceHelper.getHubServerConfig();
+            final BlackDuckServerConfig blackDuckServerConfig = hubServiceHelper.createBlackDuckServerConfig();
             final URL blackDuckURL = blackDuckServerConfig.getBlackDuckUrl();
             final String cliInstallRootDirectory = String.format("hub%s", String.valueOf(blackDuckURL.getHost().hashCode()));
             logger.info(String.format("CLI Installation Root Directory for %s: %s", blackDuckURL.toString(), cliInstallRootDirectory));

@@ -47,6 +47,7 @@ import com.synopsys.integration.blackduck.api.generated.enumeration.ProjectVersi
 import com.synopsys.integration.blackduck.api.generated.view.ProjectView;
 import com.synopsys.integration.blackduck.api.generated.view.TagView;
 import com.synopsys.integration.blackduck.service.BlackDuckService;
+import com.synopsys.integration.blackduck.service.BlackDuckServicesFactory;
 import com.synopsys.integration.blackduck.service.ProjectService;
 import com.synopsys.integration.blackduck.service.TagService;
 import com.synopsys.integration.blackduck.service.model.ProjectSyncModel;
@@ -81,9 +82,10 @@ public class ScanRepositoryWalker extends RepositoryWalkerProcessor<HubScanEvent
         final String phase = taskParams.get(TaskField.PHASE.getParameterKey());
         final NameVersionNode nameVersionNode = generateProjectNameVersion(item);
 
-        hubServiceHelper.getBlackDuckService();
-        hubServiceHelper.getProjectService();
-        final ProjectVersionWrapper projectVersionWrapper = getOrCreateProjectVersion(hubServiceHelper.getBlackDuckService(), hubServiceHelper.getProjectService(), nameVersionNode.getName(), nameVersionNode.getVersion(), distribution,
+        final BlackDuckServicesFactory blackDuckServicesFactory = hubServiceHelper.createBlackDuckServicesFactory();
+
+        final ProjectVersionWrapper projectVersionWrapper = getOrCreateProjectVersion(blackDuckServicesFactory.createBlackDuckService(), blackDuckServicesFactory.createProjectService(), nameVersionNode.getName(),
+            nameVersionNode.getVersion(), distribution,
             phase);
 
         // the walker has already restricted the items to find. Now for scanning to work create a request that is for the repository root because the item path is relative to the repository root

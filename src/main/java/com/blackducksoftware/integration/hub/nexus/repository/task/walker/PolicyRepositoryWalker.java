@@ -35,6 +35,7 @@ import com.blackducksoftware.integration.hub.nexus.event.handler.HubPolicyCheckE
 import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper;
 import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor;
 import com.synopsys.integration.blackduck.api.generated.view.ProjectVersionView;
+import com.synopsys.integration.blackduck.service.BlackDuckService;
 import com.synopsys.integration.exception.IntegrationException;
 
 public class PolicyRepositoryWalker extends RepositoryWalkerProcessor<HubPolicyCheckEvent> {
@@ -66,7 +67,8 @@ public class PolicyRepositoryWalker extends RepositoryWalkerProcessor<HubPolicyC
 
     private ProjectVersionView getProjectVersion(final StorageItem item) throws IntegrationException {
         final String url = itemAttributesHelper.getApiUrl(item);
-        return hubServiceHelper.getBlackDuckService().getResponse(url, ProjectVersionView.class);
+        final BlackDuckService blackDuckService = hubServiceHelper.createBlackDuckServicesFactory().createBlackDuckService();
+        return blackDuckService.getResponse(url, ProjectVersionView.class);
     }
 
 }
