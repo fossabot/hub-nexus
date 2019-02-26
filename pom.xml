@@ -32,6 +32,16 @@
     <developerConnection>scm:git:git@github.com:blackducksoftware/hub-nexus.git</developerConnection>
     <url>https://www.github.com/blackducksoftware/hub-nexus</url>
   </scm>
+  <distributionManagement>
+    <repository>
+      <id>bds-artifactory</id>
+      <url>https://test-repo.blackducksoftware.com/artifactory/bds-integrations-release</url>
+    </repository>
+    <snapshotRepository>
+      <id>bds-artifactory</id>
+      <url>https://test-repo.blackducksoftware.com/artifactory/bds-integrations-snapshot</url>
+    </snapshotRepository>
+  </distributionManagement>
 
   <properties>
     <skipITTests>true</skipITTests>
@@ -458,47 +468,4 @@
       </plugin>
     </plugins>
   </build>
-
-  <profiles>
-    <profile>
-      <id>snapshot-deployment</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <distributionManagement>
-        <snapshotRepository>
-          <id>bds-artifactory</id>
-          <url>https://test-repo.blackducksoftware.com/artifactory/bds-integrations-snapshot</url>
-        </snapshotRepository>
-      </distributionManagement>
-    </profile>
-    <profile>
-      <id>deployment</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <distributionManagement>
-        <repository>
-          <id>bds-artifactory</id>
-          <url>https://test-repo.blackducksoftware.com/artifactory/bds-integrations-release</url>
-        </repository>
-      </distributionManagement>
-    </profile>
-    <profile>
-      <id>qa-deployment</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <distributionManagement>
-        <repository>
-          <id>bds-artifactory</id>
-          <url>https://test-repo.blackducksoftware.com/artifactory/bds-integrations-test</url>
-        </repository>
-        <snapshotRepository>
-          <id>bds-artifactory</id>
-          <url>https://test-repo.blackducksoftware.com/artifactory/bds-integrations-snapshot</url>
-        </snapshotRepository>
-      </distributionManagement>
-    </profile>
-  </profiles>
 </project>
