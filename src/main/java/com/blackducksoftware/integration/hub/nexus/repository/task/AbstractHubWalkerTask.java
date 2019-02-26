@@ -33,7 +33,6 @@ import java.util.concurrent.Executors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
-import org.sonatype.nexus.plugin.PluginIdentity;
 import org.sonatype.nexus.proxy.NoSuchRepositoryException;
 import org.sonatype.nexus.proxy.attributes.DefaultAttributesHandler;
 import org.sonatype.nexus.proxy.repository.ProxyRepository;
@@ -42,6 +41,7 @@ import org.sonatype.nexus.proxy.walker.AbstractWalkerProcessor;
 import org.sonatype.nexus.proxy.walker.DefaultStoreWalkerFilter;
 import org.sonatype.nexus.scheduling.AbstractNexusRepositoriesPathAwareTask;
 
+import com.blackducksoftware.integration.hub.nexus.application.HubNexusPlugin;
 import com.blackducksoftware.integration.hub.nexus.application.HubServiceHelper;
 import com.blackducksoftware.integration.hub.nexus.application.IntegrationInfo;
 import com.blackducksoftware.integration.hub.nexus.repository.task.walker.TaskWalker;
@@ -134,11 +134,11 @@ public abstract class AbstractHubWalkerTask extends AbstractNexusRepositoriesPat
             final Map<String, String> metaData = new HashMap();
             metaData.put("nexus.version", integrationInfo.getThirdPartyVersion());
 
-            final PluginIdentity pluginIdentity = integrationInfo.getPluginIdentity();
+            final HubNexusPlugin hubNexusPlugin = integrationInfo.getHubNexusPlugin();
 
-            logger.debug("Found {} version {}", pluginIdentity.getId(), pluginIdentity.getVersion());
+            logger.debug("Found {} version {}", hubNexusPlugin.getId(), hubNexusPlugin.getVersion());
 
-            return Optional.of(phoneHomeHelper.handlePhoneHome(pluginIdentity.getId(), pluginIdentity.getVersion(), metaData));
+            return Optional.of(phoneHomeHelper.handlePhoneHome(hubNexusPlugin.getId(), hubNexusPlugin.getVersion(), metaData));
         } catch (final IllegalArgumentException e) {
             logger.debug("Problem with phoning home", e);
         } finally {

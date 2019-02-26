@@ -31,6 +31,7 @@ import com.blackducksoftware.integration.hub.nexus.util.ItemAttributesHelper
 import com.blackducksoftware.integration.hub.nexus.util.ParallelEventProcessor
 import com.synopsys.integration.blackduck.api.generated.view.ProjectVersionView
 import com.synopsys.integration.blackduck.service.BlackDuckService
+import com.synopsys.integration.blackduck.service.BlackDuckServicesFactory
 import org.apache.commons.collections.map.HashedMap
 import org.junit.Assert
 import org.junit.Before
@@ -81,9 +82,11 @@ public class PolicyWalkerTest {
                 getParentPath              : { -> PARENT_PATH },
                 getName                    : { -> "itemName" }] as StorageItem
         walkerContext = [getResourceStoreRequest: { -> null }] as WalkerContext
+        BlackDuckServicesFactory blackDuckServicesFactory = Mockito.mock(BlackDuckServicesFactory.class)
         BlackDuckService blackDuckService = Mockito.mock(BlackDuckService.class)
         hubServiceHelper = Mockito.mock(HubServiceHelper.class)
-        Mockito.when(hubServiceHelper.getBlackDuckService()).thenReturn(blackDuckService)
+        Mockito.when(hubServiceHelper.createBlackDuckServicesFactory()).thenReturn(blackDuckServicesFactory)
+        Mockito.when(blackDuckServicesFactory.createBlackDuckService()).thenReturn(blackDuckService)
         ProjectVersionView projectVersionView = Mockito.mock(ProjectVersionView.class);
         Mockito.when(blackDuckService.getResponse(Mockito.anyString(), Mockito.any(Class.class))).thenReturn(projectVersionView)
 

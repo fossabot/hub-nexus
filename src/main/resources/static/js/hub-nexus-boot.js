@@ -21,6 +21,4 @@
  * 	specific language governing permissions and limitations
  * 	under the License.
  */
-define('blackduck-hub-nexus-plugin-boot', [
-    
-])
+define('hub-nexus-boot', [])

@@ -28,25 +28,24 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.sonatype.nexus.configuration.application.ApplicationConfiguration;
-import org.sonatype.nexus.plugin.PluginIdentity;
 
 @Named
 @Singleton
 public class IntegrationInfo {
     private final String thirdPartyVersion;
-    private final PluginIdentity pluginIdentity;
+    private final HubNexusPlugin hubNexusPlugin;
 
     @Inject
-    public IntegrationInfo(final ApplicationConfiguration applicationConfiguration) throws Exception {
+    public IntegrationInfo(final ApplicationConfiguration applicationConfiguration, final HubNexusPlugin hubNexusPlugin) throws Exception {
         this.thirdPartyVersion = applicationConfiguration.getConfigurationModel().getNexusVersion();
-        this.pluginIdentity = new PluginIdentity(HubNexusPlugin.GROUP_ID, HubNexusPlugin.ID_PREFIX);
+        this.hubNexusPlugin = hubNexusPlugin;
     }
 
     public String getThirdPartyVersion() {
         return thirdPartyVersion;
     }
 
-    public PluginIdentity getPluginIdentity() {
-        return pluginIdentity;
+    public HubNexusPlugin getHubNexusPlugin() {
+        return hubNexusPlugin;
     }
 }
