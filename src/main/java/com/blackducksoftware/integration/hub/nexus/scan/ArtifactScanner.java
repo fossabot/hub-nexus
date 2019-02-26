@@ -67,7 +67,8 @@ public class ArtifactScanner {
 
     public ProjectVersionWrapper scan() {
         final StorageItem item = event.getItem();
-        final File cliInstallDirectory = getSignatureScannerInstallDirectory();
+        final BlackDuckServerConfig blackDuckServerConfig = hubServiceHelper.createBlackDuckServerConfig();
+        final File cliInstallDirectory = getSignatureScannerInstallDirectory(blackDuckServerConfig);
         final File outputDirectory = getSignatureScannerOutputDirectory(cliInstallDirectory, event.getEventId().toString());
         try {
             logger.info("Beginning scan of artifact");
@@ -78,7 +79,6 @@ public class ArtifactScanner {
                 return null;
             } else {
                 final String scanMemoryValue = getParameter(TaskField.HUB_SCAN_MEMORY.getParameterKey());
-                final BlackDuckServerConfig blackDuckServerConfig = hubServiceHelper.getHubServerConfig();
                 final String projectName = event.getProjectVersionWrapper().getProjectView().getName();
                 final String projectVersion = event.getProjectVersionWrapper().getProjectVersionView().getVersionName();
                 final String codeLocationName = String.join("/", SCAN_CODE_LOCATION_NAME, event.getRepository().getName(), projectName, projectVersion);
@@ -88,7 +88,7 @@ public class ArtifactScanner {
                 final String targets = StringUtils.join(scanBatch.getScanTargets(), ", ");
                 logger.info(String.format("Scan Path %s", targets));
 
-                final SignatureScannerService signatureScannerService = hubServiceHelper.getSignatureScannerService();
+                final SignatureScannerService signatureScannerService = hubServiceHelper.createBlackDuckServicesFactory().createSignatureScannerService();
                 final ScanBatchOutput scanBatchOutput = signatureScannerService.performSignatureScanAndWait(scanBatch, blackDuckServerConfig.getTimeout() * 5);
 
                 logger.info("Checking scan results...");
@@ -155,9 +155,9 @@ public class ArtifactScanner {
         return scanBatchBuilder.build();
     }
 
-    private File getSignatureScannerInstallDirectory() {
+    private File getSignatureScannerInstallDirectory(final BlackDuckServerConfig blackDuckServerConfig) {
         final File blackDuckDirectory = new File(getParameter(TaskField.WORKING_DIRECTORY.getParameterKey()), ScanTaskDescriptor.BLACKDUCK_DIRECTORY);
-        final String cliInstallRootDirectory = String.format("hub%s", String.valueOf(hubServiceHelper.getHubServerConfig().getBlackDuckUrl().getHost().hashCode()));
+        final String cliInstallRootDirectory = String.format("hub%s", String.valueOf(blackDuckServerConfig.getBlackDuckUrl().getHost().hashCode()));
         final File taskDirectory = new File(blackDuckDirectory, cliInstallRootDirectory);
         final File cliInstallDirectory = new File(taskDirectory, "tools");
         if (!cliInstallDirectory.exists()) {

@@ -68,7 +68,7 @@ public class HubPolicyCheckEventHandler extends HubEventHandler<HubPolicyCheckEv
             final ProjectVersionView projectVersionView = getEvent().getProjectVersionView();
             final HubServiceHelper hubServiceHelper = getHubServiceHelper();
             if (hubServiceHelper != null) {
-                final BlackDuckService blackDuckService = hubServiceHelper.getBlackDuckService();
+                final BlackDuckService blackDuckService = hubServiceHelper.createBlackDuckServicesFactory().createBlackDuckService();
                 final Optional<VersionBomPolicyStatusView> response = blackDuckService.getResponse(projectVersionView, ProjectVersionView.POLICY_STATUS_LINK_RESPONSE);
                 response.ifPresent(versionBomPolicyStatusView -> {
                     final PolicyStatusDescription policyCheckResults = new PolicyStatusDescription(versionBomPolicyStatusView);

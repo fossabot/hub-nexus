@@ -26,37 +26,21 @@ package com.blackducksoftware.integration.hub.nexus.application;
 import java.util.Map;
 
 import com.blackducksoftware.integration.hub.nexus.repository.task.TaskField;
-import com.synopsys.integration.blackduck.codelocation.signaturescanner.SignatureScannerService;
 import com.synopsys.integration.blackduck.configuration.BlackDuckServerConfig;
 import com.synopsys.integration.blackduck.configuration.BlackDuckServerConfigBuilder;
-import com.synopsys.integration.blackduck.service.BlackDuckService;
 import com.synopsys.integration.blackduck.service.BlackDuckServicesFactory;
-import com.synopsys.integration.blackduck.service.PolicyRuleService;
-import com.synopsys.integration.blackduck.service.ProjectService;
-import com.synopsys.integration.blackduck.service.ReportService;
-import com.synopsys.integration.exception.IntegrationException;
 import com.synopsys.integration.log.IntLogger;
 
 public class HubServiceHelper {
     private final IntLogger intLogger;
-    private BlackDuckServerConfig hubServerConfig;
     private final Map<String, String> taskParameters;
-
-    private BlackDuckServicesFactory hubServicesFactory;
-
-    private BlackDuckService blackDuckService;
-    private SignatureScannerService signatureScannerService;
-    private PolicyRuleService policyRuleService;
-    private ReportService reportService;
-    private ProjectService projectService;
 
     public HubServiceHelper(final IntLogger logger, final Map<String, String> taskParameters) {
         this.intLogger = logger;
         this.taskParameters = taskParameters;
     }
 
-    public BlackDuckServerConfig createHubServerConfig(final Map<String, String> taskParameters) {
-
+    public BlackDuckServerConfig createBlackDuckServerConfig() {
         final String hubUrl = taskParameters.get(TaskField.HUB_URL.getParameterKey());
         final String hubUsername = taskParameters.get(TaskField.HUB_USERNAME.getParameterKey());
         final String hubPassword = taskParameters.get(TaskField.HUB_PASSWORD.getParameterKey());
@@ -67,81 +51,22 @@ public class HubServiceHelper {
         final String proxyPassword = taskParameters.get(TaskField.HUB_PROXY_PASSWORD.getParameterKey());
         final String autoImport = taskParameters.get(TaskField.HUB_TRUST_CERT.getParameterKey());
 
-        final BlackDuckServerConfigBuilder hubServerConfigBuilder = new BlackDuckServerConfigBuilder();
-        hubServerConfigBuilder.setUrl(hubUrl);
-        hubServerConfigBuilder.setUsername(hubUsername);
-        hubServerConfigBuilder.setPassword(hubPassword);
-        hubServerConfigBuilder.setTimeout(hubTimeout);
-        hubServerConfigBuilder.setProxyHost(proxyHost);
-        hubServerConfigBuilder.setProxyPort(proxyPort);
-        hubServerConfigBuilder.setProxyUsername(proxyUsername);
-        hubServerConfigBuilder.setProxyPassword(proxyPassword);
-        hubServerConfigBuilder.setTrustCert(autoImport);
+        final BlackDuckServerConfigBuilder blackDuckServerConfigBuilder = new BlackDuckServerConfigBuilder();
+        blackDuckServerConfigBuilder.setUrl(hubUrl);
+        blackDuckServerConfigBuilder.setUsername(hubUsername);
+        blackDuckServerConfigBuilder.setPassword(hubPassword);
+        blackDuckServerConfigBuilder.setTimeout(hubTimeout);
+        blackDuckServerConfigBuilder.setProxyHost(proxyHost);
+        blackDuckServerConfigBuilder.setProxyPort(proxyPort);
+        blackDuckServerConfigBuilder.setProxyUsername(proxyUsername);
+        blackDuckServerConfigBuilder.setProxyPassword(proxyPassword);
+        blackDuckServerConfigBuilder.setTrustCert(autoImport);
 
-        return hubServerConfigBuilder.build();
+        return blackDuckServerConfigBuilder.build();
     }
 
-    public BlackDuckServerConfig getHubServerConfig() {
-        if (hubServerConfig == null) {
-            hubServerConfig = createHubServerConfig(taskParameters);
-        }
-        return hubServerConfig;
+    public synchronized BlackDuckServicesFactory createBlackDuckServicesFactory() {
+        return createBlackDuckServerConfig().createBlackDuckServicesFactory(intLogger);
     }
 
-    public synchronized BlackDuckServicesFactory getHubServicesFactory() {
-        if (hubServicesFactory == null) {
-            setHubServicesFactory(getHubServerConfig().createBlackDuckServicesFactory(intLogger));
-        }
-        return hubServicesFactory;
-    }
-
-    public SignatureScannerService getSignatureScannerService() {
-        if (signatureScannerService == null) {
-            signatureScannerService = getHubServicesFactory().createSignatureScannerService();
-        }
-        return signatureScannerService;
-    }
-
-    public PolicyRuleService getPolicyRuleService() {
-        if (policyRuleService == null) {
-            policyRuleService = getHubServicesFactory().createPolicyRuleService();
-        }
-        return policyRuleService;
-    }
-
-    public ReportService getReportService(final long timeout) {
-        if (reportService == null) {
-            try {
-                reportService = getHubServicesFactory().createReportService(timeout);
-            } catch (final IntegrationException e) {
-                e.printStackTrace();
-                intLogger.error("Error retrieving risk report service");
-            }
-        }
-        return reportService;
-    }
-
-    public ReportService getReportService() {
-        return getReportService(getHubServerConfig().getTimeout());
-    }
-
-    public ProjectService getProjectService() {
-        if (projectService == null) {
-            projectService = getHubServicesFactory().createProjectService();
-        }
-
-        return projectService;
-    }
-
-    public BlackDuckService getBlackDuckService() {
-        if (blackDuckService == null) {
-            blackDuckService = getHubServicesFactory().createBlackDuckService();
-        }
-
-        return blackDuckService;
-    }
-
-    public void setHubServicesFactory(final BlackDuckServicesFactory hubServicesFactory) {
-        this.hubServicesFactory = hubServicesFactory;
-    }
 }

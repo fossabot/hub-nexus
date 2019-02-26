@@ -128,7 +128,7 @@ public abstract class AbstractHubWalkerTask extends AbstractNexusRepositoriesPat
     public Optional<PhoneHomeResponse> phoneHome() {
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         try {
-            final BlackDuckPhoneHomeHelper phoneHomeHelper = BlackDuckPhoneHomeHelper.createAsynchronousPhoneHomeHelper(getHubServiceHelper().getHubServicesFactory(), executorService);
+            final BlackDuckPhoneHomeHelper phoneHomeHelper = BlackDuckPhoneHomeHelper.createAsynchronousPhoneHomeHelper(getHubServiceHelper().createBlackDuckServicesFactory(), executorService);
             logger.debug("Sending phone home data.");
 
             final Map<String, String> metaData = new HashMap();
